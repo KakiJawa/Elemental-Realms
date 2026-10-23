@@ -1,0 +1,200 @@
+# RPG Project Status
+
+## Project Overview
+- **Project Type & Architecture:** Client-side web application built in HTML5, CSS3, and vanilla JavaScript (ES6+). Modular 3-tier file architecture (`index.html` markup shell, `css/style.css` stylesheet, `data/game_data.js` database constants, and `src/game.js` gameplay engine). Uses an in-memory state architecture with browser `localStorage` persistence and no external libraries, bundlers, build steps, or ES6 module CORS constraints (100% offline Windows `file:///` compatible).
+- **Main Entry Point & Files:**
+  - `index.html`: Lightweight HTML markup shell (178 lines) linking `css/style.css`, `data/game_data.js`, and `src/game.js`.
+  - `css/style.css`: Complete application stylesheet and keyframe animations (385 lines).
+  - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`) (898 lines).
+  - `src/game.js`: Game state, combat engine, status ailment processor, inventory, blacksmith workshop, class advancement, UI handlers, and initialization (3,468 lines).
+  - Scratch test tools: 12 test suites totaling 873 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, and `verify_battle_layout.py`) located in `.gemini/antigravity` scratch directory.
+- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 5 distinct progression zones, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
+
+## Current Development Phase
+- **Current Phase:** Phase 3 Complete: Codebase Modularization.
+- **Feature Currently Being Developed:** None (Codebase modularized into `css/style.css`, `data/game_data.js`, and `src/game.js` with zero code deletions, 100% offline Windows `file:///` compatibility, and verified with 873/873 tests passing).
+- **Immediate Next Development Task:** Class-Exclusive Active Skills (Option B).
+
+## Completed Features
+- **Codebase Modularization (Phase 3):**
+  - Sliced the monolithic ~5,000-line `index.html` into a clean, maintainable 3-tier architecture:
+    - `index.html`: Clean HTML markup shell (178 lines) with ordered script tags before `</body>`.
+    - `css/style.css`: All CSS styling, theme variables, grid/flexbox layouts, and animations (385 lines).
+    - `data/game_data.js`: All static game data dictionaries and configuration constants (`ELEMENTS`, `ELEMENT_MODS`, `SVG_SPRITES`, `ENEMIES_DB`, `AREAS_DB`, `EQUIP_SLOTS`, `RARITY_TIERS`, `AFFIX_POOL`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `CLASSES_DB`, `SKILL_TREE_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, and affinity helpers) (898 lines).
+    - `src/game.js`: All active game state (`player`, `pStats`, `battleState`), combat systems, turn timers, status effect engine, inventory Proxy, blacksmith systems, class advancement, modal routers, and `init()` (3,468 lines).
+  - **Strict Non-Module Loading for Offline Windows `file:///` Execution:** Implemented standard `<script src="...">` tags rather than ES6 modules (`<script type="module">`). Running `index.html` by direct double-click from Windows Explorer requires no local HTTP server and triggers zero CORS errors.
+  - **Deterministic Load Ordering:** `css/style.css` in `<head>` ensures zero flash of unstyled content; `data/game_data.js` loads before `src/game.js` before `</body>`, guaranteeing all data constants are available when state and UI scripts initialize.
+  - **Zero Code Deletion & Preservation:** Every single function, DOM element ID, database table, combat formula, and save migration routine was preserved verbatim.
+  - (*Implemented and verified* via 44 dedicated modularization integrity tests + 829 regression tests across 11 suites = 873/873 total passing tests).
+- **Battle Screen Viewport Screen-Fit Overhaul & Sub-Menu UI Polish:**
+  - Overhauled page and screen layout to eliminate screen height overflows. Updated `body` to a full viewport flex container (`height: 100vh; display: flex; flex-direction: column; overflow: hidden;`) with a fixed header (`flex-shrink: 0;`).
+  - Refactored `.screen` to flex children (`flex: 1; min-height: 0; height: auto; overflow: hidden;`), ensuring the Battle Screen fits 100% within the browser window on all aspect ratios with no document-level scrollbars.
+  - Constrained `#battle-ui` to `height: 220px; max-height: 35vh; flex-shrink: 0;`, `#battle-arena` to `flex: 1; min-height: 0; overflow: hidden;`, and added responsive `@media (max-height: 720px)` scaling sprites and UI down to 180px for compact laptop/tablet viewports.
+  - Redesigned `#battle-sub-menu` into an internal flex column with `height: 100%; min-height: 0; overflow: hidden;`, `#sub-menu-content` with `flex: 1; min-height: 0; overflow-y: auto;`, and pinned the Back button (`#btn-battle-back` / `#battle-sub-menu > .btn`) to the bottom with `flex-shrink: 0; margin: 0;`, guaranteeing it is permanently visible and never pushed off-screen regardless of how many skills or items are present.
+- **Combat Consumable Items Sub-Menu Bug Resolution:**
+  - Resolved the defect where clicking "Items" in combat threw an uncaught `TypeError: Cannot read properties of undefined (reading 'type')` and left stale skill buttons rendered in `#sub-menu-content`.
+  - Root cause: In Phase A, `player.inventory` was migrated to an object with `consumables` and `equipment` managed by a Proxy. Running `for (let itemName in player.inventory)` yielded `"consumables"` as an item name, which failed on `ITEMS_DB["consumables"]`.
+  - Fixed `openBattleItems()` to iterate over `(player.inventory && player.inventory.consumables) ? player.inventory.consumables : player.inventory`, validating `item && item.type === 'consumable' && qty > 0`.
+  - Renders consumable buttons with names, quantities, and descriptions, and displays "No consumable items available." when the bag is empty.
+  - Hardened `useItemInBattle()` to decrement counts through `player.inventory.consumables` with legacy fallback, and added sub-menu cleanup in `enableCommands()`.
+  - (*Implemented and verified* across 1280x720, 1024x600, and 1920x1080 viewports via 51 automated layout tests + 778 regression tests = 829/829 total passing tests).
+- **Combat Timing Race Condition Resolution & Interruptible Turn Controller:**
+  - Resolved the project's last remaining known defect ("Combat Timing Race Conditions") by eliminating all raw, unmanaged `setTimeout` chains across turn queues, actions, enemy AI, and state transitions.
+  - Implemented a centralized `setCombatTimeout(callback, baseDelay, ignoreActiveCheck)` controller that scales delays by active game speed, verifies `battleState.active` before execution, and tracks timer references in `activeCombatTimers`.
+  - Implemented `clearAllCombatTimers()` to abort all pending combat timers immediately upon victory, defeat, fleeing, screen transitions away from combat, and game loading/reset.
+- **Combat Speed Pacing Toggle (`1x`, `2x`, `3x`):**
+  - Added an interactive `#btn-combat-speed` toggle button in the `#battle-arena` header.
+  - Cycles live combat pacing seamlessly across `1x` (normal delay), `2x` (half delay), and `3x` (one-third delay, clamped at minimum 40ms safety threshold).
+  - Can be toggled at any moment mid-combat without breaking pending animations, turn order, or state validity.
+- **Scaled Potions & Tactical Battle Items:**
+  - *Expanded Consumables Database (`ITEMS_DB`):* Introduced 6 new high-tier consumables and tactical utility items:
+    - `Mega-Potion`: Restores 250 HP (price: 80 G).
+    - `Max Potion`: Fully restores HP to 100% maximum capacity (price: 200 G).
+    - `Hi-Ether`: Restores 80 MP (price: 60 G).
+    - `Elixir`: Restores 250 HP and 80 MP simultaneously (price: 220 G).
+    - `Cleansing Salve`: Instantly purges all active negative DoTs, debuffs, and ailments (`burn`, `poison`, `bleed`, `slow`, `blind`, `decay`, `shock`, `armor_break`) while preserving positive buffs (`divine_barrier`, `mirage`, `berserk`). Battle-only.
+    - `Smoke Bomb`: Guarantees a 100% instant escape from regular enemy encounters back to town. Hard-gated against Boss encounters (warns player and preserves item without consumption).
+  - *Full Town & Combat Integration:* Integrated into `useItemInBattle()`, `useItemOutsideBattle()`, player inventory management, and Town Shop listings with gold purchasing.
+- **Crit UI Display Bug Resolution:**
+  - Resolved the defect where `stat-crit` in the Character & Equip stats modal remained permanently frozen at `5%` despite crit gains from equipment, skill tree upgrades, or class bonuses.
+  - Added dynamic binding in `renderStats()` (`document.getElementById('stat-crit').innerText = pStats.crit + '%';`), properly synchronizing live Crit values with all equipment affixes, skill tree training, and class traits.
+- **3-Tier Class Advancement & Apex Evolution System:**
+  - *16 Comprehensive Classes (`CLASSES_DB`):* Novice base path branching into 3 milestone tiers at Level 10, Level 25, and Level 50:
+    - **Novice Base:** Unspecialized starting class (`novice`).
+    - **Tier 1 (Level 10):**
+      - `warrior`: Master of endurance and physical force (+20% ATK, +15% Max HP, -15% MATK, -10% MDEF, -5% SPD).
+      - `mage`: Wielder of destructive elemental arcana (+30% MATK, +25% Max MP, -25% ATK, -15% Max HP, -10% DEF).
+      - `rogue`: Swift opportunist focused on critical strikes (+25% SPD, +15% Crit, +15% ATK, -15% Max HP, -15% DEF, -20% MATK).
+    - **Tier 2 Specializations (Level 25 Branching):**
+      - From Warrior:
+        - `berserker`: Fury channeler (+45% ATK, +15% Crit, -25% DEF, -20% MDEF) with `blood_frenzy` passive (outgoing damage scales up to +40% as player HP drops below max).
+        - `paladin`: Holy protector (+40% DEF, +35% Max HP, +20% MDEF, -15% SPD, -15% MATK) with `aegis_ward` passive (starts combat with a permanent 15% Max HP `divine_barrier` shield).
+      - From Mage:
+        - `archmage`: Arcane conduit (+50% MATK, +40% Max MP, -30% ATK, -20% Max HP) with `elemental_overcharge` passive (elemental weakness multiplier boosted from 1.5x to 2.0x, skill MP costs reduced by 25%).
+        - `warlock`: Dark vitality drainer (+35% MATK, +25% Max MP, +20% Max HP, -25% ATK, -15% DEF) with `soul_siphon` passive (20% of all magic and DoT damage dealt leeches back to heal player HP).
+      - From Rogue:
+        - `assassin`: Target executioner (+40% ATK, +30% Crit, +20% SPD, -25% Max HP, -25% DEF) with `lethal_exploit` passive (+40% critical strike damage against enemies afflicted by status ailments).
+        - `shadowblade`: Illusionist master (+45% SPD, +20% Crit, +20% ATK, +15% DEF, -25% MATK, -15% Max HP) with `phantom_mirage` passive (starts combat with 2 guaranteed dodge stacks of `mirage`).
+    - **Tier 3 Apex Evolutions (Level 50 Apex Branching):**
+      - `warlord_of_carnage` (from Berserker): +80% ATK, +25% Crit, +10% SPD, -20% DEF with `undying_wrath` apex passive (survives fatal hits once per battle with 1 HP, gaining +50% ATK and 3 turns of berserk).
+      - `holy_templar` (from Paladin): +75% DEF, +60% Max HP, +45% MDEF, -10% SPD with `divine_retribution` apex passive (reflects 30% of all mitigated damage back to attackers as Holy true damage).
+      - `archon_of_elements` (from Archmage): +90% MATK, +60% Max MP, +15% SPD, -25% ATK, -15% Max HP with `arcane_singularity` apex passive (magical spells can critically hit for 2.0x damage).
+      - `voidbringer` (from Warlock): +65% MATK, +45% Max HP, +30% MDEF, -20% ATK with `calamity_conduit` apex passive (all Burn, Poison, and Decay DoTs deal double damage).
+      - `reaper_of_shadows` (from Assassin): +70% ATK, +45% Crit, +35% SPD, -25% Max HP, -20% DEF with `deaths_guillotine` apex passive (instantly executes enemies below 25% HP).
+      - `tempest_blademaster` (from Shadowblade): +70% SPD, +35% ATK, +30% Crit, +20% DEF, -20% MATK with `omnislash_flurry` apex passive (every basic attack strikes twice, with the second strike dealing 50% damage).
+  - *Skill Tree Progression Expansion to Level 50:*
+    - Expanded maximum rank of all 6 core stat training nodes (`atkTraining`, `critTraining`, `vitalityTraining`, `spiritTraining`, `defTraining`, `fortune`) from rank 5 to rank 10.
+    - Sinks all skill orbs accrued up to Level 50 (+3 orbs/level) to provide continuous character progression without orb wastage.
+  - *Town Hub Integration & UI:*
+    - Added `#btn-town-class` ("Class Sanctum Advancement") to the Town Hub screen.
+    - Created `#modal-class-advancement` modal featuring active path tracking, eligibility gates, green/red stat trade-off badges, and passive summaries.
+    - Integrated celebratory toast triggers upon reaching Levels 10, 25, and 50.
+    - Added header class badges `[ClassName]` synchronized with `player.currentClass`.
+  - *100% Save Backward Compatibility & Retroactive Qualification:*
+    - `loadGame()` automatically assigns `player.currentClass = 'novice'` if missing from legacy saves.
+    - Retroactively notifies existing saves with Level >= 10 (e.g. Level 14 benchmark) so legacy players immediately qualify for Tier 1 advancement.
+- **Status Effects & Tactical Combat Buff/Debuff Engine:**
+  - *Centralized Status Database (`STATUS_TYPES_DB`):* 18 distinct tactical effects across 4 categories:
+    - **DoTs & Ailments:**
+      - `burn` (Fire, `🔥`): 5% Max HP fire damage at turn start; reduces incoming healing by 30%.
+      - `poison` (Earth, `☠️`): True Damage at turn start ignoring DEF, stacking up to 5 times.
+      - `bleed` (Physical, `🩸`): Damages afflicted entity whenever an attack or skill action is performed.
+      - `shock` (Wind, `⚡`): Detonates on direct hit for extra lightning damage and splashes 50% to adjacent foes.
+      - `decay` (Dark, `🌑`): Dark damage at turn start; corrupts 25% of any healing received into damage.
+    - **Crowd Control (Disables):**
+      - `freeze` (Water, `❄️`): Skips turn completely. Heavy physical strikes shatter the ice for 1.5x damage and remove freeze early.
+      - `stun` (Physical, `💫`): Skips turn completely and cancels actions.
+      - `blind` (Dark, `👁️`): 40% chance for physical attacks to miss and deal 0 damage.
+      - `silence` (Light, `🤐`): Prevents casting magical spells or heals, forcing basic physical attacks.
+    - **Defensive & Utility Buffs:**
+      - `divine_barrier` (Light, `🛡️`): Temporary damage absorption shield absorbing incoming hits before HP is reduced.
+      - `regeneration` (Nature, `🌿`): Restores 5% Max HP at turn end.
+      - `mirage` (Wind, `🌀`): 40% chance to completely dodge an incoming attack.
+      - `counter_stance` (Physical, `⚔️`): Retaliates with an immediate strike when struck by a physical attack.
+    - **Tactical Buffs & Stat Modifiers:**
+      - `berserk` (Physical, `💥`): +40% ATK, -25% DEF, takes 5% self-damage each turn.
+      - `focus` (Physical, `🎯`): +25% Crit Chance and boosts crit damage multiplier to 2.0x.
+      - `armor_break` (Physical, `🛡️-`): Reduces DEF by 30% for 3 turns.
+      - `haste` / `slow` (Speed, `💨` / `🐌`): Modifies Speed by $\pm 30\%$, adjusting turn frequency.
+  - *Boss Crowd Control Immunity:*
+    - Gatekeeper Bosses (`target.isBoss === true`) resist hard crowd control (`stun` and `freeze`).
+    - Attempted disables are converted into a 2-turn `slow` debuff with visual float text (`RESISTED`) and combat log announcements, preventing cheese stun-locks on area bosses.
+  - *Tactical Combat Interactions in `applyDamage`:*
+    - **Shield Absorption:** `divine_barrier` absorbs incoming damage pools, cleanly shattering when depleted.
+    - **Freeze Shatter:** Physical damage against frozen targets deals 1.5x critical shatter damage and breaks freeze.
+    - **Shock Detonation & Splash:** Direct hits detonate stored charge and deal 50% splash damage to all other active enemies.
+    - **Mirage Evasion:** 40% chance to dodge attacks completely with float text.
+    - **Counter Stance:** Instantly retaliates with a free physical attack against the attacker.
+  - *Player Skill Upgrades with Tactical Ailments:*
+    - **`Fireball`:** Damage + 60% chance to apply `burn` (3 turns).
+    - **`Water Splash`:** Damage + 50% chance to apply `freeze` (1 turn) or `slow` (2 turns).
+    - **`Cleave`:** AOE damage + 100% chance to apply `bleed` (3 turns) to all hit enemies.
+    - **`Power Strike`:** Heavy damage + 75% chance to apply `bleed` (3 turns).
+    - **`Armor Break`:** 100% chance to apply `armor_break` (3 turns, 30% DEF reduction).
+    - **`Earth Spike`:** Damage + 50% chance to apply `stun` (1 turn) or `poison` (3 turns).
+    - **`Wind Blade`:** Damage + 50% chance to apply `shock` (3 turns).
+    - **`Holy Light`:** Damage + 50% chance to apply `blind` (2 turns).
+    - **`Dark Blast`:** Damage + 60% chance to apply `decay` (3 turns).
+    - **`Heal`:** Restores HP + grants `regeneration` (3 turns) to Player.
+    - **`Recovery`:** Restores HP + grants `divine_barrier` (absorbs 15% Player Max HP).
+  - *Combat UI Status Trays:*
+    - Added `#statuses-player` and `#statuses-[id]` containers directly beneath HP/MP bars on Hero and Enemy cards.
+    - Renders color-coded status badges with icons, stack counts, and remaining durations (e.g. `[🔥 Burn (2t)]`, `[🛡️ 75]`, `[☠️ Poison x3 (3t)]`).
+    - Automatically cleans up expired badges when duration reaches 0.
+  (*Implemented and verified* via 86/86 automated Status Engine tests + 490/490 regression tests = 576/576 total passing tests).
+- **Blacksmith Workshop System (Salvage, Upgrade & Reforge):**
+  - Crafting materials economy: `player.materials` (`scrap`, `dust`, `shard`).
+  - Salvage Station with individual and bulk Common/Uncommon dismantling.
+  - Upgrade Forge (+1 to +5 with +15% base stat scaling per rank and min +1 per rank).
+  - Affix Reforger for Rare+ items with duplicate-prevention and instant stat recalculation.
+  - Town Hub button (`#btn-town-blacksmith`) and interactive `#modal-blacksmith`.
+  - (*Implemented and verified* via 67/67 automated tests).
+- **5-Zone Area Progression System with Balanced Stat Scaling (Phase B):**
+  - Whispering Woods (Lv 1-5), Sunken Caverns (Lv 6-10), Howling Peaks (Lv 11-15), Infernal Caldera (Lv 16-20), Abyssal Void (Lv 21-25+).
+  - Balanced against Level 14 benchmark (400 HP, 61 ATK, ~35 DEF).
+  - Overhauled Battle Prep modal, gatekeeper bosses, and sequential unlocks.
+  - (*Implemented and verified* via 136/136 automated tests).
+- **6-Slot Equipment Rarity & Random Affix Engine (Phase A):**
+  - 6 dedicated gear slots, 6 rarity tiers with 1 to 6 affixes, dynamic naming, and inventory Proxy.
+  - (*Implemented and verified* via 94/94 automated tests).
+- **Non-Blocking In-Game Toast Notification System (`showToast`):**
+  - Replaced all 18 native `window.alert()` calls with styled toasts.
+  - (*Implemented and verified* via automated tests).
+- **Tiered Quest & Achievement Progression Expansion:**
+  - 16 Tiered Quests, 13 Milestone Achievements with passive stat stacking.
+  - (*Implemented and verified* via 104/104 automated tests).
+- **Combat & Save Stability Fixes:**
+  - Mid-Battle Save/Load Guard, Enemy Magic Elemental Affinity, Armor Break cycle management.
+  - (*Implemented and verified* via 22/22 automated tests).
+- **Achievement System (Phase 2):** Lifetime milestones, permanent stat passives, cosmetic titles. (*Implemented and verified* via 38/38 automated tests).
+- **Quest System (Phase 1):** Responsive quest modal, progression tracking, leveling integration. (*Implemented and verified* via 29/29 automated tests).
+- **Save / Load System:** Persistence to `localStorage` under key `er_save` with backward-compatible fallback handling. (*Implemented and verified*).
+- **Player Stats & Leveling Pipeline:** Base stats, equipment stats, skill tree passives, achievement passives. (*Implemented and verified*).
+- **Combat Turn & Resolution Engine:** Speed-sorted turn queue, turn progression loop, flee mechanism, scaled rewards. (*Implemented and verified*).
+- **Elemental Affinity System:** 7 elements with 1.5x weakness and 0.5x resistance multipliers. (*Implemented and verified*).
+- **Skill Tree:** 3 branches (`Damage`, `Sustain`, `General`) with 13 upgrades. (*Implemented and verified*).
+- **Town Hub & Screen Routing:** Screen switching, overlay modals, and Inn restoration. (*Implemented and verified*).
+
+## Known Bugs and Issues
+- None. All known gameplay, stability, elemental affinity, UI, and timing race condition defects have been completely resolved and verified with automated test suites.
+
+## In Progress
+- None at this time.
+
+## Planned Features
+- **Confirmed Priorities:**
+  - **Class-Exclusive Active Skills (Option B):** Implement 2 to 3 signature active skills for each of the advanced classes.
+  - **Town Shop Overhaul:** Expanding merchant inventory with area-specific base gear, crafting materials, and consumable tiers.
+  - **Dungeon / Endless Tower Mode:** A wave-based gauntlet mode with escalating rewards.
+
+## Important Constraints
+- **Preserve Existing Gameplay:** Do not alter established combat formulas, elemental modifiers, or screen flows without explicit instruction.
+- **Unified Progression:** All experience rewards must flow through `player.exp` and `checkLevelUp()` rather than creating independent progression systems.
+- **Strict Save Compatibility:** Never invalidate existing `localStorage` saves; all new state properties must include backward-compatible default assignments in `loadGame()`.
+- **Viewport & Screen Space Constraints:** Modals and menus must not overflow standard display heights (must maintain `max-height: 80vh`, `overflow-y: auto`, and responsive wrappers).
+- **Evidence-Based Documentation:** Distinguish verified functionality from unverified/untested code; never mark a feature verified without test evidence.
+- **Incremental Changes:** Changes should be isolated and test-verified before advancing to subsequent phases; avoid wholesale rewrites.
+
+## Last Updated
+- **Date:** 2026-10-23
+- **Description:** Phase 3 Complete: Codebase Modularization: Safely programmatically modularized monolithic `index.html` into `css/style.css` (385 lines), `data/game_data.js` (898 lines), `src/game.js` (3,468 lines), and a clean `index.html` markup shell (178 lines). Maintained 100% offline Windows `file:///` double-click capability with zero CORS issues. Verified with 44 modularization integrity/DOM tests and 829 regression tests (873/873 total passing tests across 12 suites). Next priority: Class-Exclusive Active Skills (Option B).

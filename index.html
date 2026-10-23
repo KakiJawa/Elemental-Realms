@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elemental Realms</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="header-bar">
+        <div>Elemental Realms</div>
+        <div class="header-stats">
+            <span id="hdr-title-wrap" style="margin-right: 10px; color: #ffd700; font-weight: bold;">[<span id="hdr-title">Novice</span>]</span>
+            <span id="hdr-class-wrap" style="margin-right: 15px; color: #a855f7; font-weight: bold;">[<span id="hdr-class">Novice</span>]</span>
+            <span>LV: <span id="hdr-lvl">1</span></span>
+            <span>HP: <span id="hdr-hp">100</span>/<span id="hdr-maxhp">100</span></span>
+            <span>MP: <span id="hdr-mp">50</span>/<span id="hdr-maxmp">50</span></span>
+            <span>Gold: <span id="hdr-gold">100</span></span>
+        </div>
+        <div>
+            <button class="btn" id="btn-hdr-save" style="padding: 2px 10px;" onclick="saveGame()">Save</button>
+            <button class="btn" id="btn-hdr-load" style="padding: 2px 10px;" onclick="loadGame()">Load</button>
+        </div>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div id="screen-main" class="screen active">
+        <div class="main-content">
+            <h1 style="font-size: 48px; margin-bottom: 40px; text-shadow: 0 0 10px var(--fire);">Elemental Realms</h1>
+            <button class="btn" style="font-size: 24px; width: 200px;" onclick="newGame()">New Game</button>
+            <button class="btn" style="font-size: 24px; width: 200px;" onclick="if(localStorage.getItem('er_save')) { loadGame(); } else { showToast('Load Failed', 'No save found.', 'save'); }">Load Game</button>
+        </div>
+    </div>
+
+    <!-- TOWN SCREEN -->
+    <div id="screen-town" class="screen">
+        <div class="main-content">
+            <h2 style="font-size: 32px; margin-bottom: 20px;">Town Hub</h2>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-battle-prep')">Find Enemies<br>(Battle)</button>
+                <button class="btn" style="width: 150px; height: 100px;" onclick="healInTown()">Rest at Inn<br>(20 Gold)</button>
+                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-shop')">Shop</button>
+                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-stats')">Character & Equip</button>
+                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-inventory')">Inventory</button>
+                <button class="btn" style="width: 150px; height: 100px; color: #ffd700;" onclick="openModal('modal-skilltree')">Skill Tree</button>
+                <button class="btn" id="btn-town-quests" style="width: 150px; height: 100px; color: #38bdf8;" onclick="openModal('modal-quests')">Quests</button>
+                <button class="btn" id="btn-town-achievements" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-achievements')">Achievements</button>
+                <button class="btn" id="btn-town-blacksmith" style="width: 150px; height: 100px; color: #fb923c;" onclick="openModal('modal-blacksmith')">Blacksmith<br><span style="font-size: 12px; color: #fb923c;">Forge & Craft</span></button>
+                <button class="btn" id="btn-town-class" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-class-advancement')">Class Sanctum<br><span style="font-size: 12px; color: #a855f7;">Advancement</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BATTLE SCREEN -->
+    <div id="screen-battle" class="screen">
+        <div id="battle-arena">
+            <button id="btn-combat-speed" class="btn" style="position: absolute; top: 12px; right: 12px; z-index: 60; padding: 5px 12px; font-size: 13px; background: rgba(0,0,0,0.65); border: 1px solid #ffaa00; color: #ffaa00;" onclick="toggleCombatSpeed()">⚡ Speed: 1x</button>
+            <div id="player-side">
+                <div class="entity-box" id="battle-player">
+                    <div class="entity-name">Hero</div>
+                    <div class="entity-element elem-Physical">Player</div>
+                    <div class="entity-sprite" id="player-sprite-visual">
+                        <svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#aaaaaa"/><rect x="45" y="10" width="10" height="80" fill="#dddddd"/><rect x="20" y="45" width="60" height="10" fill="#dddddd"/></svg>
+                    </div>
+                    <div class="bar-container"><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
+                    <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
+                    <div class="status-tray" id="statuses-player"></div>
+                </div>
+            </div>
+            <div id="enemies-side">
+                <!-- Enemies injected here -->
+            </div>
+        </div>
+        <div id="battle-ui">
+            <div id="combat-log"></div>
+            <div id="battle-commands">
+                <div id="cmd-main" class="cmd-grid">
+                    <button class="btn" onclick="onAttackClicked()">Attack</button>
+                    <button class="btn" onclick="openBattleSkills()">Skills</button>
+                    <button class="btn" onclick="openBattleItems()">Items</button>
+                    <button class="btn" onclick="attemptFlee()">Flee</button>
+                </div>
+                <div id="target-prompt">
+                    Select a target...
+                    <br><br>
+                    <button class="btn" onclick="cancelTargeting()">Cancel</button>
+                </div>
+                <div id="battle-sub-menu">
+                    <div id="sub-menu-content"></div>
+                    <button id="btn-battle-back" class="btn" style="width: 100%;" onclick="closeSubMenu()">Back</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS & OVERLAYS -->
+    <div class="overlay" id="main-overlay" onclick="closeAllModals()"></div>
+
+    <!-- Battle Prep Modal -->
+    <div class="modal" id="modal-battle-prep" style="max-width: 650px;">
+        <div class="modal-header">Prepare for Battle <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div id="battle-prep-content"></div>
+    </div>
+    <!-- Stats / Equip Modal -->
+    <div class="modal" id="modal-stats">
+        <div class="modal-header">Character Stats <span class="close-btn" onclick="closeAllModals()">×</span></div>
+        <div style="display: flex; gap: 20px;">
+            <div style="flex: 1;">
+                <div style="margin-bottom: 10px; font-size: 15px;"><b>Title:</b> <span id="stat-title" style="color:#ffd700; font-weight:bold;">Novice</span> &nbsp;|&nbsp; <b>Class:</b> <span id="stat-class" style="color:#a855f7; font-weight:bold;">Novice</span></div>
+                <table>
+                    <tr><th>Level</th><td id="stat-lvl">1</td><th>EXP</th><td id="stat-exp">0/40</td></tr>
+                    <tr><th>HP</th><td id="stat-hp">100/100</td><th>MP</th><td id="stat-mp">50/50</td></tr>
+                    <tr><th>ATK</th><td id="stat-atk">10</td><th>DEF</th><td id="stat-def">10</td></tr>
+                    <tr><th>MATK</th><td id="stat-matk">10</td><th>MDEF</th><td id="stat-mdef">10</td></tr>
+                    <tr><th>SPD</th><td id="stat-spd">10</td><th>CRIT</th><td id="stat-crit">5%</td></tr>
+                </table>
+                <p style="font-size: 12px; color: #aaa;">*Stats include equipment & skill tree bonuses</p>
+            </div>
+            <div style="flex: 1; border-left: 1px solid #444; padding-left: 20px;">
+                <h3 style="margin-bottom: 10px;">Equipment</h3>
+                <div id="equip-slots"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Modal -->
+    <div class="modal" id="modal-inventory">
+        <div class="modal-header">Inventory <span class="close-btn" onclick="closeAllModals()">×</span></div>
+        <div id="inventory-list"></div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div class="modal" id="modal-shop">
+        <div class="modal-header">Shop (Gold: <span id="shop-gold"></span>) <span class="close-btn" onclick="closeAllModals()">×</span></div>
+        <div id="shop-list"></div>
+    </div>
+
+    <!-- Quests Modal -->
+    <div class="modal" id="modal-quests">
+        <div class="modal-header">Quests <span class="close-btn" onclick="closeAllModals()">×</span></div>
+        <div id="quests-list"></div>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div class="modal" id="modal-achievements">
+        <div class="modal-header">Achievements <span class="close-btn" onclick="closeAllModals()">×</span></div>
+        <div style="margin-bottom: 15px; color: #ccc; font-size: 13px;">Unlock permanent passive stat bonuses and character titles by achieving lifetime milestones.</div>
+        <div id="achievements-list"></div>
+    </div>
+
+    <!-- Skill Tree Modal -->
+    <div class="modal" id="modal-skilltree">
+        <div class="modal-header">Skill Tree <span style="font-size:16px; color:#ffd700;">(Orbs: <span id="st-orbs">0</span>)</span> <span class="close-btn" onclick="closeAllModals()">×</span></div>
+        <div class="modal-content" id="st-content">
+            <!-- Dynamically populated by JS -->
+        </div>
+    </div>
+
+    <!-- Blacksmith Modal -->
+    <div class="modal" id="modal-blacksmith" style="max-width: 680px;">
+        <div class="modal-header">Blacksmith Workshop <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div id="blacksmith-content"></div>
+    </div>
+
+    <!-- Class Advancement Modal -->
+    <div class="modal" id="modal-class-advancement" style="max-width: 720px;">
+        <div class="modal-header">Class Sanctum & Advancement <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div id="class-advancement-content"></div>
+    </div>
+
+    <!-- Database Constants First -->
+    <script src="data/game_data.js"></script>
+    <!-- Game Logic & Systems Second -->
+    <script src="src/game.js"></script>
+</body>
+</html>

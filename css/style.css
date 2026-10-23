@@ -1,0 +1,385 @@
+:root {
+            --fire: #ff4500; --water: #1e90ff; --earth: #8b4513; 
+            --wind: #32cd32; --light: #ffd700; --dark: #800080;
+            --bg-dark: #121212; --panel-bg: #2a2a2a; --text-main: #f0f0f0;
+            --hp-color: #ff3333; --mp-color: #3388ff; --exp-color: #aadd33;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Screens */
+        .screen { display: none; width: 100vw; flex: 1; min-height: 0; height: auto; flex-direction: column; overflow: hidden; }
+        .screen.active { display: flex; }
+
+        /* UI Panels */
+        .header-bar { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; border-bottom: 2px solid #444; flex-shrink: 0; }
+        .header-stats span { margin-right: 15px; font-weight: bold; }
+        
+        .main-content { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        
+        .btn { background: #444; color: #fff; border: 2px solid #666; padding: 10px 20px; margin: 5px; cursor: pointer; border-radius: 5px; font-size: 16px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #555; border-color: #888; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { background: #222; border-color: #333; color: #666; cursor: not-allowed; transform: none; }
+
+        /* Battle Arena */
+        #battle-arena { flex: 1; min-height: 0; width: 100%; display: flex; background: linear-gradient(to bottom, #1a2a3a, #2a3a2a); position: relative; overflow: hidden; }
+        #player-side { width: 25%; display: flex; align-items: center; justify-content: center; border-right: 2px dashed rgba(255,255,255,0.1); }
+        #enemies-side { width: 75%; display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; padding: 15px; overflow-y: auto; max-height: 100%; }
+        
+        /* Entities (Player & Enemies) */
+        .entity-box {
+            display: flex; flex-direction: column; align-items: center;
+            width: 130px; padding: 10px; border-radius: 8px;
+            background: rgba(0,0,0,0.01); 
+            border: 2px solid transparent; transition: all 0.2s;
+            position: relative;
+        }
+
+        .entity-sprite { width: 100px; height: 100px; margin-bottom: 10px; display: flex; justify-content: center; align-items: flex-end; }
+        .boss-sprite { width: 150px; height: 150px; }
+        
+        .entity-name { font-size: 14px; font-weight: bold; text-align: center; margin-bottom: 5px; text-shadow: 1px 1px 2px #000; pointer-events: none; }
+        .entity-element { font-size: 12px; margin-bottom: 5px; padding: 2px 6px; border-radius: 4px; pointer-events: none; }
+        
+        /* Bars */
+        .bar-container { width: 100%; height: 12px; background: #222; border: 1px solid #000; border-radius: 6px; overflow: hidden; margin-bottom: 4px; pointer-events: none; position: relative; }
+        .bar-fill { height: 100%; transition: width 0.3s ease-out; }
+        .hp-fill { background: var(--hp-color); }
+        .mp-fill { background: var(--mp-color); }
+        .bar-text { position: absolute; top: -1px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 1px #000; }
+
+        /* Targeting System */
+        .targeting-active .entity-box.enemy:not(.dead) { cursor: crosshair; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+        .targeting-active .entity-box.enemy:not(.dead):hover { border: 2px solid red; box-shadow: 0 0 15px red; transform: scale(1.05); }
+        
+        /* Dead state */
+        .dead { opacity: 0.3; filter: grayscale(100%); pointer-events: none; cursor: default; }
+
+        /* Battle UI */
+        #battle-ui { height: 220px; max-height: 35vh; flex-shrink: 0; background: #111; display: flex; border-top: 2px solid #555; }
+        #combat-log { flex: 1; min-width: 0; padding: 12px; overflow-y: auto; font-family: monospace; font-size: 13px; line-height: 1.4; border-right: 2px solid #333; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #222; padding-bottom: 2px; }
+        
+        #battle-commands { width: 380px; max-width: 40%; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; background: #222; overflow: hidden; min-height: 0; }
+        .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; flex: 1; align-content: center; }
+        .cmd-grid .btn { margin: 0; padding: 10px; height: 100%; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+        
+        #target-prompt { display: none; text-align: center; font-size: 16px; color: #ffaa00; font-weight: bold; margin: auto 0; }
+        
+        /* Command States & Menus */
+        .targeting-mode-ui #cmd-main { display: none; }
+        .targeting-mode-ui #target-prompt { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; }
+        
+        .sub-menu-active #cmd-main { display: none; }
+        .sub-menu-active #battle-sub-menu { display: flex; flex-direction: column; flex: 1; min-height: 0; height: 100%; overflow: hidden; }
+        
+        #battle-sub-menu { display: none; width: 100%; }
+        #sub-menu-content { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; padding-right: 4px; }
+        #battle-sub-menu > .btn { flex-shrink: 0; width: 100%; margin: 0; }
+
+        @media (max-height: 720px) {
+            #battle-ui { height: 180px; }
+            .entity-sprite { width: 75px; height: 75px; margin-bottom: 5px; }
+            .boss-sprite { width: 110px; height: 110px; }
+            .entity-box { width: 115px; padding: 6px; }
+            #enemies-side { padding: 10px; }
+            .btn { padding: 8px 14px; font-size: 14px; }
+            .cmd-grid .btn { min-height: 38px; }
+        }
+        
+        /* Modals (Town, Stats, Shop, Skills) */
+        .modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--panel-bg); padding: 20px; border: 2px solid #555; border-radius: 10px; width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; z-index: 100; box-shadow: 0 0 20px #000; }
+        .modal.active { display: block; }
+        .modal-header { font-size: 24px; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #555; padding-bottom: 5px; display: flex; justify-content: space-between;}
+        .close-btn { cursor: pointer; color: #ff5555; }
+        
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99; }
+        .overlay.active { display: block; }
+
+        /* Tables and Lists */
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #444; }
+        th { color: #aaa; }
+        
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #444; margin-bottom: 5px; background: #1a1a1a; }
+        
+        /* Skill Tree CSS */
+        #modal-skilltree { max-width: 800px; width: 95%; }
+        #modal-skilltree .modal-content { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        .skill-branch { flex: 1; min-width: 220px; background: #1a1a1a; padding: 10px; border: 1px solid #444; border-radius: 5px; max-height: 60vh; overflow-y: auto; }
+        .skill-branch h3 { text-align: center; color: #ffaa00; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        .skill-node { background: #2a2a2a; border: 1px solid #555; padding: 8px; margin-bottom: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px; }
+        .skill-node-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; color: #fff;}
+        .skill-node-desc { font-size: 12px; color: #aaa; }
+        .skill-node-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 5px;}
+
+        /* Quest CSS */
+        #modal-quests { max-width: 600px; width: 90%; }
+        .quest-card { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s; }
+        .quest-card.ready { border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.25); }
+        .quest-card.claimed { border-color: #333; opacity: 0.65; }
+        .quest-top { display: flex; justify-content: space-between; align-items: center; }
+        .quest-title { font-weight: bold; font-size: 15px; color: #fff; }
+        .quest-status-badge { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .quest-badge-claimed { background: #2a2a2a; color: #888; border: 1px solid #444; }
+        .quest-badge-ready { background: #14532d; color: #4ade80; border: 1px solid #22c55e; }
+        .quest-badge-progress { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+        .quest-desc { font-size: 13px; color: #bbb; line-height: 1.4; }
+        .quest-prog-container { display: flex; flex-direction: column; gap: 4px; }
+        .quest-prog-text { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; }
+        .quest-prog-bar-bg { width: 100%; height: 8px; background: #111; border: 1px solid #333; border-radius: 4px; overflow: hidden; }
+        .quest-prog-bar-fill { height: 100%; background: #38bdf8; transition: width 0.3s; }
+        .quest-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 8px; }
+        .quest-rewards-text { font-size: 12px; color: #ffd700; font-weight: 500; }
+
+        /* Achievements CSS */
+        #modal-achievements { max-width: 600px; width: 90%; }
+        .achievement-card { background: #1a1a1a; border: 1px solid #444; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s; }
+        .achievement-card.unlocked { border-color: #c084fc; background: #22162b; box-shadow: 0 0 10px rgba(192, 132, 252, 0.2); }
+        .ach-top { display: flex; justify-content: space-between; align-items: center; }
+        .ach-title { font-weight: bold; font-size: 15px; color: #fff; }
+        .ach-status-badge { font-size: 11px; padding: 2px 7px; border-radius: 4px; font-weight: bold; text-transform: uppercase; }
+        .ach-badge-unlocked { background: #581c87; color: #e9d5ff; border: 1px solid #a855f7; }
+        .ach-badge-locked { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+        .ach-desc { font-size: 13px; color: #bbb; line-height: 1.4; }
+        .ach-prog-container { display: flex; flex-direction: column; gap: 4px; }
+        .ach-prog-text { display: flex; justify-content: space-between; font-size: 12px; color: #aaa; }
+        .ach-prog-bar-bg { width: 100%; height: 8px; background: #111; border: 1px solid #333; border-radius: 4px; overflow: hidden; }
+        .ach-prog-bar-fill { height: 100%; background: #c084fc; transition: width 0.3s; }
+        .ach-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+        .ach-rewards-text { font-size: 12px; }
+
+        /* Animations */
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
+        .anim-shake { animation: shake 0.3s; }
+        
+        /* Damage Text Overlay */
+        .floating-text { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; z-index: 50; animation: floatUp 1s ease-out forwards; text-shadow: 2px 2px 0 #000; }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+
+        /* Element Colors */
+        .elem-Fire { background-color: var(--fire); color: white; }
+        .elem-Water { background-color: var(--water); color: white; }
+        .elem-Earth { background-color: var(--earth); color: white; }
+        .elem-Wind { background-color: var(--wind); color: black; }
+        .elem-Light { background-color: var(--light); color: black; }
+        .elem-Dark { background-color: var(--dark); color: white; }
+        .elem-Physical { background-color: #888; color: white; }
+
+        .difficulty-btn { width: 100%; margin-bottom: 8px; text-align: left; display: flex; justify-content: space-between; }
+
+        /* Toast Notification System */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+            max-width: 360px;
+            width: calc(100% - 40px);
+        }
+        .toast-item {
+            background: rgba(22, 22, 26, 0.95);
+            border-left: 4px solid #888;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+            border-radius: 6px;
+            padding: 12px 16px;
+            color: #f0f0f0;
+            pointer-events: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            animation: toastSlideIn 0.3s ease-out forwards;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+        }
+        .toast-item.toast-quest { border-left-color: #38bdf8; box-shadow: 0 4px 20px rgba(56, 189, 248, 0.25); }
+        .toast-item.toast-achievement { border-left-color: #ffd700; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3); }
+        .toast-item.toast-level { border-left-color: #22c55e; box-shadow: 0 4px 20px rgba(34, 197, 94, 0.25); }
+        .toast-item.toast-save { border-left-color: #a855f7; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25); }
+        .toast-item.toast-info { border-left-color: #64748b; }
+        .toast-title { font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+        .toast-msg { font-size: 12px; color: #cbd5e1; line-height: 1.4; word-break: break-word; }
+        .toast-hide { opacity: 0; transform: translateX(30px); }
+        @keyframes toastSlideIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Equipment Rarity & ARPG Card Styling */
+        .equip-card {
+            background: rgba(30, 30, 38, 0.9);
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: border-color 0.2s;
+        }
+        .equip-card-Common { border-left: 4px solid #ffffff; }
+        .equip-card-Uncommon { border-left: 4px solid #4ade80; }
+        .equip-card-Rare { border-left: 4px solid #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.15); }
+        .equip-card-Epic { border-left: 4px solid #c084fc; box-shadow: 0 0 12px rgba(192, 132, 252, 0.2); }
+        .equip-card-Legendary { border-left: 4px solid #fb923c; box-shadow: 0 0 14px rgba(251, 146, 60, 0.25); }
+        .equip-card-Mythic { border-left: 4px solid #f43f5e; box-shadow: 0 0 16px rgba(244, 63, 94, 0.3); }
+
+        .equip-card-top { display: flex; justify-content: space-between; align-items: center; }
+        .equip-card-name { font-weight: bold; font-size: 14px; }
+        .equip-card-badge { font-size: 10px; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
+        .equip-card-stats { font-size: 12px; color: #cbd5e1; display: flex; flex-direction: column; gap: 2px; }
+        .equip-card-base { color: #e2e8f0; }
+        .equip-card-affixes { color: #60a5fa; font-size: 11px; line-height: 1.4; }
+        .equip-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+
+        /* Multi-Zone Progression Modal Styling */
+        .zone-card {
+            background: rgba(25, 25, 32, 0.85);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .zone-card:hover:not(.zone-locked) {
+            transform: translateY(-2px);
+            border-color: #ffd700;
+        }
+        .zone-card.zone-selected {
+            background: rgba(35, 35, 48, 0.95);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+        }
+        .zone-card.zone-locked {
+            opacity: 0.45;
+            cursor: not-allowed;
+            border-color: #333;
+        }
+        .zone-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Blacksmith Workshop Modal Styling */
+        .forge-materials-bar {
+            background: rgba(18, 18, 24, 0.95);
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .forge-mat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .forge-nav-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 14px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 6px;
+        }
+        .forge-tab-btn {
+            background: rgba(35, 35, 45, 0.8);
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .forge-tab-btn:hover {
+            color: #fff;
+            border-color: #fb923c;
+        }
+        .forge-tab-btn.active {
+            background: #fb923c;
+            color: #111;
+            border-color: #fb923c;
+            box-shadow: 0 0 10px rgba(251, 146, 60, 0.4);
+        }
+        .forge-card {
+            background: rgba(25, 25, 32, 0.85);
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .forge-card:hover {
+            border-color: #fb923c;
+        }
+        .forge-card.selected {
+            border-color: #fb923c;
+            background: rgba(45, 30, 20, 0.85);
+            box-shadow: 0 0 10px rgba(251, 146, 60, 0.3);
+        }
+        .forge-affix-row {
+            padding: 8px 10px;
+            background: rgba(20, 20, 28, 0.8);
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.15s;
+        }
+        .forge-affix-row:hover {
+            border-color: #38bdf8;
+        }
+        .forge-affix-row.selected {
+            border-color: #fb923c;
+            background: rgba(251, 146, 60, 0.15);
+        }
+
+        /* Status Trays & Tactical Badges */
+        .status-tray {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 4px;
+            justify-content: center;
+            min-height: 18px;
+            max-width: 140px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: bold;
+            background: rgba(10, 12, 18, 0.9);
+            border: 1px solid #444;
+            white-space: nowrap;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+            transition: all 0.2s;
+        }
