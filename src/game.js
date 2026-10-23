@@ -5,6 +5,13 @@
     let player = {};
     let pStats = {}; 
 
+    let spireRun = {
+        active: false,
+        currentFloor: 1,
+        shardsEarned: 0,
+        hourglassUsed: false
+    };
+
     let battleState = {
         active: false,
         initialEnemyCount: 1, 
@@ -13,6 +20,554 @@
         targetingMode: null, 
         log: []
     };
+
+
+/* =========================================================================
+   ZERO-ASSET WEB AUDIO SYNTHESIZER & JUICE ENGINE
+   ========================================================================= */
+
+let audioSettings = { volume: 0.8, muted: false };
+try {
+    const savedAudio = (typeof localStorage !== 'undefined') ? localStorage.getItem('er_audio_settings') : null;
+    if (savedAudio) {
+        audioSettings = JSON.parse(savedAudio);
+    }
+} catch(e) {}
+
+const audioState = {
+    ctx: null,
+    masterGain: null,
+    volume: typeof audioSettings.volume === 'number' ? audioSettings.volume : 0.8,
+    muted: !!audioSettings.muted
+};
+
+function initAudioContext() {
+    if (audioState.ctx) return;
+    if (typeof window === 'undefined') return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    try {
+        audioState.ctx = new AudioCtx();
+        audioState.masterGain = audioState.ctx.createGain();
+        audioState.masterGain.gain.setValueAtTime(audioState.muted ? 0 : audioState.volume, audioState.ctx.currentTime);
+        audioState.masterGain.connect(audioState.ctx.destination);
+    } catch (e) {
+        // AudioContext blocked or not supported
+    }
+}
+
+function resumeAudio() {
+    initAudioContext();
+    if (audioState.ctx && audioState.ctx.state === 'suspended') {
+        try {
+            audioState.ctx.resume().catch(() => {});
+        } catch(e) {}
+    }
+}
+
+function updateAudioButton() {
+    if (typeof document === 'undefined') return;
+    const btn = document.getElementById('btn-hdr-audio');
+    if (!btn) return;
+    if (audioState.muted || audioState.volume <= 0) {
+        btn.innerText = '🔇';
+        btn.title = 'Sound: Muted';
+    } else if (audioState.volume <= 0.4) {
+        btn.innerText = '🔉';
+        btn.title = 'Sound: Low (30%)';
+    } else {
+        btn.innerText = '🔊';
+        btn.title = `Sound: High (${Math.round(audioState.volume * 100)}%)`;
+    }
+}
+
+function toggleAudio() {
+    initAudioContext();
+    resumeAudio();
+    if (!audioState.muted && audioState.volume >= 0.5) {
+        audioState.volume = 0.3;
+        audioState.muted = false;
+    } else if (!audioState.muted && audioState.volume > 0) {
+        audioState.volume = 0.0;
+        audioState.muted = true;
+    } else {
+        audioState.volume = 0.8;
+        audioState.muted = false;
+    }
+
+    if (audioState.masterGain && audioState.ctx) {
+        try {
+            audioState.masterGain.gain.setValueAtTime(audioState.muted ? 0 : audioState.volume, audioState.ctx.currentTime);
+        } catch(e) {}
+    }
+
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('er_audio_settings', JSON.stringify({ volume: audioState.volume, muted: audioState.muted }));
+        }
+    } catch(e) {}
+
+    updateAudioButton();
+}
+
+function createNoiseBuffer(ctx, duration = 0.1) {
+    try {
+        const size = Math.floor(ctx.sampleRate * duration);
+        const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < size; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        return buf;
+    } catch(e) {
+        return null;
+    }
+}
+
+function playSFX(name) {
+    if (audioState.muted || audioState.volume <= 0) return;
+    if (typeof window === 'undefined') return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    try {
+        initAudioContext();
+        if (!audioState.ctx || !audioState.masterGain) return;
+        if (audioState.ctx.state === 'suspended') {
+            audioState.ctx.resume().catch(() => {});
+        }
+
+        const ctx = audioState.ctx;
+        const now = ctx.currentTime;
+        const master = audioState.masterGain;
+
+        switch(name) {
+            case 'slash': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(700, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.09);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.09);
+
+                const noiseBuf = createNoiseBuffer(ctx, 0.06);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const nFilter = ctx.createBiquadFilter();
+                    const nGain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    nFilter.type = 'highpass';
+                    nFilter.frequency.value = 1000;
+                    nGain.gain.setValueAtTime(0.2, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    noise.connect(nFilter);
+                    nFilter.connect(nGain);
+                    nGain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'crit': {
+                const osc1 = ctx.createOscillator();
+                const g1 = ctx.createGain();
+                osc1.type = 'square';
+                osc1.frequency.setValueAtTime(140, now);
+                osc1.frequency.exponentialRampToValueAtTime(35, now + 0.18);
+                g1.gain.setValueAtTime(0.45, now);
+                g1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc1.connect(g1);
+                g1.connect(master);
+                osc1.start(now);
+                osc1.stop(now + 0.18);
+
+                const sub = ctx.createOscillator();
+                const subG = ctx.createGain();
+                sub.type = 'sine';
+                sub.frequency.setValueAtTime(120, now);
+                sub.frequency.exponentialRampToValueAtTime(30, now + 0.18);
+                subG.gain.setValueAtTime(0.55, now);
+                subG.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                sub.connect(subG);
+                subG.connect(master);
+                sub.start(now);
+                sub.stop(now + 0.18);
+
+                const noiseBuf = createNoiseBuffer(ctx, 0.08);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const nGain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    nGain.gain.setValueAtTime(0.3, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    noise.connect(nGain);
+                    nGain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'magic_fire': {
+                const noiseBuf = createNoiseBuffer(ctx, 0.28);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const filter = ctx.createBiquadFilter();
+                    const gain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(300, now);
+                    filter.frequency.linearRampToValueAtTime(1200, now + 0.12);
+                    filter.frequency.exponentialRampToValueAtTime(200, now + 0.28);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'magic_ice': {
+                [1200, 1600, 2400].forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = now + (idx * 0.04);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, start);
+                    gain.gain.setValueAtTime(0.25, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.12);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(start);
+                    osc.stop(start + 0.12);
+                });
+                break;
+            }
+            case 'magic_lightning': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(120, now + 0.15);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.15);
+
+                const noiseBuf = createNoiseBuffer(ctx, 0.1);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const nGain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    nGain.gain.setValueAtTime(0.25, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    noise.connect(nGain);
+                    nGain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'magic_holy': {
+                [440, 554, 659].forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = now + (idx * 0.05);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, start);
+                    gain.gain.setValueAtTime(0.3, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(start);
+                    osc.stop(start + 0.35);
+                });
+                break;
+            }
+            case 'magic_dark': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(80, now);
+                osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.35);
+                break;
+            }
+            case 'shield_absorb': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.15);
+                break;
+            }
+            case 'shield_break': {
+                const noiseBuf = createNoiseBuffer(ctx, 0.1);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const nGain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    nGain.gain.setValueAtTime(0.35, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    noise.connect(nGain);
+                    nGain.connect(master);
+                    noise.start(now);
+                }
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(450, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.25);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            }
+            case 'dodge': {
+                const noiseBuf = createNoiseBuffer(ctx, 0.12);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const filter = ctx.createBiquadFilter();
+                    const gain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(1200, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'enemy_death': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+            }
+            case 'level_up': {
+                [261.63, 329.63, 392.00, 523.25].forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = now + (idx * 0.08);
+                    const dur = (idx === 3) ? 0.35 : 0.08;
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(f, start);
+                    gain.gain.setValueAtTime(0.25, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(start);
+                    osc.stop(start + dur);
+                });
+                break;
+            }
+            case 'victory': {
+                [392, 523.25, 659.25, 783.99].forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = now + (idx * 0.1);
+                    const dur = (idx === 3) ? 0.45 : 0.12;
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, start);
+                    gain.gain.setValueAtTime(0.3, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(start);
+                    osc.stop(start + dur);
+                });
+                break;
+            }
+            case 'coin': {
+                const cNotes = [{ f: 987, d: 0.06 }, { f: 1318, d: 0.22 }];
+                let cTime = now;
+                cNotes.forEach(n => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(n.f, cTime);
+                    gain.gain.setValueAtTime(0.3, cTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, cTime + n.d);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(cTime);
+                    osc.stop(cTime + n.d);
+                    cTime += n.d * 0.7;
+                });
+                break;
+            }
+            case 'anvil': {
+                [320, 840, 1680].forEach(f => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, now);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                });
+                const noiseBuf = createNoiseBuffer(ctx, 0.05);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const nGain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    nGain.gain.setValueAtTime(0.3, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    noise.connect(nGain);
+                    nGain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'chest_shake': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(55, now);
+                osc.frequency.linearRampToValueAtTime(65, now + 0.4);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.4);
+                break;
+            }
+            case 'chest_burst': {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(master);
+                osc.start(now);
+                osc.stop(now + 0.15);
+
+                const noiseBuf = createNoiseBuffer(ctx, 0.08);
+                if (noiseBuf) {
+                    const noise = ctx.createBufferSource();
+                    const nGain = ctx.createGain();
+                    noise.buffer = noiseBuf;
+                    nGain.gain.setValueAtTime(0.4, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    noise.connect(nGain);
+                    nGain.connect(master);
+                    noise.start(now);
+                }
+                break;
+            }
+            case 'chest_reveal_rare': {
+                [1046.5, 1568].forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = now + (idx * 0.08);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, start);
+                    gain.gain.setValueAtTime(0.3, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(start);
+                    osc.stop(start + 0.3);
+                });
+                break;
+            }
+            case 'chest_reveal_legendary': {
+                const legChords = [
+                    { f: 349.23, start: 0, dur: 0.15 },
+                    { f: 440, start: 0, dur: 0.15 },
+                    { f: 523.25, start: 0, dur: 0.15 },
+                    { f: 523.25, start: 0.15, dur: 0.4 },
+                    { f: 659.25, start: 0.15, dur: 0.4 },
+                    { f: 783.99, start: 0.15, dur: 0.4 }
+                ];
+                legChords.forEach(c => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(c.f, now + c.start);
+                    gain.gain.setValueAtTime(0.2, now + c.start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + c.start + c.dur);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(now + c.start);
+                    osc.stop(now + c.start + c.dur);
+                });
+                break;
+            }
+            case 'chest_reveal_mythic': {
+                const mythNotes = [523.25, 659.25, 783.99, 987.77, 1046.5];
+                mythNotes.forEach((f, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const start = now + (idx * 0.08);
+                    const dur = (idx === mythNotes.length - 1) ? 0.6 : 0.15;
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(f, start);
+                    gain.gain.setValueAtTime(0.3, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
+                    osc.connect(gain);
+                    gain.connect(master);
+                    osc.start(start);
+                    osc.stop(start + dur);
+                });
+                break;
+            }
+            default:
+                break;
+        }
+    } catch(e) {
+        // Safe fail on any audio error
+    }
+}
+
+if (typeof window !== 'undefined') {
+    const handleFirstGesture = () => {
+        resumeAudio();
+        window.removeEventListener('click', handleFirstGesture);
+        window.removeEventListener('keydown', handleFirstGesture);
+        window.removeEventListener('touchstart', handleFirstGesture);
+    };
+    window.addEventListener('click', handleFirstGesture, { passive: true });
+    window.addEventListener('keydown', handleFirstGesture, { passive: true });
+    window.addEventListener('touchstart', handleFirstGesture, { passive: true });
+}
 
     /* =========================================================================
        COMBAT TURN CONTROLLER & SPEED SYSTEM
@@ -277,11 +832,14 @@
         }
         // Add Skill Tree Stats
         if(player.skillTree) {
-            pStats.maxHp += player.skillTree.vitalityTraining * 10;
-            pStats.maxMp += player.skillTree.spiritTraining * 5;
-            pStats.atk += player.skillTree.atkTraining * 2;
-            pStats.def += player.skillTree.defTraining * 2;
-            pStats.crit += player.skillTree.critTraining * 2;
+            pStats.maxHp += (player.skillTree.vitalityTraining || 0) * 10;
+            pStats.maxMp += (player.skillTree.spiritTraining || 0) * 5;
+            pStats.atk += (player.skillTree.atkTraining || 0) * 2;
+            pStats.def += (player.skillTree.defTraining || 0) * 2;
+            pStats.crit += (player.skillTree.critTraining || 0) * 2;
+            pStats.matk = (pStats.matk || 0) + (player.skillTree.arcaneTraining || 0) * 2;
+            pStats.mdef = (pStats.mdef || 0) + (player.skillTree.ironSkin || 0) * 2;
+            pStats.spd = (pStats.spd || 0) + (player.skillTree.spdTraining || 0) * 1;
         }
 
         // Add Achievement Passive Stat Bonuses
@@ -314,6 +872,43 @@
             if (cls.statMods.crit) pStats.crit += cls.statMods.crit;
         }
 
+        // Infinite Spire: Permanent Tomes & Relic Stats
+        if (player.spire) {
+            if (player.spire.tomesUsed) {
+                pStats.maxHp += (player.spire.tomesUsed.hp || 0) * 20;
+                pStats.atk += (player.spire.tomesUsed.atk || 0) * 3;
+                pStats.matk += (player.spire.tomesUsed.atk || 0) * 3;
+                pStats.maxMp += (player.spire.tomesUsed.mp || 0) * 10;
+            }
+            if (player.spire.equippedRelic === 'celestial_feather') {
+                pStats.spd += 15;
+                pStats.crit += 10;
+            }
+        }
+
+        // Companion Pets & Familiars Passive Stat Stacking
+        if (player.pets && Array.isArray(player.pets.active) && typeof PETS_DB !== 'undefined') {
+            if (player.level < 25) {
+                player.pets.active[1] = null;
+            }
+            player.pets.active.filter(Boolean).forEach(petId => {
+                const pet = PETS_DB[petId];
+                if (pet && pet.passive) {
+                    const lvl = (player.pets.levels && player.pets.levels[petId] && player.pets.levels[petId].level) || 1;
+                    const scale = 1 + ((lvl - 1) * 0.10);
+                    let bStats = player.baseStats || {};
+                    if (pet.passive.atkPct) pStats.atk += Math.max(1, Math.round((bStats.atk || 10) * (pet.passive.atkPct * scale / 100)));
+                    if (pet.passive.defPct) pStats.def += Math.max(1, Math.round((bStats.def || 10) * (pet.passive.defPct * scale / 100)));
+                    if (pet.passive.matkPct) pStats.matk += Math.max(1, Math.round((bStats.matk || 10) * (pet.passive.matkPct * scale / 100)));
+                    if (pet.passive.mdefPct) pStats.mdef += Math.max(1, Math.round((bStats.mdef || 10) * (pet.passive.mdefPct * scale / 100)));
+                    if (pet.passive.maxHpPct) pStats.maxHp += Math.max(1, Math.round((bStats.maxHp || 100) * (pet.passive.maxHpPct * scale / 100)));
+                    if (pet.passive.maxMpPct) pStats.maxMp += Math.max(1, Math.round((bStats.maxMp || 50) * (pet.passive.maxMpPct * scale / 100)));
+                    if (pet.passive.spd) pStats.spd += Math.round(pet.passive.spd * scale);
+                    if (pet.passive.crit) pStats.crit += Math.round(pet.passive.crit * scale);
+                }
+            });
+        }
+
         player.baseStats.hp = Math.min(player.baseStats.hp, pStats.maxHp);
         player.baseStats.mp = Math.min(player.baseStats.mp, pStats.maxMp);
         pStats.hp = player.baseStats.hp;
@@ -334,6 +929,12 @@
             loadBtn.style.opacity = inBattle ? '0.4' : '1.0';
             loadBtn.style.cursor = inBattle ? 'not-allowed' : 'pointer';
         }
+        const savesBtn = document.getElementById('btn-hdr-saves');
+        if(savesBtn) {
+            savesBtn.disabled = inBattle;
+            savesBtn.style.opacity = inBattle ? '0.4' : '1.0';
+            savesBtn.style.cursor = inBattle ? 'not-allowed' : 'pointer';
+        }
     }
 
     function updateHeader() {
@@ -345,7 +946,7 @@
             let cls = (typeof CLASSES_DB !== 'undefined' && player.currentClass && CLASSES_DB[player.currentClass]);
             classEl.innerText = cls ? cls.name : 'Novice';
         }
-        document.getElementById('hdr-lvl').innerText = player.level;
+        document.getElementById('hdr-lvl').innerText = (player.level >= 50) ? '50 (MAX)' : player.level;
         document.getElementById('hdr-hp').innerText = pStats.hp;
         document.getElementById('hdr-maxhp').innerText = pStats.maxHp;
         document.getElementById('hdr-mp').innerText = pStats.mp;
@@ -353,7 +954,10 @@
         document.getElementById('hdr-gold').innerText = player.gold;
         if(typeof updateTownQuestButton === 'function') updateTownQuestButton();
         if(typeof updateTownAchievementsButton === 'function') updateTownAchievementsButton();
+        let spireBtnSub = document.getElementById('btn-town-spire-sub');
+        if(spireBtnSub) spireBtnSub.innerText = `🌀 Floor ${player.spire?.highestFloor || 0}`;
         updateSaveLoadButtons();
+        if(typeof updateAudioButton === 'function') updateAudioButton();
     }
 
     function switchScreen(screenId) {
@@ -424,6 +1028,11 @@
         if (index === -1) return;
 
         let item = player.inventory.equipment[index];
+        if (item && item.locked) {
+            showToast('Item Protected', `${item.name} is locked! Unlock it first to salvage.`, 'info');
+            return;
+        }
+
         let rarity = item.rarity || 'Common';
         let rates = SALVAGE_RATES[rarity] || SALVAGE_RATES['Common'];
 
@@ -448,10 +1057,17 @@
         renderInventory();
     }
 
+    function salvageEquipment(idOrIndex) {
+        if (typeof idOrIndex === 'number' && player.inventory && player.inventory.equipment && player.inventory.equipment[idOrIndex]) {
+            return salvageItem(player.inventory.equipment[idOrIndex].id);
+        }
+        return salvageItem(idOrIndex);
+    }
+
     function salvageAllCommonUncommon() {
         if (!player || !player.inventory || !player.inventory.equipment) return;
         
-        let matching = player.inventory.equipment.filter(i => i.rarity === 'Common' || i.rarity === 'Uncommon');
+        let matching = player.inventory.equipment.filter(i => !i.locked && (i.rarity === 'Common' || i.rarity === 'Uncommon'));
         if (matching.length === 0) {
             showToast('Salvage Station', 'No Common or Uncommon items in inventory to salvage.', 'info');
             return;
@@ -470,14 +1086,18 @@
         player.materials.scrap = (player.materials.scrap || 0) + totalScrap;
         player.gold = (player.gold || 0) + totalGold;
 
-        // Remove matching items from inventory equipment
-        player.inventory.equipment = player.inventory.equipment.filter(i => i.rarity !== 'Common' && i.rarity !== 'Uncommon');
+        // Remove matching items from inventory equipment, preserving locked gear
+        player.inventory.equipment = player.inventory.equipment.filter(i => i.locked || (i.rarity !== 'Common' && i.rarity !== 'Uncommon'));
 
         showToast('Bulk Salvage Complete', `Dismantled ${matching.length} items for +${totalScrap} Scraps, +${totalGold} Gold.`, 'info');
 
         updateHeader();
         renderBlacksmith();
         renderInventory();
+    }
+
+    function salvageBulk() {
+        return salvageAllCommonUncommon();
     }
 
     function upgradeEquipment(idOrSlot) {
@@ -520,6 +1140,7 @@
             renderStats();
         }
 
+        playSFX('anvil');
         showToast('Upgrade Successful!', `${item.name} enhanced to +${nextLvl}!`, 'info');
 
         renderBlacksmith();
@@ -952,6 +1573,7 @@
                 get maxHp() { return pStats.maxHp; },
                 get atk() {
                     let mult = hasStatus(this, 'berserk') ? 1.4 : 1.0;
+                    if (hasStatus(this, 'battle_cry')) mult *= 1.2;
                     return Math.floor(pStats.atk * mult);
                 },
                 get def() {
@@ -1007,6 +1629,11 @@
             return;
         }
 
+        // Barrier Mastery: All Divine Barriers absorb +10% more damage per rank
+        if (statusId === 'divine_barrier' && isPlayer && player.skillTree && player.skillTree.barrierMastery > 0) {
+            value = Math.floor(value * (1 + (player.skillTree.barrierMastery * 0.10)));
+        }
+
         if (ent.statuses[statusId] && def.maxStacks) {
             let current = ent.statuses[statusId];
             current.stacks = Math.min(def.maxStacks, (current.stacks || 1) + 1);
@@ -1029,6 +1656,14 @@
 
         floatText(ent.id || 'battle-player', `${def.icon} ${def.name}`, def.color);
         renderBattlefield();
+
+        // Decaying Curse Keystone: Applying any debuff to an enemy immediately afflicts them with Decay
+        if (!isPlayer && statusId !== 'decay' && (def.type === 'debuff' || def.type === 'dot' || def.type === 'disable' || def.type === 'ailment') && player.skillTree && player.skillTree.decayingCurse > 0) {
+            if (!ent.statuses.decay) {
+                applyStatus(ent, 'decay', 3, 0, 'decaying_curse');
+                logMsg(`🌑 Decaying Curse afflicts ${ent.name} with Decay!`, "#a855f7");
+            }
+        }
     }
 
     function processStatusesStartTurn(entity) {
@@ -1036,6 +1671,9 @@
 
         // 1. Evaluate DoTs
         let dotMultiplier = (!entity.isPlayer && playerHasPassive('calamity_conduit')) ? 2 : 1;
+        if (!entity.isPlayer && player.skillTree && player.skillTree.afflictionPotency > 0) {
+            dotMultiplier *= (1 + (player.skillTree.afflictionPotency * 0.10));
+        }
         let totalEnemyDotDmg = 0;
 
         // A. Burn
@@ -1208,7 +1846,7 @@
         }
     }
 
-    function renderBattlePrep() {
+        function renderBattlePrep() {
         const container = document.getElementById('battle-prep-content');
         if(!container) return;
 
@@ -1292,7 +1930,71 @@
             </div>
         `;
 
-        container.innerHTML = areasHtml + modeHtml;
+        // Step 3: Area Scouting & Drop Rate Guide
+        let mod = (typeof ELEMENT_MODS !== 'undefined' && ELEMENT_MODS[currentArea.element]) ? ELEMENT_MODS[currentArea.element] : null;
+        let weakText = mod ? mod.weakTo : 'None';
+        let resistText = mod ? mod.resists : 'None';
+
+        let rosterHtml = '';
+        if (currentArea.regularEnemies && Array.isArray(currentArea.regularEnemies)) {
+            rosterHtml = currentArea.regularEnemies.map(enemy => {
+                let dropsText = '';
+                if (enemy.loot && Array.isArray(enemy.loot) && enemy.loot.length > 0) {
+                    dropsText = enemy.loot.map(l => `<span class="zone-drop-tag">${l.item} (${Math.round(l.chance * 100)}%)</span>`).join('');
+                } else {
+                    dropsText = '<span style="color:#666; font-size:10px;">No drops</span>';
+                }
+                return `
+                    <div class="zone-monster-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <b style="color: #f8fafc;">${enemy.name}</b>
+                            <span style="font-size: 10px; color: #94a3b8;">Lv ${enemy.level} • <span style="color:${currentArea.themeColor};">${enemy.element}</span></span>
+                        </div>
+                        <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">
+                            HP: <span style="color:#ef4444;">${enemy.hp}</span> | ATK: <span style="color:#f59e0b;">${enemy.atk}</span> | EXP: ${enemy.exp} | Gold: ${enemy.gold}
+                        </div>
+                        <div style="font-size: 10px; color: #cbd5e1;">
+                            <b>Drops:</b> ${dropsText}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let bossDropsText = '';
+        if (currentArea.boss && currentArea.boss.loot && Array.isArray(currentArea.boss.loot)) {
+            bossDropsText = currentArea.boss.loot.map(l => `<span class="zone-drop-tag">${l.item} (${Math.round(l.chance * 100)}%)</span>`).join('');
+        }
+
+        let intelHtml = `
+            <div class="zone-intel-panel" id="zone-scouting-guide">
+                <div class="zone-intel-title">
+                    <span>🗺️ Area Scouting & Drop Rate Guide</span>
+                    <span style="font-size: 11px; color: ${currentArea.themeColor}; font-weight: normal;">${currentArea.name} Intel</span>
+                </div>
+                <div class="zone-intel-tactics">
+                    ⚡ <b>Elemental Strategy:</b> ${currentArea.element} Zone Affinity. Takes <b>+50% damage</b> from <span style="color:#ef4444; font-weight:bold;">${weakText}</span>. Resists <b>-50% damage</b> from <span style="color:#38bdf8; font-weight:bold;">${resistText}</span>.
+                </div>
+                <div style="font-size: 11px; font-weight: bold; color: #ffd700; margin-bottom: 6px;">Zone Bestiary & Item Drop Chances:</div>
+                <div class="zone-roster-grid">
+                    ${rosterHtml}
+                    <div class="zone-monster-card zone-boss-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <b style="color: #ffd700;">👑 Gatekeeper Boss: ${currentArea.boss.name}</b>
+                            <span style="font-size: 10px; color: #ffd700;">Lv ${currentArea.boss.level} • ${currentArea.boss.element}</span>
+                        </div>
+                        <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">
+                            HP: <span style="color:#ef4444;">${currentArea.boss.hp}</span> | ATK: <span style="color:#f59e0b;">${currentArea.boss.atk}</span> | Rewards: <span style="color:#22c55e;">${currentArea.boss.exp} EXP</span>, <span style="color:#fbbf24;">${currentArea.boss.gold} Gold</span>
+                        </div>
+                        <div style="font-size: 10px; color: #cbd5e1;">
+                            <b>Guaranteed 100% Equipment Drop + Bonus Loot:</b> ${bossDropsText}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = areasHtml + modeHtml + intelHtml;
     }
 
     function openModal(id) {
@@ -1307,6 +2009,10 @@
         if(id === 'modal-battle-prep') renderBattlePrep();
         if(id === 'modal-blacksmith') renderBlacksmith();
         if(id === 'modal-class-advancement') renderClassAdvancement();
+        if(id === 'modal-spire') renderSpireModal();
+        if(id === 'modal-astral-altar') renderAstralAltarModal();
+        if(id === 'modal-saves') renderSaveManager();
+        if(id === 'modal-pets') renderPetsModal();
     }
     function closeAllModals() {
         document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.remove('active'));
@@ -1320,6 +2026,7 @@
 
     function newGame() {
         if (typeof clearAllCombatTimers === 'function') clearAllCombatTimers();
+        shopActiveTab = 'consumables';
         player = {
             baseStats: { hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 7, def: 7, matk: 10, mdef: 10, spd: 15, crit: 5 },
             level: 1, exp: 0, gold: 100,
@@ -1335,48 +2042,96 @@
             skills: ['Fireball', 'Heal'],
             skillOrbs: 0,
             skillTree: {
-                atkTraining: 0, critTraining: 0, powerStrike: 0, armorBreak: 0, combatMastery: 0,
-                vitalityTraining: 0, spiritTraining: 0, recovery: 0, manaEfficiency: 0, regeneration: 0,
-                defTraining: 0, fortune: 0, treasureSense: 0
+                atkTraining: 0, critTraining: 0, powerStrike: 0, armorBreak: 0, combatMastery: 0, precisionStrikes: 0, executioner: 0, vampiricFervor: 0,
+                vitalityTraining: 0, defTraining: 0, recovery: 0, regeneration: 0, ironSkin: 0, barrierMastery: 0, overchargedAegis: 0, thornedBastion: 0,
+                spiritTraining: 0, arcaneTraining: 0, manaEfficiency: 0, elementalResonance: 0, afflictionPotency: 0, arcaneSurge: 0, decayingCurse: 0,
+                spdTraining: 0, fortune: 0, treasureSense: 0, quickReflexes: 0, momentum: 0, midasTouch: 0
             },
+            hasRespecced: false,
             activeTitle: 'Novice',
             currentClass: 'novice',
+            spire: {
+                highestFloor: 0,
+                astralShards: 0,
+                relics: [],
+                equippedRelic: null,
+                tomesUsed: { hp: 0, atk: 0, mp: 0 }
+            },
             unlockedAreas: ['area_1'],
             selectedArea: 'area_1',
             materials: { scrap: 0, dust: 0, shard: 0 },
             quests: {},
             questStats: { enemiesDefeated: 0, battlesWon: 0, bossesDefeated: 0 },
-            achievements: {}
+            achievements: {},
+            pets: {
+                unlocked: ['sprout_slimelet'],
+                active: [null, null],
+                levels: {
+                    sprout_slimelet: { level: 1, exp: 0 }
+                }
+            }
         };
         init();
         switchScreen('town');
     }
-    function saveGame() {
+    /* =========================================================================
+       MULTI-SLOT SAVE & EXPORT/IMPORT SYSTEM
+       ========================================================================= */
+
+    let currentSaveSlot = parseInt(localStorage.getItem('er_active_slot')) || 1;
+    let saveManagerTab = 'slots';
+    let selectedExportSlot = 1;
+
+    function getSaveSlotKey(slotNum) {
+        const num = parseInt(slotNum) || 1;
+        return num === 1 ? 'er_save' : `er_save_slot_${num}`;
+    }
+
+    function setSaveTab(tab) {
+        saveManagerTab = tab;
+        renderSaveManager();
+    }
+
+    function saveGame(slotNum = null) {
         if(typeof battleState !== 'undefined' && battleState.active) {
             showToast("Cannot Save", "Cannot save during battle!", "save");
             return;
         }
-        localStorage.setItem('er_save', JSON.stringify(player));
-        showToast('Game Saved', 'Game progress saved successfully.', 'save');
+        const target = slotNum !== null ? parseInt(slotNum) : currentSaveSlot;
+        if (!player) return;
+        player.lastSaved = new Date().toLocaleString();
+        currentSaveSlot = target;
+        try { localStorage.setItem('er_active_slot', target); } catch(e) {}
+        try { localStorage.setItem(getSaveSlotKey(target), JSON.stringify(player)); } catch(e) {}
+        showToast('Game Saved', `Saved progress to Slot ${target}!`, 'save');
+        if (typeof renderSaveManager === 'function' && document.getElementById('modal-saves')?.classList.contains('active')) {
+            renderSaveManager();
+        }
+        updateHeader();
     }
 
-    function loadGame() {
+    function loadGame(slotNum = null) {
         if(typeof battleState !== 'undefined' && battleState.active) {
             showToast("Cannot Load", "Cannot load during battle!", "save");
             return;
         }
         if (typeof clearAllCombatTimers === 'function') clearAllCombatTimers();
-        const data = localStorage.getItem('er_save');
+        const target = slotNum !== null ? parseInt(slotNum) : currentSaveSlot;
+        const data = localStorage.getItem(getSaveSlotKey(target));
         if(data) {
             player = JSON.parse(data);
+            currentSaveSlot = target;
+            try { localStorage.setItem('er_active_slot', target); } catch(e) {}
             
             if(typeof player.skillOrbs === 'undefined') player.skillOrbs = 0;
+            if(typeof player.hasRespecced === 'undefined') player.hasRespecced = false;
             if(typeof player.skillTree === 'undefined') {
-                player.skillTree = {
-                    atkTraining: 0, critTraining: 0, powerStrike: 0, armorBreak: 0, combatMastery: 0,
-                    vitalityTraining: 0, spiritTraining: 0, recovery: 0, manaEfficiency: 0, regeneration: 0,
-                    defTraining: 0, fortune: 0, treasureSense: 0
-                };
+                player.skillTree = {};
+            }
+            if(typeof SKILL_TREE_DB !== 'undefined') {
+                for (let k in SKILL_TREE_DB) {
+                    if (typeof player.skillTree[k] === 'undefined') player.skillTree[k] = 0;
+                }
             }
             if(typeof player.activeTitle === 'undefined') player.activeTitle = 'Novice';
             if(typeof player.quests === 'undefined') player.quests = {};
@@ -1387,6 +2142,28 @@
                 if(typeof player.questStats.bossesDefeated === 'undefined') player.questStats.bossesDefeated = 0;
             }
             if(typeof player.achievements === 'undefined') player.achievements = {};
+            
+            // Spire State Initialization & Fallback
+            if(!player.spire) {
+                player.spire = {
+                    highestFloor: 0,
+                    astralShards: 0,
+                    relics: [],
+                    equippedRelic: null,
+                    tomesUsed: { hp: 0, atk: 0, mp: 0 }
+                };
+            } else {
+                if(typeof player.spire.highestFloor === 'undefined') player.spire.highestFloor = 0;
+                if(typeof player.spire.astralShards === 'undefined') player.spire.astralShards = 0;
+                if(!Array.isArray(player.spire.relics)) player.spire.relics = [];
+                if(typeof player.spire.equippedRelic === 'undefined') player.spire.equippedRelic = null;
+                if(!player.spire.tomesUsed) player.spire.tomesUsed = { hp: 0, atk: 0, mp: 0 };
+                else {
+                    if(typeof player.spire.tomesUsed.hp === 'undefined') player.spire.tomesUsed.hp = 0;
+                    if(typeof player.spire.tomesUsed.atk === 'undefined') player.spire.tomesUsed.atk = 0;
+                    if(typeof player.spire.tomesUsed.mp === 'undefined') player.spire.tomesUsed.mp = 0;
+                }
+            }
             
             // Materials Initialization & Fallback
             if(!player.materials) {
@@ -1418,6 +2195,15 @@
                 setTimeout(() => {
                     showToast('Class Evolution Ready!', 'Visit the Class Sanctum in Town to choose your path!', 'level', 6000);
                 }, 800);
+            }
+            // Retroactive Signature Class Skills Check
+            if (player.currentClass && player.currentClass !== 'novice' && typeof getClassSkills === 'function') {
+                let reqSkills = getClassSkills(player.currentClass);
+                reqSkills.forEach(s => {
+                    if (!player.skills.includes(s)) {
+                        player.skills.push(s);
+                    }
+                });
             }
 
             // Equipment 6-Slot Migration
@@ -1457,6 +2243,26 @@
                 player.inventory = createInventory(newCons, newEq);
             }
 
+            // Companion Pet & Familiar Migration
+            if (!player.pets) {
+                player.pets = {
+                    unlocked: ['sprout_slimelet'],
+                    active: [null, null],
+                    levels: {
+                        sprout_slimelet: { level: 1, exp: 0 }
+                    }
+                };
+            } else {
+                if (!Array.isArray(player.pets.unlocked)) player.pets.unlocked = ['sprout_slimelet'];
+                if (!player.pets.unlocked.includes('sprout_slimelet')) player.pets.unlocked.unshift('sprout_slimelet');
+                if (!Array.isArray(player.pets.active)) player.pets.active = ['sprout_slimelet', null];
+                if (!player.pets.levels) player.pets.levels = {};
+                if (!player.pets.levels.sprout_slimelet) player.pets.levels.sprout_slimelet = { level: 1, exp: 0 };
+            }
+            if (player.level < 25 && player.pets && player.pets.active) {
+                player.pets.active[1] = null;
+            }
+
             init();
             renderStats();
             renderInventory();
@@ -1464,8 +2270,311 @@
             renderQuests();
             renderAchievements();
             switchScreen('town');
-            showToast('Game Loaded', 'Game loaded successfully.', 'save');
+            showToast('Game Loaded', `Loaded Slot ${target}!`, 'save');
+            if (typeof renderSaveManager === 'function' && document.getElementById('modal-saves')?.classList.contains('active')) {
+                renderSaveManager();
+            }
+        } else {
+            showToast("Load Failed", "No save found in Slot " + target, "save");
         }
+    }
+
+    function deleteSaveSlot(slotNum) {
+        const target = parseInt(slotNum) || 1;
+        const confirmed = (typeof window !== 'undefined' && window.confirm) ? window.confirm(`Are you sure you want to delete Slot ${target}? This action cannot be undone.`) : true;
+        if (confirmed) {
+            localStorage.removeItem(getSaveSlotKey(target));
+            showToast('Save Deleted', `Slot ${target} cleared.`, 'info');
+            renderSaveManager();
+        }
+    }
+
+    function encodeSaveData(jsonString) {
+        return btoa(encodeURIComponent(jsonString).replace(/%([0-9A-F]{2})/g, (match, p1) => {
+            return String.fromCharCode('0x' + p1);
+        }));
+    }
+
+    function decodeSaveData(encodedString) {
+        const trimmed = (encodedString || '').trim();
+        if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+            return JSON.parse(trimmed);
+        }
+        const decoded = decodeURIComponent(Array.prototype.map.call(atob(trimmed), c => {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(decoded);
+    }
+
+    function validateSaveData(data) {
+        if (!data || typeof data !== 'object') return false;
+        if (typeof data.level === 'undefined' && typeof data.baseStats === 'undefined' && typeof data.inventory === 'undefined') {
+            return false;
+        }
+        return true;
+    }
+
+    function executeImport(targetSlot, autoLoad = true) {
+        const inputEl = document.getElementById('import-save-text');
+        const input = inputEl ? inputEl.value.trim() : '';
+        if (!input) {
+            showToast('Import Failed', 'Please paste a save string first.', 'info');
+            return;
+        }
+
+        let parsed = null;
+        try {
+            parsed = decodeSaveData(input);
+        } catch (e) {
+            showToast('Import Failed', 'Corrupted or invalid save code format.', 'info');
+            return;
+        }
+
+        if (!validateSaveData(parsed)) {
+            showToast('Import Failed', 'Save validation failed: Missing character data.', 'info');
+            return;
+        }
+
+        const slotNum = parseInt(targetSlot) || 1;
+        const existing = localStorage.getItem(getSaveSlotKey(slotNum));
+        if (existing) {
+            const ok = (typeof window !== 'undefined' && window.confirm) ? window.confirm(`Slot ${slotNum} already has a character! Overwrite?`) : true;
+            if (!ok) return;
+        }
+
+        parsed.lastSaved = new Date().toLocaleString() + ' (Imported)';
+        localStorage.setItem(getSaveSlotKey(slotNum), JSON.stringify(parsed));
+
+        if (autoLoad) {
+            loadGame(slotNum);
+            closeAllModals();
+            showToast('Import Successful', `Loaded character into Slot ${slotNum}!`, 'save');
+        } else {
+            showToast('Import Successful', `Saved character to Slot ${slotNum}!`, 'save');
+            renderSaveManager();
+        }
+    }
+
+    function renderSaveManager() {
+        const content = document.getElementById('saves-content');
+        if (!content) return;
+
+        const tabSlotsBtn = document.getElementById('save-tab-slots');
+        const tabExportBtn = document.getElementById('save-tab-export');
+        if (tabSlotsBtn) tabSlotsBtn.classList.toggle('active', saveManagerTab === 'slots');
+        if (tabExportBtn) tabExportBtn.classList.toggle('active', saveManagerTab === 'export');
+
+        if (saveManagerTab === 'slots') {
+            let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+            for (let i = 1; i <= 3; i++) {
+                const key = getSaveSlotKey(i);
+                const raw = localStorage.getItem(key);
+                const isActive = (i === currentSaveSlot);
+
+                if (raw) {
+                    let d = null;
+                    try { d = JSON.parse(raw); } catch(e) {}
+                    if (d) {
+                        const heroName = d.name || 'Hero';
+                        const heroLvl = d.level || 1;
+                        const clsName = (typeof CLASSES_DB !== 'undefined' && d.currentClass && CLASSES_DB[d.currentClass]) ? CLASSES_DB[d.currentClass].name : (d.currentClass || 'Novice');
+                        const areaName = (typeof AREAS_DB !== 'undefined' && d.selectedArea && AREAS_DB[d.selectedArea]) ? AREAS_DB[d.selectedArea].name : (d.selectedArea || 'Whispering Woods');
+                        const spireFloor = (d.spire && d.spire.highestFloor) ? d.spire.highestFloor : 0;
+                        const gold = d.gold || 0;
+                        const lastSaved = d.lastSaved || 'Unknown';
+
+                        html += `
+                        <div class="save-slot-card ${isActive ? 'active-slot' : ''}">
+                            <div class="save-slot-header">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <b style="font-size:15px; color:#f8fafc;">Slot ${i}: ${heroName} (Lv ${heroLvl})</b>
+                                    ${isActive ? '<span class="badge" style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:4px; font-size:11px;">⭐ Active Profile</span>' : ''}
+                                </div>
+                                <span style="font-size:12px; color:#94a3b8;">${lastSaved}</span>
+                            </div>
+                            <div class="save-slot-info">
+                                <span>Class: <b style="color:#c084fc;">${clsName}</b></span>
+                                <span>Area: <b style="color:#4ade80;">${areaName}</b></span>
+                                <span>Spire: <b style="color:#38bdf8;">Floor ${spireFloor}</b></span>
+                                <span>Gold: <b style="color:#ffd700;">${gold} G</b></span>
+                            </div>
+                            <div class="save-slot-actions">
+                                <button class="btn" style="padding:4px 10px; font-size:12px; background:#0284c7; color:#fff;" onclick="saveGame(${i})">💾 Save Current</button>
+                                <button class="btn" style="padding:4px 10px; font-size:12px; background:#10b981; color:#fff;" onclick="loadGame(${i})">📂 Load</button>
+                                <button class="btn" style="padding:4px 10px; font-size:12px; background:#6366f1; color:#fff;" onclick="exportSpecificSlot(${i})">📤 Export</button>
+                                <button class="btn" style="padding:4px 10px; font-size:12px; background:#ef4444; color:#fff;" onclick="deleteSaveSlot(${i})">🗑️ Delete</button>
+                            </div>
+                        </div>`;
+                        continue;
+                    }
+                }
+
+                // Empty Slot
+                html += `
+                <div class="save-slot-card empty-slot">
+                    <div class="save-slot-header">
+                        <b style="font-size:14px; color:#94a3b8;">Slot ${i}: [Empty Profile - Ready for New Hero]</b>
+                    </div>
+                    <div style="font-size:12px; color:#64748b;">
+                        No character progress saved in this slot.
+                    </div>
+                    <div class="save-slot-actions">
+                        <button class="btn" style="padding:4px 10px; font-size:12px; background:#0284c7; color:#fff;" onclick="saveGame(${i})">💾 Save Current to Slot ${i}</button>
+                        <button class="btn" style="padding:4px 10px; font-size:12px; background:#6366f1; color:#fff;" onclick="importToSpecificSlot(${i})">📥 Import to Slot ${i}</button>
+                    </div>
+                </div>`;
+            }
+            html += '</div>';
+            content.innerHTML = html;
+        } else if (saveManagerTab === 'export') {
+            let html = `
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <!-- Export Section -->
+                <div style="background:rgba(15,23,42,0.6); border:1px solid #334155; border-radius:8px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <b style="color:#38bdf8; font-size:14px;">📤 Export Character Profile</b>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="font-size:12px; color:#94a3b8;">Profile:</label>
+                            <select id="export-slot-select" style="background:#1e293b; color:#fff; border:1px solid #475569; border-radius:4px; padding:3px 8px; font-size:12px;" onchange="updateExportText()">
+                                <option value="current" ${selectedExportSlot === 'current' ? 'selected' : ''}>Active Hero (Live Memory)</option>
+                                <option value="1" ${selectedExportSlot === 1 ? 'selected' : ''}>Slot 1 ${localStorage.getItem('er_save') ? '(Saved)' : '(Empty)'}</option>
+                                <option value="2" ${selectedExportSlot === 2 ? 'selected' : ''}>Slot 2 ${localStorage.getItem('er_save_slot_2') ? '(Saved)' : '(Empty)'}</option>
+                                <option value="3" ${selectedExportSlot === 3 ? 'selected' : ''}>Slot 3 ${localStorage.getItem('er_save_slot_3') ? '(Saved)' : '(Empty)'}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea id="export-save-text" class="save-textarea" readonly></textarea>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn" style="padding:5px 12px; font-size:12px; background:#38bdf8; color:#0f172a; font-weight:bold;" onclick="copyExportText()">📋 Copy Save String</button>
+                        <button class="btn" style="padding:5px 12px; font-size:12px; background:#0284c7; color:#fff;" onclick="downloadSaveJson()">💾 Download .JSON File</button>
+                    </div>
+                </div>
+
+                <!-- Import Section -->
+                <div style="background:rgba(15,23,42,0.6); border:1px solid #334155; border-radius:8px; padding:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <b style="color:#4ade80; font-size:14px;">📥 Import Character Save</b>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="font-size:12px; color:#94a3b8;">Destination:</label>
+                            <select id="import-target-slot" style="background:#1e293b; color:#fff; border:1px solid #475569; border-radius:4px; padding:3px 8px; font-size:12px;">
+                                <option value="1">Import into: Slot 1</option>
+                                <option value="2">Import into: Slot 2</option>
+                                <option value="3">Import into: Slot 3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <textarea id="import-save-text" class="save-textarea" placeholder="Paste your exported save string or raw JSON here..."></textarea>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="btn" style="padding:5px 12px; font-size:12px; background:#10b981; color:#fff; font-weight:bold;" onclick="executeImport(document.getElementById('import-target-slot').value, true)">📥 Import & Load Immediately</button>
+                        <button class="btn" style="padding:5px 12px; font-size:12px; background:#3b82f6; color:#fff;" onclick="executeImport(document.getElementById('import-target-slot').value, false)">💾 Save to Slot Only</button>
+                    </div>
+                </div>
+            </div>
+            `;
+            content.innerHTML = html;
+            updateExportText();
+        }
+    }
+
+    function exportSpecificSlot(slotNum) {
+        selectedExportSlot = parseInt(slotNum) || 1;
+        setSaveTab('export');
+    }
+
+    function importToSpecificSlot(slotNum) {
+        setSaveTab('export');
+        setTimeout(() => {
+            const sel = document.getElementById('import-target-slot');
+            if (sel) sel.value = slotNum;
+        }, 10);
+    }
+
+    function updateExportText() {
+        const sel = document.getElementById('export-slot-select');
+        const slot = sel ? sel.value : selectedExportSlot;
+        let dataObj = null;
+        if (slot === 'current') {
+            dataObj = player;
+        } else {
+            const slotKey = getSaveSlotKey(slot);
+            const data = localStorage.getItem(slotKey);
+            if (data) {
+                try { dataObj = JSON.parse(data); } catch(e) {}
+            } else if (parseInt(slot) === currentSaveSlot) {
+                dataObj = player;
+            }
+        }
+
+        const txt = document.getElementById('export-save-text');
+        if (!txt) return;
+        if (!dataObj) {
+            txt.value = "// Slot is empty. No save data to export.";
+        } else {
+            try {
+                txt.value = encodeSaveData(JSON.stringify(dataObj));
+            } catch(e) {
+                txt.value = JSON.stringify(dataObj);
+            }
+        }
+    }
+
+    function copyExportText() {
+        const txt = document.getElementById('export-save-text');
+        if (!txt || !txt.value || txt.value.startsWith('//')) {
+            showToast('Export', 'No save data to copy.', 'info');
+            return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(txt.value).then(() => {
+                showToast('Save Copied', 'Save copied to clipboard!', 'save');
+            }).catch(() => {
+                legacyCopy(txt);
+            });
+        } else {
+            legacyCopy(txt);
+        }
+    }
+
+    function legacyCopy(txt) {
+        txt.select();
+        try {
+            document.execCommand('copy');
+            showToast('Save Copied', 'Save copied to clipboard!', 'save');
+        } catch(e) {
+            showToast('Save Export', 'Press Ctrl+C to copy save string.', 'info');
+        }
+    }
+
+    function downloadSaveJson() {
+        const sel = document.getElementById('export-slot-select');
+        const slot = sel ? sel.value : selectedExportSlot;
+        let dataObj = null;
+        if (slot === 'current') {
+            dataObj = player;
+        } else {
+            const slotKey = getSaveSlotKey(slot);
+            const data = localStorage.getItem(slotKey);
+            if (data) {
+                try { dataObj = JSON.parse(data); } catch(e) {}
+            } else if (parseInt(slot) === currentSaveSlot) {
+                dataObj = player;
+            }
+        }
+        if (!dataObj) {
+            showToast('Export', 'No save data to download.', 'info');
+            return;
+        }
+        const jsonStr = JSON.stringify(dataObj, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `elemental_realms_slot_${slot}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Save Downloaded', `Downloaded elemental_realms_slot_${slot}.json!`, 'save');
     }
     function healInTown() {
         if(player.gold >= 20) {
@@ -1484,7 +2593,19 @@
         let totalOrbsGained = 0;
         let levelsGained = 0;
         
+        if (player.level >= 50) {
+            player.level = 50;
+            player.exp = 0;
+            updateHeader();
+            return;
+        }
+
         while(player.exp >= player.level * 40) {
+            if (player.level >= 50) {
+                player.level = 50;
+                player.exp = 0;
+                break;
+            }
             player.exp -= player.level * 40;
             player.level++;
             levelsGained++;
@@ -1507,7 +2628,13 @@
             if(player.level === 7 && !player.skills.includes('Wind Blade')) player.skills.push('Wind Blade');
         }
         
+        if (player.level >= 50) {
+            player.level = 50;
+            player.exp = 0;
+        }
+        
         if (leveledUp) {
+            playSFX('level_up');
             player.skillOrbs += totalOrbsGained;
             computeStats();
             
@@ -1528,12 +2655,295 @@
                     showToast('Class Evolution Ready!', 'Visit the Class Sanctum in Town to advance your class!', 'level', 6000);
                 }, 1000);
             }
+            if (prevLevel < 25 && player.level >= 25) {
+                setTimeout(() => {
+                    showToast('🐾 2nd Companion Slot Unlocked!', 'You can now equip 2 pets simultaneously in the Familiar Sanctuary!', 'level', 6000);
+                }, 1200);
+            }
         }
     }
 
     /* =========================================================================
        UI RENDERING (STATS, INV, SHOP, SKILLS)
        ========================================================================= */
+
+        /* =========================================================================
+       ARPG QUALITY-OF-LIFE (QoL) & INTEL SUITE HELPERS
+       ========================================================================= */
+
+    let invCategoryFilter = 'all';
+    let invSortOrder = 'rarity';
+
+    function setInvFilter(filter) {
+        invCategoryFilter = filter;
+        renderInventory();
+    }
+
+    function setInvSort(sortKey) {
+        invSortOrder = sortKey;
+        renderInventory();
+    }
+
+    function getItemTotalStats(item) {
+        let stats = { atk: 0, def: 0, matk: 0, mdef: 0, maxHp: 0, maxMp: 0, spd: 0, crit: 0 };
+        if (!item) return stats;
+
+        if (typeof item === 'string') {
+            let dbItem = (typeof ITEMS_DB !== 'undefined' && ITEMS_DB[item]) ? ITEMS_DB[item] : null;
+            if (!dbItem) return stats;
+            for (let s in stats) {
+                if (dbItem[s]) stats[s] += dbItem[s];
+            }
+            return stats;
+        }
+
+        if (typeof item === 'object') {
+            let upLevel = item.upgradeLevel || 0;
+            if (item.baseStats) {
+                for (let s in stats) {
+                    if (item.baseStats[s]) {
+                        stats[s] += (typeof getUpgradedStat === 'function') ? getUpgradedStat(item.baseStats[s], upLevel) : item.baseStats[s];
+                    }
+                }
+            }
+            if (item.affixes && Array.isArray(item.affixes)) {
+                for (let affix of item.affixes) {
+                    if (affix && affix.stat && stats[affix.stat] !== undefined && affix.value) {
+                        stats[affix.stat] += affix.value;
+                    }
+                }
+            }
+        }
+        return stats;
+    }
+
+    function calculateGearScore(item) {
+        if (!item) return 0;
+        const rarityWeights = {
+            'Common': 1,
+            'Uncommon': 2,
+            'Rare': 3,
+            'Epic': 4,
+            'Legendary': 5,
+            'Mythic': 6
+        };
+        let rarity = 'Common';
+        let upLevel = 0;
+        if (typeof item === 'object') {
+            rarity = item.rarity || 'Common';
+            upLevel = item.upgradeLevel || 0;
+        } else if (typeof item === 'string' && typeof ITEMS_DB !== 'undefined' && ITEMS_DB[item]) {
+            rarity = ITEMS_DB[item].rarity || 'Common';
+        }
+        let rMult = rarityWeights[rarity] || 1;
+        let s = getItemTotalStats(item);
+
+        let score = (rMult * 50) +
+                    ((s.atk || 0) * 2) +
+                    ((s.def || 0) * 2) +
+                    ((s.matk || 0) * 2) +
+                    ((s.mdef || 0) * 2) +
+                    ((s.maxHp || 0) * 0.5) +
+                    ((s.maxMp || 0) * 0.5) +
+                    ((s.spd || 0) * 3) +
+                    ((s.crit || 0) * 4) +
+                    (upLevel * 15);
+        return Math.round(score * 10) / 10;
+    }
+
+    function compareItemStats(candidate, equipped) {
+        if (!candidate) return '';
+        if (!equipped) {
+            return '<span class="stat-diff-pos">(New Slot Item!)</span>';
+        }
+        let cStats = getItemTotalStats(candidate);
+        let eStats = getItemTotalStats(equipped);
+        let statKeys = ['atk', 'def', 'matk', 'mdef', 'maxHp', 'maxMp', 'spd', 'crit'];
+        let labels = { atk: 'ATK', def: 'DEF', matk: 'MATK', mdef: 'MDEF', maxHp: 'HP', maxMp: 'MP', spd: 'SPD', crit: 'CRIT' };
+
+        let diffPills = [];
+        for (let k of statKeys) {
+            let cVal = cStats[k] || 0;
+            let eVal = eStats[k] || 0;
+            if (cVal === 0 && eVal === 0) continue;
+            let diff = cVal - eVal;
+            let lbl = labels[k] || k.toUpperCase();
+            if (diff > 0) {
+                diffPills.push(`<span class="stat-diff-pos">+${diff} ${lbl}</span>`);
+            } else if (diff < 0) {
+                diffPills.push(`<span class="stat-diff-neg">${diff} ${lbl}</span>`);
+            } else {
+                diffPills.push(`<span class="stat-diff-eq">±0 ${lbl}</span>`);
+            }
+        }
+
+        if (diffPills.length === 0) {
+            return '<span class="stat-diff-eq">±0 All Stats</span>';
+        }
+        return `<span class="equip-diff-pills">${diffPills.join(' ')}</span>`;
+    }
+
+    function autoEquipBestGear() {
+        if (!player || !player.equipment || !player.inventory) return 0;
+        if (!player.inventory.equipment) player.inventory.equipment = [];
+
+        const slots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+        let swappedCount = 0;
+
+        for (let slot of slots) {
+            let curEquipped = player.equipment[slot];
+            let curScore = curEquipped ? calculateGearScore(curEquipped) : -1;
+
+            let bestIndex = -1;
+            let bestScore = curScore;
+
+            for (let i = 0; i < player.inventory.equipment.length; i++) {
+                let item = player.inventory.equipment[i];
+                if (!item) continue;
+                let itemSlot = item.type;
+                if (itemSlot === 'chest') itemSlot = 'armor';
+                if (itemSlot === slot) {
+                    let score = calculateGearScore(item);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestIndex = i;
+                    }
+                }
+            }
+
+            if (bestIndex !== -1) {
+                let bestItem = player.inventory.equipment[bestIndex];
+                player.inventory.equipment.splice(bestIndex, 1);
+                if (curEquipped) {
+                    let oldInstance = (typeof curEquipped === 'object') ? curEquipped : generateItem(curEquipped, 'Common');
+                    player.inventory.equipment.push(oldInstance);
+                }
+                player.equipment[slot] = bestItem;
+                swappedCount++;
+            }
+        }
+
+        if (swappedCount > 0) {
+            computeStats();
+            updateHeader();
+            renderStats();
+            renderInventory();
+            showToast('Gear Optimized', `Equipped ${swappedCount} superior item${swappedCount > 1 ? 's' : ''}!`, 'info');
+        } else {
+            showToast('Gear Optimized', 'Current equipment is already optimal!', 'info');
+        }
+
+        return swappedCount;
+    }
+
+    function getStatBreakdown(statKey) {
+        let result = {
+            base: 0,
+            gear: 0,
+            skillTree: 0,
+            achievements: 0,
+            pets: 0,
+            spire: 0,
+            total: 0
+        };
+        if (!player) return result;
+        
+        // Base
+        if (player.baseStats && player.baseStats[statKey] !== undefined) {
+            result.base = player.baseStats[statKey];
+        } else if (statKey === 'crit') {
+            result.base = 5;
+        }
+        
+        // Gear (all 6 slots)
+        if (player.equipment) {
+            for (let slot in player.equipment) {
+                let item = player.equipment[slot];
+                if (item) {
+                    let s = getItemTotalStats(item);
+                    if (s[statKey]) result.gear += s[statKey];
+                }
+            }
+        }
+        
+        // Skill Tree
+        if (player.skillTree) {
+            if (statKey === 'maxHp') result.skillTree += (player.skillTree.vitalityTraining || 0) * 10;
+            if (statKey === 'maxMp') result.skillTree += (player.skillTree.spiritTraining || 0) * 5;
+            if (statKey === 'atk') result.skillTree += (player.skillTree.atkTraining || 0) * 2;
+            if (statKey === 'def') result.skillTree += (player.skillTree.defTraining || 0) * 2;
+            if (statKey === 'crit') result.skillTree += (player.skillTree.critTraining || 0) * 2;
+            if (statKey === 'matk') result.skillTree += (player.skillTree.arcaneTraining || 0) * 2;
+            if (statKey === 'mdef') result.skillTree += (player.skillTree.ironSkin || 0) * 2;
+            if (statKey === 'spd') result.skillTree += (player.skillTree.spdTraining || 0) * 1;
+        }
+        
+        // Achievements
+        if (player.achievements && typeof ACHIEVEMENTS_DB !== 'undefined') {
+            for (let id in player.achievements) {
+                if (player.achievements[id] && player.achievements[id].unlocked && ACHIEVEMENTS_DB[id] && ACHIEVEMENTS_DB[id].reward && ACHIEVEMENTS_DB[id].reward.stats) {
+                    let st = ACHIEVEMENTS_DB[id].reward.stats;
+                    if (st[statKey]) result.achievements += st[statKey];
+                }
+            }
+        }
+        
+        // Spire
+        if (player.spire) {
+            if (player.spire.tomesUsed) {
+                if (statKey === 'maxHp') result.spire += (player.spire.tomesUsed.hp || 0) * 20;
+                if (statKey === 'atk' || statKey === 'matk') result.spire += (player.spire.tomesUsed.atk || 0) * 3;
+                if (statKey === 'maxMp') result.spire += (player.spire.tomesUsed.mp || 0) * 10;
+            }
+            if (player.spire.equippedRelic === 'celestial_feather') {
+                if (statKey === 'spd') result.spire += 15;
+                if (statKey === 'crit') result.spire += 10;
+            }
+        }
+        
+        // Pets
+        if (player.pets && Array.isArray(player.pets.active) && typeof PETS_DB !== 'undefined') {
+            let bStats = player.baseStats || {};
+            player.pets.active.filter(Boolean).forEach(petId => {
+                const pet = PETS_DB[petId];
+                if (pet && pet.passive) {
+                    const lvl = (player.pets.levels && player.pets.levels[petId] && player.pets.levels[petId].level) || 1;
+                    const scale = 1 + ((lvl - 1) * 0.10);
+                    if (statKey === 'atk' && pet.passive.atkPct) result.pets += Math.max(1, Math.round((bStats.atk || 10) * (pet.passive.atkPct * scale / 100)));
+                    if (statKey === 'def' && pet.passive.defPct) result.pets += Math.max(1, Math.round((bStats.def || 10) * (pet.passive.defPct * scale / 100)));
+                    if (statKey === 'matk' && pet.passive.matkPct) result.pets += Math.max(1, Math.round((bStats.matk || 10) * (pet.passive.matkPct * scale / 100)));
+                    if (statKey === 'mdef' && pet.passive.mdefPct) result.pets += Math.max(1, Math.round((bStats.mdef || 10) * (pet.passive.mdefPct * scale / 100)));
+                    if (statKey === 'maxHp' && pet.passive.maxHpPct) result.pets += Math.max(1, Math.round((bStats.maxHp || 100) * (pet.passive.maxHpPct * scale / 100)));
+                    if (statKey === 'maxMp' && pet.passive.maxMpPct) result.pets += Math.max(1, Math.round((bStats.maxMp || 50) * (pet.passive.maxMpPct * scale / 100)));
+                    if (statKey === 'spd' && pet.passive.spd) result.pets += Math.round(pet.passive.spd * scale);
+                    if (statKey === 'crit' && pet.passive.crit) result.pets += Math.round(pet.passive.crit * scale);
+                }
+            });
+        }
+
+        result.total = result.base + result.gear + result.skillTree + result.achievements + result.pets + result.spire;
+        return result;
+    }
+
+    if (typeof window !== 'undefined') {
+        window.repeatBattle = repeatBattle;
+        window.getBestAvailableHealingPotion = getBestAvailableHealingPotion;
+        window.updateQuickPotionButton = updateQuickPotionButton;
+        window.useQuickPotion = useQuickPotion;
+        window.toggleItemLock = toggleItemLock;
+        window.sellAllJunkEquipment = sellAllJunkEquipment;
+        window.salvageEquipment = salvageEquipment;
+        window.salvageBulk = salvageBulk;
+        window.invCategoryFilter = invCategoryFilter;
+        window.invSortOrder = invSortOrder;
+        window.setInvFilter = setInvFilter;
+        window.setInvSort = setInvSort;
+        window.getItemTotalStats = getItemTotalStats;
+        window.calculateGearScore = calculateGearScore;
+        window.compareItemStats = compareItemStats;
+        window.autoEquipBestGear = autoEquipBestGear;
+        window.getStatBreakdown = getStatBreakdown;
+    }
 
     function renderStats() {
         computeStats();
@@ -1555,6 +2965,53 @@
         document.getElementById('stat-spd').innerText = pStats.spd;
         const critEl = document.getElementById('stat-crit');
         if(critEl) critEl.innerText = pStats.crit + '%';
+
+        // Stat Calculation Breakdown & Tooltips
+        const statConfig = [
+            { id: 'stat-atk', key: 'atk', label: 'ATK' },
+            { id: 'stat-def', key: 'def', label: 'DEF' },
+            { id: 'stat-matk', key: 'matk', label: 'MATK' },
+            { id: 'stat-mdef', key: 'mdef', label: 'MDEF' },
+            { id: 'stat-spd', key: 'spd', label: 'SPD' },
+            { id: 'stat-crit', key: 'crit', label: 'CRIT' },
+            { id: 'stat-hp', key: 'maxHp', label: 'HP' },
+            { id: 'stat-mp', key: 'maxMp', label: 'MP' }
+        ];
+
+        let bdRowsHtml = '';
+        for (let sc of statConfig) {
+            let bd = getStatBreakdown(sc.key);
+            let parts = [`Base ${bd.base}`];
+            if (bd.gear) parts.push(`Gear +${bd.gear}`);
+            if (bd.skillTree) parts.push(`Tree +${bd.skillTree}`);
+            if (bd.pets) parts.push(`Pets +${bd.pets}`);
+            if (bd.achievements) parts.push(`Achieve +${bd.achievements}`);
+            if (bd.spire) parts.push(`Spire +${bd.spire}`);
+
+            let equationStr = `${sc.label}: ${parts.join(' + ')}`;
+            let el = document.getElementById(sc.id);
+            if (el) {
+                el.title = equationStr;
+                el.style.cursor = 'help';
+            }
+
+            bdRowsHtml += `
+                <div class="stat-breakdown-row" title="${equationStr}">
+                    <span class="stat-bd-name">${sc.label}:</span>
+                    <span class="stat-bd-formula">${parts.join(' + ')}</span>
+                </div>
+            `;
+        }
+
+        const bdContainer = document.getElementById('stat-breakdown-container');
+        if (bdContainer) {
+            bdContainer.innerHTML = `
+                <div class="stat-breakdown-panel">
+                    <div class="stat-breakdown-title">📊 Stat Calculation Sources</div>
+                    <div class="stat-breakdown-grid">${bdRowsHtml}</div>
+                </div>
+            `;
+        }
         
         const allSlots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
         let eqHtml = '';
@@ -1600,139 +3057,396 @@
         }
         document.getElementById('equip-slots').innerHTML = eqHtml;
     }
+
     function renderInventory() {
         const container = document.getElementById('inventory-list');
         if (!container) return;
         
         if (!player.inventory) player.inventory = createInventory();
         
-        let consumablesHtml = '<div style="margin-bottom: 16px;"><div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;">Consumables</div>';
-        let hasConsumables = false;
-        let consumablesMap = player.inventory.consumables || player.inventory;
-        
-        for (let itemName in consumablesMap) {
-            let qty = consumablesMap[itemName];
-            if (typeof qty === 'number' && qty > 0) {
-                let item = ITEMS_DB[itemName];
-                if (item && item.type === 'consumable') {
-                    hasConsumables = true;
-                    consumablesHtml += `
-                        <div class="item-row" style="margin-bottom: 6px;">
-                            <div>
-                                <b>${itemName} x${qty}</b><br>
-                                <span style="font-size: 12px; color: #aaa;">${item.desc}</span>
+        // Sync active filter buttons & sort dropdown if present in DOM
+        ['all', 'weapons', 'armor', 'accessories', 'consumables'].forEach(cat => {
+            const btn = document.getElementById('inv-filter-' + cat);
+            if (btn) {
+                if (invCategoryFilter === cat) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        });
+        const sortSelect = document.getElementById('inv-sort-select');
+        if (sortSelect) sortSelect.value = invSortOrder;
+
+        // Consumables Section
+        let consumablesHtml = '';
+        if (invCategoryFilter === 'all' || invCategoryFilter === 'consumables') {
+            consumablesHtml = '<div style="margin-bottom: 16px;"><div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;">Consumables</div>';
+            let hasConsumables = false;
+            let consumablesMap = player.inventory.consumables || player.inventory;
+            
+            for (let itemName in consumablesMap) {
+                let qty = consumablesMap[itemName];
+                if (typeof qty === 'number' && qty > 0) {
+                    let item = ITEMS_DB[itemName];
+                    if (item && item.type === 'consumable') {
+                        hasConsumables = true;
+                        consumablesHtml += `
+                            <div class="item-row" style="margin-bottom: 6px;">
+                                <div>
+                                    <b>${itemName} x${qty}</b><br>
+                                    <span style="font-size: 12px; color: #aaa;">${item.desc}</span>
+                                </div>
+                                <div>
+                                    <button class="btn" onclick="useItemOutsideBattle('${itemName}')">Use</button>
+                                </div>
+                            </div>`;
+                    }
+                }
+            }
+            if (!hasConsumables) consumablesHtml += '<p style="font-size: 12px; color: #666; margin: 6px 0;">No consumables in bag.</p>';
+            consumablesHtml += '</div>';
+        }
+
+        // Equipment Section
+        let equipmentHtml = '';
+        if (invCategoryFilter !== 'consumables') {
+            let eqItems = (player.inventory.equipment && Array.isArray(player.inventory.equipment)) ? player.inventory.equipment : [];
+            let filteredItems = eqItems.filter(item => {
+                if (!item) return false;
+                if (invCategoryFilter === 'all') return true;
+                if (invCategoryFilter === 'weapons') return item.type === 'weapon';
+                if (invCategoryFilter === 'armor') return ['helmet', 'armor', 'chest', 'gloves', 'boots'].includes(item.type);
+                if (invCategoryFilter === 'accessories') return item.type === 'accessory';
+                return false;
+            });
+
+            // Sort filteredItems
+            const rarityOrder = { 'Mythic': 6, 'Legendary': 5, 'Epic': 4, 'Rare': 3, 'Uncommon': 2, 'Common': 1 };
+            filteredItems.sort((a, b) => {
+                if (invSortOrder === 'rarity') {
+                    let rDiff = (rarityOrder[b.rarity] || 1) - (rarityOrder[a.rarity] || 1);
+                    if (rDiff !== 0) return rDiff;
+                    return calculateGearScore(b) - calculateGearScore(a);
+                } else if (invSortOrder === 'power') {
+                    return calculateGearScore(b) - calculateGearScore(a);
+                } else if (invSortOrder === 'name') {
+                    return (a.name || '').localeCompare(b.name || '');
+                }
+                return 0;
+            });
+
+            let eqTotalCount = (player.inventory.equipment && player.inventory.equipment.length) || 0;
+            let displayCountText = (invCategoryFilter === 'all') ? eqTotalCount : `${filteredItems.length}/${eqTotalCount}`;
+            equipmentHtml = `<div><div style="font-size: 14px; font-weight: bold; color: #ffd700; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;">Equipment (${displayCountText})</div>`;
+            
+            if (filteredItems.length > 0) {
+                for (let item of filteredItems) {
+                    let rarity = item.rarity || 'Common';
+                    let tierInfo = RARITY_TIERS[rarity] || { color: '#ffffff' };
+                    let color = tierInfo.color;
+                    
+                    let baseStatsArr = [];
+                    if (item.baseStats) {
+                        for (let s in item.baseStats) {
+                            baseStatsArr.push(`+${item.baseStats[s]} ${s.toUpperCase()}`);
+                        }
+                    }
+                    let baseStatsText = baseStatsArr.join(', ');
+                    
+                    let affixesText = '';
+                    if (item.affixes && item.affixes.length > 0) {
+                        affixesText = item.affixes.map(a => a.desc ? a.desc.replace('{val}', a.value) : `+${a.value} ${a.stat}`).join(' | ');
+                    }
+
+                    let slotType = item.type === 'chest' ? 'armor' : item.type;
+                    let equippedItem = (player.equipment && player.equipment[slotType]) ? player.equipment[slotType] : null;
+                    let comparisonHtml = compareItemStats(item, equippedItem);
+                    let gearScore = calculateGearScore(item);
+                    
+                    let isLocked = !!item.locked;
+                    equipmentHtml += `
+                        <div class="equip-card equip-card-${rarity} ${isLocked ? 'locked' : ''}">
+                            <div class="equip-card-top">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <button class="btn-lock-toggle ${isLocked ? 'locked' : ''}" onclick="toggleItemLock('${item.id}')" title="${isLocked ? 'Item Locked (Protected)' : 'Click to Lock'}">
+                                        ${isLocked ? '🔒' : '🔓'}
+                                    </button>
+                                    <span class="equip-card-name" style="color: ${color};">${item.name}</span>
+                                    ${isLocked ? '<span class="item-lock-badge">LOCKED</span>' : ''}
+                                </div>
+                                <span class="equip-card-badge" style="background: rgba(255,255,255,0.08); color: ${color}; border: 1px solid ${color};">${rarity} • ${item.type.toUpperCase()}</span>
                             </div>
-                            <div>
-                                <button class="btn" onclick="useItemOutsideBattle('${itemName}')">Use</button>
+                            <div class="equip-card-stats">
+                                ${baseStatsText ? `<div class="equip-card-base">Base Stats: <b>${baseStatsText}</b></div>` : ''}
+                                ${affixesText ? `<div class="equip-card-affixes">Affixes (${item.affixes.length}): <span>${affixesText}</span></div>` : ''}
+                                <div style="font-size: 11px; color: #ffd700; margin-top: 3px;">Gear Score: <b>${gearScore}</b></div>
+                                <div class="equip-comparison-strip">
+                                    <span style="color: #94a3b8; font-size: 10px;">vs Equipped:</span>
+                                    ${comparisonHtml}
+                                </div>
+                            </div>
+                            <div class="equip-card-actions">
+                                <span style="font-size: 12px; color: #fbbf24;">Sell: ${item.sellPrice || 10} Gold</span>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn" style="padding: 3px 12px; font-size: 12px;" onclick="sellItem('${item.id}')">Sell</button>
+                                    <button class="btn" style="padding: 3px 14px; font-size: 12px; color: #55ff55; border-color: #55ff55;" onclick="equipItem('${item.id}')">Equip</button>
+                                </div>
                             </div>
                         </div>`;
                 }
+            } else {
+                equipmentHtml += '<p style="font-size: 12px; color: #666; margin: 6px 0;">No matching equipment in bag.</p>';
             }
+            equipmentHtml += '</div>';
         }
-        if (!hasConsumables) consumablesHtml += '<p style="font-size: 12px; color: #666; margin: 6px 0;">No consumables in bag.</p>';
-        consumablesHtml += '</div>';
-
-        let eqCount = (player.inventory.equipment && player.inventory.equipment.length) || 0;
-        let equipmentHtml = `<div><div style="font-size: 14px; font-weight: bold; color: #ffd700; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px;">Equipment (${eqCount})</div>`;
-        
-        if (player.inventory.equipment && player.inventory.equipment.length > 0) {
-            for (let item of player.inventory.equipment) {
-                let rarity = item.rarity || 'Common';
-                let tierInfo = RARITY_TIERS[rarity] || { color: '#ffffff' };
-                let color = tierInfo.color;
-                
-                let baseStatsArr = [];
-                if (item.baseStats) {
-                    for (let s in item.baseStats) {
-                        baseStatsArr.push(`+${item.baseStats[s]} ${s.toUpperCase()}`);
-                    }
-                }
-                let baseStatsText = baseStatsArr.join(', ');
-                
-                let affixesText = '';
-                if (item.affixes && item.affixes.length > 0) {
-                    affixesText = item.affixes.map(a => a.desc ? a.desc.replace('{val}', a.value) : `+${a.value} ${a.stat}`).join(' | ');
-                }
-                
-                equipmentHtml += `
-                    <div class="equip-card equip-card-${rarity}">
-                        <div class="equip-card-top">
-                            <span class="equip-card-name" style="color: ${color};">${item.name}</span>
-                            <span class="equip-card-badge" style="background: rgba(255,255,255,0.08); color: ${color}; border: 1px solid ${color};">${rarity} • ${item.type.toUpperCase()}</span>
-                        </div>
-                        <div class="equip-card-stats">
-                            ${baseStatsText ? `<div class="equip-card-base">Base Stats: <b>${baseStatsText}</b></div>` : ''}
-                            ${affixesText ? `<div class="equip-card-affixes">Affixes (${item.affixes.length}): <span>${affixesText}</span></div>` : ''}
-                        </div>
-                        <div class="equip-card-actions">
-                            <span style="font-size: 12px; color: #fbbf24;">Sell: ${item.sellPrice || 10} Gold</span>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn" style="padding: 3px 12px; font-size: 12px;" onclick="sellItem('${item.id}')">Sell</button>
-                                <button class="btn" style="padding: 3px 14px; font-size: 12px; color: #55ff55; border-color: #55ff55;" onclick="equipItem('${item.id}')">Equip</button>
-                            </div>
-                        </div>
-                    </div>`;
-            }
-        } else {
-            equipmentHtml += '<p style="font-size: 12px; color: #666; margin: 6px 0;">No equipment in bag.</p>';
-        }
-        equipmentHtml += '</div>';
 
         container.innerHTML = consumablesHtml + equipmentHtml;
     }
+    function getBranchPoints(branchName) {
+        if (!player || !player.skillTree) return 0;
+        let points = 0;
+        for (let key in SKILL_TREE_DB) {
+            const node = SKILL_TREE_DB[key];
+            if (node.branch === branchName) {
+                const rank = player.skillTree[key] || 0;
+                points += (rank * node.cost);
+            }
+        }
+        return points;
+    }
+
     function renderSkillTree() {
-        document.getElementById('st-orbs').innerText = player.skillOrbs;
-        
-        let branches = { Damage: '', Sustain: '', General: '' };
-        
-        for(let key in SKILL_TREE_DB) {
-            let upgrade = SKILL_TREE_DB[key];
-            let currentRank = player.skillTree[key];
-            let isMaxed = currentRank >= upgrade.max;
-            let canAfford = player.skillOrbs >= upgrade.cost;
-            
-            let statusText = isMaxed ? 'MAXED' : 'Cost: ' + upgrade.cost + ' Orb' + (upgrade.cost>1?'s':'');
-            let statusColor = isMaxed ? '#55ff55' : (canAfford ? '#ffd700' : '#ff5555');
-            
-            let html = `
-                <div class="skill-node">
-                    <div class="skill-node-header"><span>${upgrade.name}</span> <span>${currentRank}/${upgrade.max}</span></div>
-                    <div class="skill-node-desc">${upgrade.desc}</div>
-                    <div class="skill-node-actions">
-                        <span style="font-size: 12px; color: ${statusColor}">${statusText}</span>
-                        <button class="btn" style="padding: 2px 8px; font-size: 12px;" 
-                            ${isMaxed || !canAfford ? 'disabled' : ''} 
-                            onclick="buySkillUpgrade('${key}')">Upgrade</button>
+        if (!player) return;
+        const orbsEl = document.getElementById('st-orbs');
+        if (orbsEl) orbsEl.innerText = player.skillOrbs || 0;
+
+        const respecBtn = document.getElementById('btn-st-respec');
+        if (respecBtn) {
+            respecBtn.innerText = player.hasRespecced ? '🔄 Respec Tree (200G)' : '🔄 Respec Tree (Free)';
+        }
+
+        const branchDefs = [
+            { name: 'Damage', icon: '⚔️' },
+            { name: 'Sustain', icon: '🛡️' },
+            { name: 'Arcana', icon: '🔮' },
+            { name: 'General', icon: '🌟' }
+        ];
+
+        let fullHtml = '';
+
+        branchDefs.forEach(({ name: bName, icon: bIcon }) => {
+            let bPts = getBranchPoints(bName);
+
+            // Group nodes by tier (1, 2, 3)
+            let tierNodes = { 1: [], 2: [], 3: [] };
+            for (let key in SKILL_TREE_DB) {
+                let node = SKILL_TREE_DB[key];
+                if (node.branch === bName) {
+                    let t = node.tier || 1;
+                    if (!tierNodes[t]) tierNodes[t] = [];
+                    tierNodes[t].push({ key, ...node });
+                }
+            }
+
+            let branchCardsHtml = '';
+
+            [1, 2, 3].forEach(tierNum => {
+                let nodes = tierNodes[tierNum] || [];
+                if (nodes.length === 0) return;
+
+                let tierLabel = tierNum === 1 ? 'Tier 1 • Novice' : (tierNum === 2 ? 'Tier 2 • Adept (5+ Pts)' : 'Tier 3 • Keystones (10+ Pts)');
+                branchCardsHtml += `<div class="tier-divider">${tierLabel}</div>`;
+
+                nodes.forEach(node => {
+                    let currentRank = (player.skillTree && player.skillTree[node.key]) || 0;
+                    let isMaxed = currentRank >= node.max;
+                    let isLocked = bPts < (node.reqBranchPts || 0);
+                    let canAfford = (player.skillOrbs || 0) >= node.cost;
+
+                    let otherKeystoneActive = false;
+                    if (node.type === 'keystone' && currentRank === 0) {
+                        for (let otherKey in SKILL_TREE_DB) {
+                            if (otherKey !== node.key) {
+                                let otherNode = SKILL_TREE_DB[otherKey];
+                                if (otherNode.branch === bName && otherNode.type === 'keystone' && (player.skillTree && player.skillTree[otherKey] > 0)) {
+                                    otherKeystoneActive = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    let cardClasses = 'skill-node';
+                    if (node.type === 'keystone') cardClasses += ' keystone-node';
+                    if (isLocked) cardClasses += ' node-locked';
+
+                    let statusText = isMaxed ? 'MAXED' : (isLocked ? `🔒 Req ${node.reqBranchPts} Pts` : (otherKeystoneActive ? 'Locked (1 Keystone Max)' : `Cost: ${node.cost} Orb${node.cost > 1 ? 's' : ''}`));
+                    let statusColor = isMaxed ? '#55ff55' : (isLocked ? '#94a3b8' : (otherKeystoneActive ? '#94a3b8' : (canAfford ? '#ffd700' : '#ff5555')));
+                    let canBuy = !isMaxed && !isLocked && !otherKeystoneActive && canAfford;
+
+                    branchCardsHtml += `
+                        <div class="${cardClasses}">
+                            ${node.type === 'keystone' ? '<div class="keystone-badge">KEYSTONE</div>' : ''}
+                            <div class="skill-node-header">
+                                <span>${node.name}</span>
+                                <span>${currentRank}/${node.max}</span>
+                            </div>
+                            <div class="skill-node-desc">${node.desc}</div>
+                            ${isLocked ? `<div class="node-locked-hint">🔒 Requires ${node.reqBranchPts} points in ${node.branch}</div>` : ''}
+                            <div class="skill-node-actions">
+                                <span style="font-size: 11px; color: ${statusColor}; font-weight: bold;">${statusText}</span>
+                                <button class="btn" style="padding: 2px 8px; font-size: 11px;" 
+                                    ${!canBuy ? 'disabled' : ''} 
+                                    onclick="buySkillUpgrade('${node.key}')">Upgrade</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+
+            fullHtml += `
+                <div class="skill-branch st-branch">
+                    <div class="branch-header st-branch-header">
+                        <div class="branch-title st-branch-title">${bIcon} ${bName}</div>
+                        <div class="branch-points-badge">${bPts} Pts Invested</div>
                     </div>
+                    ${branchCardsHtml}
                 </div>
             `;
-            branches[upgrade.branch] += html;
+        });
+
+        const contentEl = document.getElementById('st-content');
+        if (contentEl) {
+            let branchTabsHtml = `
+                <div id="st-branch-pills" style="display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;">
+                    <button class="btn st-pill-btn active" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('all')">All</button>
+                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Damage')">⚔️ Damage</button>
+                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Sustain')">🛡️ Sustain</button>
+                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Arcana')">🔮 Arcana</button>
+                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('General')">⚡ General</button>
+                </div>
+            `;
+            let pillsEl = document.getElementById('st-branch-pills');
+            if (!pillsEl) {
+                contentEl.insertAdjacentHTML('beforebegin', branchTabsHtml);
+            }
+            contentEl.innerHTML = fullHtml;
         }
-        
-        document.getElementById('st-content').innerHTML = `
-            <div class="skill-branch"><h3>Damage</h3>${branches.Damage}</div>
-            <div class="skill-branch"><h3>Sustain</h3>${branches.Sustain}</div>
-            <div class="skill-branch"><h3>General</h3>${branches.General}</div>
-        `;
+    }
+
+    function filterSkillTreeBranch(branchName) {
+        const branches = document.querySelectorAll('#st-content .st-branch, #st-content .skill-branch');
+        const pills = document.querySelectorAll('#st-branch-pills .st-pill-btn');
+        pills.forEach(p => {
+            p.classList.toggle('active', (branchName === 'all' && p.innerText === 'All') || p.innerText.includes(branchName));
+        });
+        branches.forEach(b => {
+            if (branchName === 'all') {
+                b.style.display = 'flex';
+            } else {
+                const titleEl = b.querySelector('.st-branch-title, .branch-title');
+                b.style.display = (titleEl && titleEl.innerText.includes(branchName)) ? 'flex' : 'none';
+            }
+        });
+    }
+    if (typeof window !== 'undefined') {
+        window.filterSkillTreeBranch = filterSkillTreeBranch;
     }
 
     function buySkillUpgrade(key) {
-        let upgrade = SKILL_TREE_DB[key];
-        if(player.skillTree[key] < upgrade.max && player.skillOrbs >= upgrade.cost) {
-            player.skillOrbs -= upgrade.cost;
-            player.skillTree[key]++;
-            
-            if(upgrade.type === 'active' && player.skillTree[key] === 1) {
-                if(!player.skills.includes(upgrade.skillRef)) {
-                    player.skills.push(upgrade.skillRef);
+        if (!player || !player.skillTree) return;
+        const upgrade = SKILL_TREE_DB[key];
+        if (!upgrade) return;
+
+        const currentRank = player.skillTree[key] || 0;
+        if (currentRank >= upgrade.max) return;
+
+        if (player.skillOrbs < upgrade.cost) {
+            showToast('Skill Tree', 'Not enough Skill Orbs!', 'warning');
+            return;
+        }
+
+        const branchPts = getBranchPoints(upgrade.branch);
+        if (branchPts < (upgrade.reqBranchPts || 0)) {
+            showToast('Locked', `Requires ${upgrade.reqBranchPts} points invested in ${upgrade.branch} branch!`, 'warning');
+            return;
+        }
+
+        // Enforce Keystone exclusivity: Only 1 Keystone active per branch at a time
+        if (upgrade.type === 'keystone') {
+            for (let otherKey in SKILL_TREE_DB) {
+                if (otherKey !== key) {
+                    let otherNode = SKILL_TREE_DB[otherKey];
+                    if (otherNode.branch === upgrade.branch && otherNode.type === 'keystone') {
+                        if ((player.skillTree[otherKey] || 0) > 0) {
+                            showToast('Keystone Limit', `You can only choose 1 Keystone talent per branch! (Active: ${otherNode.name})`, 'warning');
+                            return;
+                        }
+                    }
                 }
             }
-            
-            computeStats();
-            renderSkillTree();
-            updateHeader();
-            if(typeof checkAchievements === 'function') checkAchievements();
         }
+
+        player.skillOrbs -= upgrade.cost;
+        player.skillTree[key] = currentRank + 1;
+
+        if (upgrade.type === 'active' && player.skillTree[key] === 1) {
+            if (!player.skills.includes(upgrade.skillRef)) {
+                player.skills.push(upgrade.skillRef);
+            }
+        }
+
+        playSFX('button_click');
+        computeStats();
+        renderSkillTree();
+        updateHeader();
+        if (typeof checkAchievements === 'function') checkAchievements();
+    }
+
+        function respecSkillTree() {
+        if (!player || !player.skillTree) return;
+
+        let totalRefund = 0;
+        for (let key in SKILL_TREE_DB) {
+            let rank = player.skillTree[key] || 0;
+            totalRefund += rank * (SKILL_TREE_DB[key].cost || 1);
+        }
+
+        if (totalRefund === 0) {
+            showToast('Skill Tree', 'No skill points invested to refund!', 'info');
+            return;
+        }
+
+        let respecCost = player.hasRespecced ? 200 : 0;
+        if (player.hasRespecced && (player.gold || 0) < respecCost) {
+            showToast('Respec Failed', `Resetting the Skill Tree costs ${respecCost} Gold!`, 'warning');
+            return;
+        }
+
+        let confirmed = true;
+        if (typeof window !== 'undefined' && typeof window.confirm === 'function' && !window.__testHeadless) {
+            confirmed = window.confirm(`Reset your Skill Tree? ${totalRefund} Skill Orbs will be refunded. (Cost: ${respecCost} Gold)`);
+        }
+        if (!confirmed) return;
+
+        if (respecCost > 0) {
+            player.gold -= respecCost;
+        }
+        player.skillOrbs = (player.skillOrbs || 0) + totalRefund;
+
+        for (let key in SKILL_TREE_DB) {
+            player.skillTree[key] = 0;
+        }
+
+        // Filter out skills unlocked strictly by the skill tree
+        const treeSkills = ['Power Strike', 'Armor Break', 'Recovery'];
+        if (player.skills && Array.isArray(player.skills)) {
+            player.skills = player.skills.filter(s => !treeSkills.includes(s));
+        }
+
+        player.hasRespecced = true;
+        computeStats();
+        updateHeader();
+        renderSkillTree();
+        showToast('Skill Tree Reset', `Skill Tree Reset! ${totalRefund} Skill Orbs refunded.`, 'skill', 4000);
     }
 
     /* =========================================================================
@@ -2154,17 +3868,208 @@
         renderStats();
     }
 
+    /* =========================================================================
+       TOWN SHOP & MERCHANT OVERHAUL ENGINE
+       ========================================================================= */
+
+    let shopActiveTab = 'consumables';
+
+    function setShopTab(tab) {
+        shopActiveTab = tab;
+        renderShop();
+    }
+
     function renderShop() {
-        document.getElementById('shop-gold').innerText = player.gold;
+        const goldEl = document.getElementById('shop-gold');
+        if (goldEl) goldEl.innerText = player.gold || 0;
+
+        // Update Nav Tabs Active Class
+        ['equipment', 'consumables', 'materials'].forEach(t => {
+            const btn = document.getElementById(`shop-tab-${t}`);
+            if (btn) {
+                if (t === shopActiveTab) btn.classList.add('active');
+                else btn.classList.remove('active');
+            }
+        });
+
+        const listEl = document.getElementById('shop-list');
+        if (!listEl) return;
+
         let html = '';
-        for (let itemName in ITEMS_DB) {
-            let item = ITEMS_DB[itemName];
-            html += `<div class="item-row">
-                <div><b>${itemName}</b> - ${item.price} G<br><span style="font-size:12px; color:#aaa;">${item.desc}</span></div>
-                <div><button class="btn" onclick="buyItem('${itemName}')">Buy</button></div>
-            </div>`;
+
+        if (shopActiveTab === 'consumables') {
+            // Render Consumables with Bulk Purchasing Options
+            const consumableList = [
+                'Potion', 'Hi-Potion', 'Mega-Potion', 'Max Potion',
+                'Ether', 'Hi-Ether', 'Elixir', 'Cleansing Salve', 'Smoke Bomb'
+            ];
+            
+            html += `<div style="display:flex; flex-direction:column; gap:8px;">`;
+            for (let itemName of consumableList) {
+                let item = ITEMS_DB[itemName];
+                if (!item) continue;
+                let p1 = item.price * 1;
+                let p5 = item.price * 5;
+                let p10 = item.price * 10;
+                let pGold = player.gold || 0;
+
+                html += `
+                <div class="item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(15,23,42,0.6); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+                    <div style="flex:1; min-width:0; padding-right:12px;">
+                        <b style="color:#f8fafc; font-size:14px;">${itemName}</b> - <span style="color:#ffd700; font-weight:600;">${item.price} G</span>
+                        <div style="font-size:12px; color:#94a3b8; margin-top:2px;">${item.desc}</div>
+                    </div>
+                    <div class="shop-bulk-btn-group">
+                        <button class="shop-bulk-btn" onclick="buyItem('${itemName}', 1)" ${pGold < p1 ? 'disabled' : ''}>Buy x1 (${p1}G)</button>
+                        <button class="shop-bulk-btn" onclick="buyItem('${itemName}', 5)" ${pGold < p5 ? 'disabled' : ''}>Buy x5 (${p5}G)</button>
+                        <button class="shop-bulk-btn" onclick="buyItem('${itemName}', 10)" ${pGold < p10 ? 'disabled' : ''}>Buy x10 (${p10}G)</button>
+                    </div>
+                </div>`;
+            }
+            html += `</div>`;
+        } else if (shopActiveTab === 'equipment') {
+            // Render Mystery Boxes at the Top
+            html += `
+            <div style="margin-bottom: 20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid rgba(255,215,0,0.25); padding-bottom:6px;">
+                    <span style="font-size:14px; font-weight:bold; color:#ffd700;">📦 Mystery Gear Coffers</span>
+                    <span style="font-size:11px; color:#94a3b8;">High-risk, high-reward gear unboxing</span>
+                </div>
+                <div class="mystery-box-grid">`;
+
+            if (typeof MYSTERY_BOXES_DB !== 'undefined') {
+                for (let bKey in MYSTERY_BOXES_DB) {
+                    let box = MYSTERY_BOXES_DB[bKey];
+                    let isCel = (bKey === 'celestial');
+                    let pGold = player.gold || 0;
+                    let canAfford = (pGold >= box.cost);
+                    let chestSvg = (typeof SVG_SPRITES !== 'undefined' && SVG_SPRITES[isCel ? 'Celestial Chest' : 'Mystery Chest']) || '';
+
+                    html += `
+                        <div class="mystery-box-card ${isCel ? 'mystery-box-celestial' : ''}">
+                            <div style="width:72px; height:72px; margin-bottom:8px;">${chestSvg}</div>
+                            <div style="font-size:15px; font-weight:bold; color:${box.color}; margin-bottom:4px;">${box.name}</div>
+                            <div style="font-size:12px; color:#cbd5e1; margin-bottom:10px; min-height:36px;">${box.desc}</div>
+                            <div style="font-size:11px; color:#94a3b8; margin-bottom:12px; background:rgba(0,0,0,0.3); border-radius:4px; padding:4px 8px; width:100%;">
+                                Rates: ${box.weights.map(w => `<span style="color:${(typeof RARITY_TIERS !== 'undefined' && RARITY_TIERS[w.rarity]?.color) || '#fff'}; font-weight:600;">${w.rarity} ${w.weight}%</span>`).join(', ')}
+                            </div>
+                            <button class="btn" style="width:100%; font-weight:bold; background:${isCel ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'linear-gradient(135deg, #0284c7, #38bdf8)'}; color:#fff;" onclick="buyMysteryBox('${bKey}')" ${!canAfford ? 'disabled' : ''}>
+                                ${isCel ? 'Open Celestial Box (1000G)' : 'Open Box (250G)'}
+                            </button>
+                        </div>`;
+                }
+            }
+
+            html += `</div></div>`;
+
+            // Render Zone Equipment Sections
+            html += `
+            <div>
+                <div style="font-size:14px; font-weight:bold; color:#38bdf8; margin-bottom:10px; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:6px;">
+                    ⚔️ Regional Armory Stock
+                </div>`;
+
+            if (typeof SHOP_EQUIPMENT_TIERS !== 'undefined') {
+                for (let tierKey in SHOP_EQUIPMENT_TIERS) {
+                    let tier = SHOP_EQUIPMENT_TIERS[tierKey];
+                    let reqMinLevel = (typeof AREAS_DB !== 'undefined' && AREAS_DB[tierKey] && AREAS_DB[tierKey].minLevel) || 1;
+                    let isUnlocked = (player.unlockedAreas && player.unlockedAreas.includes(tierKey)) || ((player.level || 1) >= reqMinLevel);
+
+                    if (isUnlocked) {
+                        html += `
+                        <div style="margin-bottom:16px; background:rgba(15,23,42,0.4); border:1px solid rgba(74,222,128,0.25); border-radius:8px; padding:10px 12px;">
+                            <div style="font-size:13px; font-weight:bold; color:#4ade80; margin-bottom:8px;">
+                                🛡️ ${tier.name}
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:6px;">`;
+
+                        for (let itemName of tier.items) {
+                            let item = ITEMS_DB[itemName];
+                            if (!item) continue;
+                            let canAfford = (player.gold || 0) >= item.price;
+                            html += `
+                                <div class="item-row" style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04);">
+                                    <div>
+                                        <b style="color:#f8fafc; font-size:13px;">${itemName}</b> <span style="font-size:11px; text-transform:uppercase; color:#94a3b8;">(${item.type})</span> - <span style="color:#ffd700; font-weight:600;">${item.price} G</span>
+                                        <div style="font-size:11px; color:#94a3b8;">${item.desc}</div>
+                                    </div>
+                                    <div>
+                                        <button class="btn" style="padding:4px 12px; font-size:12px;" onclick="buyItem('${itemName}', 1)" ${!canAfford ? 'disabled' : ''}>Buy</button>
+                                    </div>
+                                </div>`;
+                        }
+
+                        html += `</div></div>`;
+                    } else {
+                        let areaTitle = (typeof AREAS_DB !== 'undefined' && AREAS_DB[tierKey] && AREAS_DB[tierKey].name) || tier.name;
+                        html += `
+                        <div style="margin-bottom:12px; background:rgba(15,23,42,0.3); border:1px dashed #64748b; border-radius:8px; padding:10px 14px; opacity:0.65;">
+                            <div style="font-size:13px; font-weight:bold; color:#94a3b8;">
+                                🔒 Locked (Requires conquering ${areaTitle})
+                            </div>
+                            <div style="font-size:11px; color:#64748b; margin-top:2px;">
+                                Defeat the gatekeeper boss of ${areaTitle} or reach Level ${reqMinLevel} to unlock this regional armory stock.
+                            </div>
+                        </div>`;
+                    }
+                }
+            }
+            html += `</div>`;
+        } else if (shopActiveTab === 'materials') {
+            // Render Materials Exchange
+            if (!player.materials) player.materials = { scrap: 0, dust: 0, shard: 0 };
+
+            html += `
+            <div class="materials-stock-banner">
+                <span style="color:#cbd5e1;">🔨 Scraps: <b style="color:#fff;">${player.materials.scrap || 0}</b></span>
+                <span style="color:#38bdf8;">✨ Dust: <b style="color:#fff;">${player.materials.dust || 0}</b></span>
+                <span style="color:#c084fc;">🔮 Shards: <b style="color:#fff;">${player.materials.shard || 0}</b></span>
+                <span style="color:#ffd700;">💰 Gold: <b style="color:#fff;">${player.gold || 0} G</b></span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px;">`;
+
+            if (typeof SHOP_MATERIALS_DB !== 'undefined') {
+                for (let pack of SHOP_MATERIALS_DB) {
+                    let reqArea = pack.reqArea;
+                    let isUnlocked = reqArea ? ((player.unlockedAreas && player.unlockedAreas.includes(reqArea)) || ((player.level || 1) >= (AREAS_DB[reqArea]?.minLevel || 16))) : true;
+                    let canAfford = (player.gold || 0) >= pack.price;
+
+                    if (isUnlocked) {
+                        html += `
+                        <div class="item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(15,23,42,0.6); border-radius:6px; border:1px solid rgba(255,255,255,0.06);">
+                            <div style="flex:1; min-width:0; padding-right:12px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-size:18px;">${pack.icon}</span>
+                                    <b style="color:#f8fafc; font-size:14px;">${pack.name}</b> - <span style="color:#ffd700; font-weight:600;">${pack.price} G</span>
+                                </div>
+                                <div style="font-size:12px; color:#94a3b8; margin-top:2px;">${pack.desc}</div>
+                            </div>
+                            <div>
+                                <button class="btn" style="padding:6px 14px; font-size:12px;" onclick="buyMaterial('${pack.id}', ${pack.count}, ${pack.price})" ${!canAfford ? 'disabled' : ''}>Buy Pack</button>
+                            </div>
+                        </div>`;
+                    } else {
+                        let areaTitle = (typeof AREAS_DB !== 'undefined' && AREAS_DB[reqArea] && AREAS_DB[reqArea].name) || 'Infernal Caldera';
+                        html += `
+                        <div class="item-row" style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:rgba(15,23,42,0.3); border-radius:6px; border:1px dashed #64748b; opacity:0.55;">
+                            <div>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span style="font-size:18px;">${pack.icon}</span>
+                                    <b style="color:#94a3b8; font-size:14px;">${pack.name}</b> - <span style="color:#ffd700;">${pack.price} G</span>
+                                </div>
+                                <div style="font-size:12px; color:#ef4444; margin-top:2px;">🔒 Requires reaching ${areaTitle}</div>
+                            </div>
+                            <div>
+                                <button class="btn" style="padding:6px 14px; font-size:12px;" disabled>Locked</button>
+                            </div>
+                        </div>`;
+                    }
+                }
+            }
+            html += `</div>`;
         }
-        document.getElementById('shop-list').innerHTML = html;
+
+        listEl.innerHTML = html;
     }
 
     function equipItem(itemOrId, slotType) {
@@ -2232,6 +4137,15 @@
         renderInventory();
     }
 
+    function toggleItemLock(itemId) {
+        if (!player || !player.inventory || !player.inventory.equipment) return;
+        const item = player.inventory.equipment.find(i => i.id === itemId);
+        if (!item) return;
+        item.locked = !item.locked;
+        showToast(item.locked ? 'Item Locked' : 'Item Unlocked', `${item.name} is now ${item.locked ? 'protected from sale and salvage' : 'unlocked'}.`, 'info');
+        renderInventory();
+    }
+
     function sellItem(itemId) {
         if (!player || !player.inventory || !player.inventory.equipment) return;
         
@@ -2239,6 +4153,11 @@
         if (index === -1) return;
         
         let item = player.inventory.equipment[index];
+        if (item && item.locked) {
+            showToast('Item Protected', `${item.name} is locked! Unlock it first to sell.`, 'info');
+            return;
+        }
+
         let price = item.sellPrice || 10;
         
         player.inventory.equipment.splice(index, 1);
@@ -2251,26 +4170,242 @@
         if (typeof checkAchievements === 'function') checkAchievements();
     }
 
-    function buyItem(itemName) {
+    function sellAllJunkEquipment() {
+        if (!player || !player.inventory || !player.inventory.equipment) return;
+        const junk = player.inventory.equipment.filter(i => !i.locked && (i.rarity === 'Common' || i.rarity === 'Uncommon'));
+        if (junk.length === 0) {
+            showToast('No Junk', 'No unlocked Common or Uncommon gear to sell.', 'info');
+            return;
+        }
+        let totalGold = junk.reduce((sum, item) => sum + (item.sellPrice || 10), 0);
+        player.inventory.equipment = player.inventory.equipment.filter(i => i.locked || (i.rarity !== 'Common' && i.rarity !== 'Uncommon'));
+        player.gold += totalGold;
+        if (typeof playSFX === 'function') playSFX('coin');
+        showToast('Batch Sold', `Sold ${junk.length} junk items for ${totalGold} Gold!`, 'save');
+        renderInventory();
+        if (typeof renderShop === 'function') renderShop();
+        updateHeader();
+        if (typeof checkAchievements === 'function') checkAchievements();
+    }
+
+    function buyItem(itemName, count = 1) {
         let item = ITEMS_DB[itemName];
         if (!item) return;
-        let price = item.price;
-        if (player.gold >= price) {
-            player.gold -= price;
-            if (item.type === 'consumable') {
-                if (!player.inventory.consumables) player.inventory.consumables = {};
-                player.inventory.consumables[itemName] = (player.inventory.consumables[itemName] || 0) + 1;
-            } else {
+        let qty = Math.max(1, parseInt(count) || 1);
+        let totalCost = item.price * qty;
+
+        if ((player.gold || 0) < totalCost) {
+            showToast("Shop", "Not enough gold.", "info");
+            return;
+        }
+
+        player.gold -= totalCost;
+
+        if (item.type === 'consumable') {
+            if (!player.inventory.consumables) player.inventory.consumables = {};
+            player.inventory.consumables[itemName] = (player.inventory.consumables[itemName] || 0) + qty;
+            if (player.inventory !== player.inventory.consumables) {
+                try {
+                    player.inventory[itemName] = player.inventory.consumables[itemName];
+                } catch(e) {}
+            }
+        } else {
+            if (!player.inventory.equipment) player.inventory.equipment = [];
+            for (let i = 0; i < qty; i++) {
                 let eq = generateItem(itemName, 'Common');
-                if (!player.inventory.equipment) player.inventory.equipment = [];
                 player.inventory.equipment.push(eq);
             }
-            showToast('Shop Purchase', `Purchased ${itemName}!`, 'info');
-            renderShop();
-            updateHeader();
-        } else {
-            showToast("Shop", "Not enough gold.", "info");
         }
+
+        showToast('Shop Purchase', `Purchased ${itemName}${qty > 1 ? ' x' + qty : ''}!`, 'info');
+        renderShop();
+        updateHeader();
+        if (typeof renderInventory === 'function') renderInventory();
+        if (typeof checkAchievements === 'function') checkAchievements();
+    }
+
+    function buyMaterial(matKeyOrId, count, cost) {
+        let matKey = matKeyOrId;
+        let packCount = count;
+        let packCost = cost;
+
+        if (typeof SHOP_MATERIALS_DB !== 'undefined') {
+            const pack = SHOP_MATERIALS_DB.find(p => p.id === matKeyOrId);
+            if (pack) {
+                matKey = pack.matKey;
+                packCount = pack.count;
+                packCost = pack.price;
+            }
+        }
+
+        if ((player.gold || 0) < packCost) {
+            showToast("Shop", "Not enough gold.", "info");
+            return;
+        }
+
+        if (!player.materials) player.materials = { scrap: 0, dust: 0, shard: 0 };
+        player.gold -= packCost;
+        player.materials[matKey] = (player.materials[matKey] || 0) + packCount;
+
+        let matName = matKey === 'scrap' ? 'Iron Scraps' : (matKey === 'dust' ? 'Arcane Dust' : 'Void Shards');
+        playSFX('coin');
+        showToast('Materials Purchased', `Acquired ${packCount}x ${matName}!`, 'info');
+        renderShop();
+        updateHeader();
+    }
+
+    function buyMysteryBox(boxKey) {
+        if (typeof MYSTERY_BOXES_DB === 'undefined') return;
+        const box = MYSTERY_BOXES_DB[boxKey];
+        if (!box) return;
+
+        if ((player.gold || 0) < box.cost) {
+            showToast("Shop", "Not enough gold.", "info");
+            return;
+        }
+
+        player.gold -= box.cost;
+        updateHeader();
+
+        // 1. Roll Rarity based on box.weights
+        let totalWeight = box.weights.reduce((sum, w) => sum + w.weight, 0);
+        let rand = Math.random() * totalWeight;
+        let cum = 0;
+        let rolledRarity = box.weights[0].rarity;
+        for (let w of box.weights) {
+            cum += w.weight;
+            if (rand < cum) {
+                rolledRarity = w.rarity;
+                break;
+            }
+        }
+
+        // 2. Select eligible base item
+        let eligibleItems = [];
+        if (boxKey === 'celestial') {
+            ['area_3', 'area_4', 'area_5'].forEach(a => {
+                if (typeof SHOP_EQUIPMENT_TIERS !== 'undefined' && SHOP_EQUIPMENT_TIERS[a]) {
+                    eligibleItems.push(...SHOP_EQUIPMENT_TIERS[a].items);
+                }
+            });
+        } else {
+            let tiersToCheck = ['area_1', 'area_2', 'area_3', 'area_4', 'area_5'];
+            for (let a of tiersToCheck) {
+                let isUnlocked = (player.unlockedAreas && player.unlockedAreas.includes(a)) || ((player.level || 1) >= (AREAS_DB[a]?.minLevel || 1));
+                if (isUnlocked && typeof SHOP_EQUIPMENT_TIERS !== 'undefined' && SHOP_EQUIPMENT_TIERS[a]) {
+                    eligibleItems.push(...SHOP_EQUIPMENT_TIERS[a].items);
+                }
+            }
+        }
+        if (eligibleItems.length === 0) {
+            eligibleItems = ['Bronze Sword', 'Iron Sword', 'Iron Armor', 'Speed Boots', 'Mystic Circlet'];
+        }
+        let chosenBase = eligibleItems[Math.floor(Math.random() * eligibleItems.length)];
+
+        // 3. Generate item
+        let item = generateItem(chosenBase, rolledRarity);
+        if (!player.inventory.equipment) player.inventory.equipment = [];
+        player.inventory.equipment.push(item);
+
+        // 4. Launch Animation
+        openMysteryBoxAnimation(boxKey, item);
+    }
+
+    function openMysteryBoxAnimation(boxKey, item) {
+        const box = (typeof MYSTERY_BOXES_DB !== 'undefined' && MYSTERY_BOXES_DB[boxKey]) || { name: 'Mystery Box', color: '#38bdf8', cost: 250 };
+        openModal('modal-unboxing');
+
+        const titleEl = document.getElementById('unboxing-title');
+        if (titleEl) titleEl.innerText = `Opening ${box.name}...`;
+
+        const stage = document.getElementById('unboxing-stage');
+        if (stage) {
+            let isCel = (boxKey === 'celestial');
+            let chestSvg = (typeof SVG_SPRITES !== 'undefined' && SVG_SPRITES[isCel ? 'Celestial Chest' : 'Mystery Chest']) || '';
+            stage.innerHTML = `
+                <div id="unboxing-chest-anim" class="unboxing-chest shaking">
+                    ${chestSvg}
+                </div>
+                <div id="unboxing-subtitle" style="color: ${box.color}; font-size: 15px; font-weight: 600; margin-top: 10px;">
+                    Channeling Arcane Energies...
+                </div>
+            `;
+        }
+
+        playSFX('chest_shake');
+        setTimeout(() => {
+            const chestEl = document.getElementById('unboxing-chest-anim');
+            if (chestEl) chestEl.classList.add('bursting');
+            playSFX('chest_burst');
+            screenShake('light');
+        }, 1200);
+
+        setTimeout(() => {
+            renderMysteryBoxReveal(boxKey, item);
+        }, 1500);
+    }
+
+    function renderMysteryBoxReveal(boxKey, item) {
+        const stage = document.getElementById('unboxing-stage');
+        if (!stage) return;
+        const box = (typeof MYSTERY_BOXES_DB !== 'undefined' && MYSTERY_BOXES_DB[boxKey]) || { cost: 250 };
+        const tierInfo = (typeof RARITY_TIERS !== 'undefined' && RARITY_TIERS[item.rarity]) || { color: '#fff' };
+        const rarityColor = tierInfo.color || '#fff';
+        const isMythic = (item.rarity === 'Mythic');
+
+        const titleEl = document.getElementById('unboxing-title');
+        if (titleEl) titleEl.innerText = isMythic ? '✨ MYTHIC ITEM REVEALED! ✨' : 'Item Discovered!';
+
+        let affixesHtml = (item.affixes || []).map(a => `<div style="font-size: 12px; color: ${rarityColor}; margin: 2px 0;">• ${a.desc || a.name}</div>`).join('');
+        let statsHtml = Object.entries(item.baseStats || item.stats || {}).map(([k, v]) => `${k.toUpperCase()} +${v}`).join(', ');
+
+        stage.innerHTML = `
+            <div class="unboxing-item-reveal ${isMythic ? 'mythic-reveal' : ''}" style="border: 2px solid ${rarityColor}; box-shadow: 0 0 16px ${rarityColor};">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${rarityColor}; font-weight: bold; margin-bottom: 4px;">
+                    ★ ${item.rarity} ${item.type ? item.type.toUpperCase() : 'GEAR'} ★
+                </div>
+                <div style="font-size: 18px; font-weight: bold; color: ${rarityColor}; margin-bottom: 8px;">
+                    ${item.name}
+                </div>
+                <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">
+                    ${statsHtml || item.desc || ''}
+                </div>
+                <div style="background: rgba(0,0,0,0.35); border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; text-align: left;">
+                    ${affixesHtml}
+                </div>
+                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn" style="background: #10b981; color: white;" onclick="closeUnboxingModal()">✨ Claim Equipment</button>
+                    <button class="btn" style="background: #3b82f6; color: white;" onclick="buyMysteryBox('${boxKey}')" ${(player.gold || 0) < box.cost ? 'disabled' : ''}>
+                        🎲 Open Another (${box.cost} G)
+                    </button>
+                </div>
+            </div>
+        `;
+
+        if (isMythic) {
+            playSFX('chest_reveal_mythic');
+            screenShake('heavy');
+            showToast('MYTHIC UNLOCKED!', `You discovered a Mythic ${item.name}!`, 'level', 6000);
+        } else if (item.rarity === 'Legendary') {
+            playSFX('chest_reveal_legendary');
+            screenShake('medium');
+        } else {
+            playSFX('chest_reveal_rare');
+        }
+    }
+
+    function closeUnboxingModal() {
+        const modal = document.getElementById('modal-unboxing');
+        if (modal) modal.classList.remove('active');
+        const shop = document.getElementById('modal-shop');
+        const overlay = document.getElementById('main-overlay');
+        if (overlay && (!shop || !shop.classList.contains('active'))) {
+            overlay.classList.remove('active');
+        }
+        renderShop();
+        if (typeof renderInventory === 'function') renderInventory();
+        computeStats();
+        updateHeader();
     }
     function getSkillCost(skill) {
         let cost = skill.mp;
@@ -2295,14 +4430,28 @@
         if (speedBtn) speedBtn.innerText = `⚡ Speed: ${combatSpeed}x`;
         battleState = {
             active: true,
+            isPlayerTurn: false,
             initialEnemyCount: count,
+            isBossFight: isBossFight,
+            lastBattleConfig: {
+                enemyCount: count,
+                isBoss: isBossFight,
+                areaId: (player && player.selectedArea) || 'area_1'
+            },
             enemies: [],
             turnQueue: [],
             targetingMode: null,
             log: [],
             playerStatuses: {},
-            playerEntity: null
+            playerEntity: null,
+            petTurns: { slot0: 0, slot1: 0, 0: 0, 1: 0 },
+            phoenixRebirthUsed: false
         };
+        const cmdEl = document.getElementById('battle-commands');
+        if (cmdEl) cmdEl.classList.remove('victory-mode-ui');
+        const vActions = document.getElementById('battle-victory-actions');
+        if (vActions) vActions.style.display = 'none';
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         player.statuses = battleState.playerStatuses;
         
         let areaKey = (player && player.selectedArea) || 'area_1';
@@ -2377,8 +4526,18 @@
         // Reset battle state flags
         battleState.undyingWrathUsed = false;
 
-        // Class Start-of-Combat Passives
+        if (typeof spireRun !== 'undefined') spireRun.hourglassUsed = false;
+
         let pCombatEnt = getPlayerCombatEntity();
+
+        // Relic start-of-combat triggers
+        if (player.spire && player.spire.equippedRelic === 'aegis_colossus') {
+            let colossusShield = Math.round(pStats.maxHp * 0.25);
+            applyStatus(pCombatEnt, 'divine_barrier', 99, colossusShield);
+            logMsg(`🛡️ Aegis of the Colossus: Divine Barrier granted (${colossusShield} HP Shield)!`, "#ffd700");
+        }
+
+        // Class Start-of-Combat Passives
         if (playerHasPassive('aegis_ward')) {
             let shieldVal = Math.round(pStats.maxHp * 0.15);
             applyStatus(pCombatEnt, 'divine_barrier', 99, shieldVal);
@@ -2396,6 +4555,15 @@
         if(typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(true);
         startRound();
     }
+    function updateCombatUI() {
+        if (typeof renderBattlefield === 'function') {
+            renderBattlefield();
+        }
+    }
+    if (typeof window !== 'undefined') {
+        window.updateCombatUI = updateCombatUI;
+    }
+
     function renderBattlefield() {
         document.getElementById('battle-player-hp-bar').style.width = `${(pStats.hp / pStats.maxHp) * 100}%`;
         document.getElementById('battle-player-hp-txt').innerText = `${pStats.hp}/${pStats.maxHp}`;
@@ -2405,6 +4573,25 @@
         const pTray = document.getElementById('statuses-player');
         if (pTray) {
             pTray.innerHTML = renderStatusBadges(battleState.playerStatuses || (player && player.statuses));
+        }
+
+        const petsContainer = document.getElementById('player-pets-container');
+        if (petsContainer && player.pets && Array.isArray(player.pets.active) && typeof PETS_DB !== 'undefined') {
+            let activePets = player.pets.active.map((id, slotIdx) => ({ id, slotIdx })).filter(p => p.id && PETS_DB[p.id]);
+            petsContainer.innerHTML = activePets.map(({ id, slotIdx }) => {
+                const pet = PETS_DB[id];
+                const lvl = (player.pets.levels && player.pets.levels[id] && player.pets.levels[id].level) || 1;
+                const pips = (battleState && battleState.petTurns && (slotIdx === 0 ? (battleState.petTurns.slot0 || battleState.petTurns[0]) : (battleState.petTurns.slot1 || battleState.petTurns[1]))) || 0;
+                const pipIcons = (pips >= 2) ? '🐾 🐾' : (pips === 1 ? '🐾 ⚪' : '⚪ ⚪');
+                return `
+                    <div id="battle-pet-slot-${slotIdx}" class="battle-pet-badge pet-rarity-${pet.rarity}" style="display:flex; flex-direction:column; align-items:center; background: rgba(0,0,0,0.65); padding: 4px 8px; border-radius: 6px; min-width: 65px; border: 1px solid #475569;">
+                        <div style="font-size: 10px; font-weight: bold; color: #fff;">${pet.name}</div>
+                        <div style="font-size: 9px; color: #4ade80;">Lv.${lvl}</div>
+                        <div style="width: 32px; height: 32px; margin: 2px 0;">${pet.sprite}</div>
+                        <div class="pet-pips" style="font-size: 10px; letter-spacing: 2px;">${pipIcons}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         const container = document.getElementById('enemies-side');
@@ -2433,6 +4620,7 @@
         });
 
         updateHeader();
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
     }
     function logMsg(text, color = '#cccccc') {
         const logEl = document.getElementById('combat-log');
@@ -2440,18 +4628,146 @@
         logEl.scrollTop = logEl.scrollHeight;
     }
 
-    function floatText(targetId, text, color) {
+    function screenShake(intensity = 'medium', duration = 300) {
+        if (typeof document === 'undefined') return;
+        const arena = document.getElementById('battle-arena') || document.body;
+        if (!arena) return;
+        const cls = `shake-${intensity}`;
+        arena.classList.remove('shake-light', 'shake-medium', 'shake-heavy');
+        void arena.offsetWidth; // trigger reflow
+        arena.classList.add(cls);
+        setTimeout(() => {
+            if (arena) arena.classList.remove(cls);
+        }, duration);
+    }
+
+    function applyHitFlash(targetId) {
+        if (typeof document === 'undefined') return;
+        const targetEl = document.getElementById(targetId);
+        if (!targetEl) return;
+        const sprite = targetEl.querySelector('.entity-sprite') || targetEl;
+        sprite.classList.add('entity-hit-flash');
+        targetEl.classList.add('entity-hit-flash');
+        setTimeout(() => {
+            sprite.classList.remove('entity-hit-flash');
+            targetEl.classList.remove('entity-hit-flash');
+        }, 120);
+    }
+
+    function triggerHitVFX(targetId, type = 'physical') {
+        if (typeof document === 'undefined') return;
+        const targetEl = document.getElementById(targetId);
+        if (!targetEl) return;
+        const container = targetEl.querySelector('.entity-sprite') || targetEl;
+        const vfx = document.createElement('div');
+        vfx.className = `vfx-container vfx-${type}`;
+
+        if (type === 'physical' || type === 'slash') {
+            vfx.innerHTML = `
+                <svg class="vfx-slash-arc" viewBox="0 0 100 100" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:45;">
+                    <path d="M 15 15 Q 50 45 85 85 Q 55 55 15 15" fill="#f8fafc" filter="drop-shadow(0 0 6px #38bdf8)" opacity="0.95" />
+                </svg>
+            `;
+        } else if (type === 'Fire') {
+            vfx.innerHTML = `
+                <div class="vfx-burst vfx-fire-burst">
+                    <span class="vfx-spark f1">🔥</span>
+                    <span class="vfx-spark f2">💥</span>
+                    <span class="vfx-spark f3">✨</span>
+                </div>
+            `;
+        } else if (type === 'Water' || type === 'Ice') {
+            vfx.innerHTML = `
+                <div class="vfx-burst vfx-ice-burst">
+                    <span class="vfx-shard i1">❄️</span>
+                    <span class="vfx-shard i2">💎</span>
+                    <span class="vfx-shard i3">❄️</span>
+                </div>
+            `;
+        } else if (type === 'Wind' || type === 'Lightning') {
+            vfx.innerHTML = `
+                <div class="vfx-burst vfx-lightning-burst">
+                    <span class="vfx-spark l1">⚡</span>
+                    <span class="vfx-spark l2">✨</span>
+                    <span class="vfx-spark l3">⚡</span>
+                </div>
+            `;
+        } else if (type === 'Earth') {
+            vfx.innerHTML = `
+                <div class="vfx-burst vfx-earth-burst">
+                    <span class="vfx-shard e1">🪨</span>
+                    <span class="vfx-shard e2">💥</span>
+                    <span class="vfx-shard e3">🌿</span>
+                </div>
+            `;
+        } else if (type === 'Light') {
+            vfx.innerHTML = `
+                <div class="vfx-burst vfx-light-burst">
+                    <div class="vfx-halo"></div>
+                    <span class="vfx-spark">🌟</span>
+                </div>
+            `;
+        } else if (type === 'Dark') {
+            vfx.innerHTML = `
+                <div class="vfx-burst vfx-dark-burst">
+                    <div class="vfx-vortex"></div>
+                    <span class="vfx-spark">🔮</span>
+                </div>
+            `;
+        }
+
+        container.appendChild(vfx);
+        setTimeout(() => {
+            if (vfx.parentNode) vfx.parentNode.removeChild(vfx);
+        }, 280);
+    }
+
+    function getSkillSFXAndVFX(skill) {
+        if (!skill) return { sfx: 'slash', vfx: 'physical' };
+        if (skill.element === ELEMENTS.Fire || skill.element === 'Fire') {
+            return { sfx: 'magic_fire', vfx: 'Fire' };
+        }
+        if (skill.element === ELEMENTS.Water || skill.element === 'Water') {
+            return { sfx: 'magic_ice', vfx: 'Water' };
+        }
+        if (skill.element === ELEMENTS.Wind || skill.element === 'Wind') {
+            return { sfx: 'magic_lightning', vfx: 'Wind' };
+        }
+        if (skill.element === ELEMENTS.Earth || skill.element === 'Earth') {
+            return { sfx: 'magic_fire', vfx: 'Earth' };
+        }
+        if (skill.element === ELEMENTS.Light || skill.element === 'Light') {
+            return { sfx: 'magic_holy', vfx: 'Light' };
+        }
+        if (skill.element === ELEMENTS.Dark || skill.element === 'Dark') {
+            return { sfx: 'magic_dark', vfx: 'Dark' };
+        }
+        if (skill.type === 'heal') {
+            return { sfx: 'magic_holy', vfx: 'Light' };
+        }
+        return { sfx: 'slash', vfx: 'physical' };
+    }
+
+    function floatText(targetId, text, color, isCrit = false) {
         const targetEl = document.getElementById(targetId);
         if(!targetEl) return;
         const floatEl = document.createElement('div');
-        floatEl.className = 'floating-text';
-        floatEl.innerText = text;
-        floatEl.style.color = color;
+        floatEl.className = 'floating-text' + (isCrit ? ' floating-text-crit' : '');
+        let displayText = text;
+        if (isCrit && !String(text).startsWith('CRIT!')) {
+            displayText = 'CRIT! ' + text;
+        }
+        floatEl.innerText = displayText;
+        if (color && !isCrit) {
+            floatEl.style.color = color;
+        }
         floatEl.style.left = '50%';
-        floatEl.style.top = '20%';
+        floatEl.style.top = isCrit ? '15%' : '20%';
         floatEl.style.transform = 'translate(-50%, 0)';
         targetEl.appendChild(floatEl);
-        setTimeout(() => floatEl.remove(), 1000);
+        setTimeout(() => {
+            if (floatEl.parentNode) floatEl.parentNode.removeChild(floatEl);
+        }, isCrit ? 1200 : 1000);
     }
 
     function startRound() {
@@ -2472,6 +4788,7 @@
         if(battleState.enemies.every(e => e.hp <= 0)) { winBattle(); return; }
 
         if(battleState.turnQueue.length === 0) {
+            battleState.isPlayerTurn = false;
             startRound();
             return;
         }
@@ -2479,14 +4796,23 @@
         const currentTurn = battleState.turnQueue.shift();
         
         if(currentTurn.type === 'player') {
+            battleState.isPlayerTurn = false;
             logMsg("Hero's Turn", "#ffffff");
+            if (typeof triggerPetTurnCadence === 'function') triggerPetTurnCadence();
+            if (!battleState.active) return;
             let playerEnt = getPlayerCombatEntity();
             let turnSkipped = processStatusesStartTurn(playerEnt);
             if (turnSkipped) {
+                battleState.isPlayerTurn = false;
+                if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
                 return;
             }
+            battleState.isPlayerTurn = true;
             enableCommands();
+            if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         } else {
+            battleState.isPlayerTurn = false;
+            if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
             const enemy = battleState.enemies[currentTurn.index];
             if(enemy && enemy.hp > 0) {
                 executeEnemyTurn(enemy);
@@ -2517,6 +4843,7 @@
         document.getElementById('battle-commands').classList.remove('sub-menu-active');
         document.getElementById('enemies-side').classList.remove('targeting-active');
         document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = false);
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
     }
 
     function enterTargetingMode(mode) {
@@ -2527,32 +4854,63 @@
     }
 
     function cancelTargeting() {
-        battleState.targetingMode = null;
+        if (battleState) battleState.targetingMode = null;
         enableCommands();
     }
 
     function onAttackClicked() {
+        if (!battleState || !battleState.active) return;
+        const isSubMenuActive = document.getElementById('battle-commands') && document.getElementById('battle-commands').classList.contains('sub-menu-active');
+        if (!battleState.isPlayerTurn && !isSubMenuActive) return;
+        const livingEnemies = battleState.enemies ? battleState.enemies.filter(e => e.hp > 0) : [];
+        if (livingEnemies.length === 0) return;
+        // Fast-path: single living enemy auto-attacks immediately without prompt (unless transitioning from sub-menu)
+        if (livingEnemies.length === 1 && !isSubMenuActive) {
+            executePlayerAttack(livingEnemies[0]);
+            return;
+        }
         logMsg("Select a target to attack.");
         enterTargetingMode('attack');
     }
 
-    function handleEnemyClick(index) {
-        const enemy = battleState.enemies[index];
-        if(!enemy || enemy.hp <= 0) return;
-
+    function handleEnemyClick(targetRef) {
+        if (!battleState || !battleState.active || !battleState.isPlayerTurn) return;
+        // Support index number, element id string, or direct object reference
+        let enemy = null;
+        if (typeof targetRef === 'number') {
+            enemy = battleState.enemies.find(e => e.index === targetRef) || battleState.enemies[targetRef];
+        } else if (typeof targetRef === 'string') {
+            let parsed = parseInt(targetRef, 10);
+            if (!isNaN(parsed) && battleState.enemies[parsed]) {
+                enemy = battleState.enemies[parsed];
+            } else {
+                enemy = battleState.enemies.find(e => e.id === targetRef || e.name === targetRef);
+            }
+        } else if (typeof targetRef === 'object' && targetRef !== null) {
+            enemy = targetRef;
+        }
+        // Failsafe fallback: first living enemy
+        if (!enemy || enemy.hp <= 0) {
+            enemy = battleState.enemies.find(e => e && e.hp > 0);
+        }
+        if (!enemy || enemy.hp <= 0) return;
         const mode = battleState.targetingMode;
-        if (mode === 'attack') {
-            battleState.targetingMode = null;
+        battleState.targetingMode = null;
+        enableCommands(); // Cleanly exit targeting UI mode
+        if (mode === 'attack' || !mode) {
             executePlayerAttack(enemy);
         } else if (typeof mode === 'object' && (mode.type === 'magic' || mode.type === 'physical')) {
-            battleState.targetingMode = null;
             executePlayerSkill(mode, enemy);
         }
     }
 
     function executePlayerAttack(target) {
-        enableCommands();
+        if (battleState) battleState.isPlayerTurn = false;
+        document.getElementById('battle-commands').classList.remove('targeting-mode-ui');
+        document.getElementById('battle-commands').classList.remove('sub-menu-active');
+        document.getElementById('enemies-side').classList.remove('targeting-active');
         document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         
         let playerEnt = getPlayerCombatEntity();
 
@@ -2595,6 +4953,9 @@
         
         let critChance = pStats.crit + (hasStatus(playerEnt, 'focus') ? 25 : 0);
         let critMult = hasStatus(playerEnt, 'focus') ? 2.0 : 1.5;
+        if (player.skillTree && player.skillTree.precisionStrikes > 0) {
+            critMult += (player.skillTree.precisionStrikes * 0.05);
+        }
 
         let hasAilment = target.statuses && (
             hasStatus(target, 'bleed') || hasStatus(target, 'poison') ||
@@ -2606,13 +4967,68 @@
             critMult += 0.40;
         }
 
+        let isCrit = false;
         if(Math.random() * 100 < critChance) {
+            isCrit = true;
             dmg = Math.floor(dmg * critMult);
             logMsg(playerHasPassive('lethal_exploit') && hasAilment ? "🎯 Lethal Exploit Critical Strike!" : "Critical Hit!", "#ff5555");
+            playSFX('crit');
+            screenShake('medium');
+
+            // Vampiric Fervor Keystone: Physical critical strikes restore 10% damage dealt as HP
+            if (player.skillTree && player.skillTree.vampiricFervor > 0) {
+                let vHeal = Math.max(1, Math.floor(dmg * 0.10));
+                let prevHp = pStats.hp;
+                let excessHeal = Math.max(0, (prevHp + vHeal) - pStats.maxHp);
+                playerEnt.hp = Math.min(pStats.maxHp, playerEnt.hp + vHeal);
+                pStats.hp = playerEnt.hp;
+                if (player.baseStats) player.baseStats.hp = playerEnt.hp;
+                logMsg(`🩸 Vampiric Fervor restored ${vHeal} HP on critical hit!`, "#ef4444");
+                floatText('battle-player', `+${vHeal} Vampiric`, "#55ff55");
+
+                // Overcharged Aegis: excess healing converted into Divine Barrier
+                if (player.skillTree.overchargedAegis > 0 && excessHeal > 0) {
+                    let maxBarrier = Math.floor(pStats.maxHp * 0.20);
+                    let currentBarrier = (playerEnt.statuses && playerEnt.statuses.divine_barrier && playerEnt.statuses.divine_barrier.value) || 0;
+                    let barrierToAdd = Math.min(excessHeal, Math.max(0, maxBarrier - currentBarrier));
+                    if (barrierToAdd > 0) {
+                        applyStatus(playerEnt, 'divine_barrier', 3, currentBarrier + barrierToAdd);
+                        logMsg(`✨ Overcharged Aegis converted ${barrierToAdd} excess healing into Divine Barrier!`, "#ffd700");
+                        floatText('battle-player', `+${barrierToAdd} Barrier`, "#ffd700");
+                    }
+                }
+                renderBattlefield();
+                updateHeader();
+            }
+
+            // Momentum Keystone: Landing a critical strike grants Haste for 2 turns
+            if (player.skillTree && player.skillTree.momentum > 0) {
+                applyStatus(playerEnt, 'haste', 2);
+                logMsg("⚡ Momentum activated! Critical strike grants Haste for 2 turns!", "#eab308");
+                floatText('battle-player', "MOMENTUM HASTE", "#eab308");
+            }
+        } else {
+            playSFX('slash');
         }
         
-        applyDamage(target, dmg, ELEMENTS.Physical, playerEnt);
+        triggerHitVFX(target.id, 'physical');
+        applyDamage(target, dmg, ELEMENTS.Physical, playerEnt, isCrit);
         animateAction('battle-player');
+
+        // Thunderstone Core Relic Chain Lightning
+        if (player.spire && player.spire.equippedRelic === 'thunderstone_core' && Math.random() < 0.35) {
+            let splashDmg = Math.max(1, Math.floor(dmg * 0.5));
+            logMsg("⚡ Thunderstone Core discharges chain lightning!", "#eab308");
+            floatText('battle-player', "THUNDER SPLASH", "#eab308");
+            if (battleState.enemies && Array.isArray(battleState.enemies)) {
+                battleState.enemies.forEach(other => {
+                    if (other !== target && other.hp > 0) {
+                        applyDamage(other, splashDmg, ELEMENTS.Wind, playerEnt);
+                        floatText(other.id, `-${splashDmg} Shock`, "#eab308");
+                    }
+                });
+            }
+        }
 
         // Tempest Blademaster: Omnislash Flurry
         if (playerHasPassive('omnislash_flurry') && target.hp > 0) {
@@ -2626,8 +5042,12 @@
         setCombatTimeout(processNextTurn, 1200);
     }
     function executePlayerSkill(skill, target) {
-        enableCommands();
+        if (battleState) battleState.isPlayerTurn = false;
+        document.getElementById('battle-commands').classList.remove('targeting-mode-ui');
+        document.getElementById('battle-commands').classList.remove('sub-menu-active');
+        document.getElementById('enemies-side').classList.remove('targeting-active');
         document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
 
         let playerEnt = getPlayerCombatEntity();
 
@@ -2635,6 +5055,7 @@
         if (hasStatus(playerEnt, 'silence') && (skill.type === 'magic' || skill.type === 'heal')) {
             logMsg("Hero is Silenced and cannot cast spells!", "#94a3b8");
             floatText('battle-player', "SILENCED", "#94a3b8");
+            if (battleState) battleState.isPlayerTurn = true;
             enableCommands();
             return;
         }
@@ -2651,16 +5072,71 @@
             }
         }
 
-        let cost = getSkillCost(skill);
-        player.baseStats.mp -= cost;
-        pStats.mp -= cost;
+        let isArcaneSurge = false;
+        if (skill.type === 'magic' && player.skillTree && player.skillTree.arcaneSurge > 0 && Math.random() < 0.25) {
+            isArcaneSurge = true;
+            logMsg("✨ Arcane Surge activated! 0 MP cost & +30% spell damage!", "#c084fc");
+            floatText('battle-player', "ARCANE SURGE!", "#c084fc");
+        }
+
+        let cost = isArcaneSurge ? 0 : getSkillCost(skill);
+        player.baseStats.mp = Math.max(0, player.baseStats.mp - cost);
+        pStats.mp = player.baseStats.mp;
         
         logMsg(`Hero casts ${skill.name}!`, "#aaddff");
         animateAction('battle-player');
 
+        const skillFX = getSkillSFXAndVFX(skill);
+        playSFX(skillFX.sfx);
+
         if(skill.target === 'enemy_single') {
             let dmg;
-            if(skill.type === 'physical') {
+            if (skill.name === 'Holy Smite') {
+                let baseDmg = (playerEnt.atk * 1.2 + playerEnt.def * 1.0) + skill.power;
+                let mitigation = 20 / (20 + target.mdef);
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                if (target.element === ELEMENTS.Dark) {
+                    dmg = Math.floor(dmg * 2.0);
+                    logMsg("⚡ Holy Smite deals critical divine damage against Dark!", "#ffd700");
+                }
+            } else if (skill.name === 'Arcane Missiles') {
+                dmg = Math.max(1, Math.floor(pStats.matk * 1.6 + skill.power) - Math.floor(target.mdef * 0.5));
+                if (isArcaneSurge) dmg = Math.floor(dmg * 1.3);
+            } else if (skill.name === 'Shadow Step') {
+                let effDef = Math.floor(target.def * 0.5);
+                let baseDmg = playerEnt.atk * 1.5 + skill.power;
+                let mitigation = 20 / (20 + effDef);
+                let critMult = hasStatus(playerEnt, 'focus') ? 2.0 : 1.8;
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation * critMult));
+                logMsg("🗡️ Shadow Step executes a guaranteed Critical Hit from the shadows!", "#a855f7");
+                playSFX('crit');
+                screenShake('medium');
+                floatText(target.id, "CRIT!", "#a855f7", true);
+            } else if (skill.name === 'Mirage Flurry') {
+                let critBonus = 35;
+                let totalDmg = 0;
+                for(let s = 1; s <= 3; s++) {
+                    let strikeDmg = Math.max(1, Math.floor((playerEnt.atk * 0.7 + skill.power / 3) * (20 / (20 + target.def))));
+                    let isCrit = (Math.random() * 100) < (pStats.crit + critBonus);
+                    if(isCrit) strikeDmg = Math.floor(strikeDmg * 1.5);
+                    totalDmg += strikeDmg;
+                }
+                dmg = totalDmg;
+                logMsg(`Hero unleashes Mirage Flurry! 3 strikes deal ${totalDmg} total damage!`, "#67e8f9");
+            } else if (skill.name === 'Shadow Rupture') {
+                let dotCount = 0;
+                if (hasStatus(target, 'burn')) dotCount++;
+                if (hasStatus(target, 'poison')) dotCount += (target.statuses.poison.stacks || 1);
+                if (hasStatus(target, 'decay')) dotCount++;
+                if (hasStatus(target, 'bleed')) dotCount++;
+                let baseDmg = pStats.matk * 1.5 + skill.power + (dotCount * 35);
+                dmg = Math.max(1, Math.floor(baseDmg - target.mdef));
+                if (dotCount > 0) {
+                    dmg = Math.floor(dmg * 1.5);
+                    logMsg(`💥 Shadow Rupture detonates ${dotCount} affliction(s) for massive burst damage!`, "#c084fc");
+                    floatText(target.id, "BURST!", "#c084fc");
+                }
+            } else if(skill.type === 'physical') {
                 let baseDmg = playerEnt.atk * 1.5 + skill.power;
                 let mitigation = 20 / (20 + target.def);
                 dmg = Math.max(1, Math.floor(baseDmg * mitigation));
@@ -2671,30 +5147,64 @@
                 }
             } else {
                 dmg = Math.max(1, Math.floor(pStats.matk * 1.5 + skill.power) - target.mdef);
+                if (isArcaneSurge) dmg = Math.floor(dmg * 1.3);
                 if (playerHasPassive('arcane_singularity')) {
                     let critChance = pStats.crit + (hasStatus(playerEnt, 'focus') ? 25 : 0);
                     if (Math.random() * 100 < critChance) {
                         dmg = Math.floor(dmg * 2.0);
                         logMsg("✨ Arcane Singularity Spell Critical Hit!", "#c084fc");
-                        floatText(target.id, "CRIT!", "#c084fc");
+                        playSFX('crit');
+                        screenShake('medium');
+                        floatText(target.id, "CRIT!", "#c084fc", true);
                     }
                 }
             }
             
+            triggerHitVFX(target.id, skillFX.vfx);
             applyDamage(target, dmg, skill.element, playerEnt);
 
-            // Soul Siphon Magic Leech
-            if (skill.type === 'magic' && playerHasPassive('soul_siphon') && dmg > 0) {
+            // Bloodthirst Strike Lifesteal
+            if (skill.name === 'Bloodthirst Strike' && dmg > 0) {
+                let heal = Math.max(1, Math.floor(dmg * 0.30));
+                player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + heal);
+                pStats.hp = player.baseStats.hp;
+                logMsg(`🩸 Bloodthirst Strike restored ${heal} HP to Hero!`, "#ef4444");
+                floatText('battle-player', `+${heal} HP`, "#55ff55");
+            }
+
+            // Soul Siphon Skill Lifesteal & Decay
+            if (skill.name === 'Soul Siphon' && dmg > 0) {
+                applyStatus(target, 'decay', 3);
+                let heal = Math.max(1, Math.floor(dmg * 0.50));
+                player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + heal);
+                pStats.hp = player.baseStats.hp;
+                logMsg(`🔮 Soul Siphon drained ${heal} HP to Hero!`, "#a855f7");
+                floatText('battle-player', `+${heal} HP`, "#a855f7");
+            }
+
+            // Passive Soul Siphon Magic Leech (Warlock passive on other magic skills)
+            if (skill.type === 'magic' && playerHasPassive('soul_siphon') && dmg > 0 && skill.name !== 'Soul Siphon') {
                 let leech = Math.max(1, Math.floor(dmg * 0.20));
                 player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + leech);
                 pStats.hp = player.baseStats.hp;
                 logMsg(`🔮 Soul Siphon leeches ${leech} HP back to Hero!`, "#a855f7");
                 floatText('battle-player', `+${leech} HP`, "#a855f7");
-                renderBattlefield();
             }
             
-            // Tactical Ailments upgrades
-            if(skill.name === 'Fireball') {
+            // Tactical Ailments upgrades & New Class Skill Effects
+            if(skill.name === 'Heavy Slam') {
+                if(Math.random() < 0.5) applyStatus(target, 'stun', 1);
+            } else if(skill.name === 'Quick Slash') {
+                applyStatus(playerEnt, 'mirage', 99, 0);
+                logMsg("Hero gains 1 stack of Mirage evasion!", "#67e8f9");
+                floatText('battle-player', "+1 Mirage", "#67e8f9");
+            } else if(skill.name === 'Smoke Screen') {
+                applyStatus(target, 'blind', 2);
+                applyStatus(playerEnt, 'haste', 3);
+                logMsg("Hero casts Smoke Screen! Target is Blinded and Hero gains Haste!", "#94a3b8");
+                floatText(target.id, "BLIND", "#94a3b8");
+                floatText('battle-player', "HASTE", "#06b6d4");
+            } else if(skill.name === 'Fireball') {
                 if(Math.random() < 0.6) applyStatus(target, 'burn', 3);
             } else if(skill.name === 'Water Splash') {
                 if(Math.random() < 0.5) {
@@ -2723,12 +5233,37 @@
                 if(Math.random() < 0.6) applyStatus(target, 'decay', 3);
             }
         } else if(skill.target === 'enemy_all') {
-            let dmg = Math.max(1, Math.floor(playerEnt.atk * 1.5 + skill.power)); 
+            let dmg = Math.max(1, Math.floor(playerEnt.atk * 1.5 + skill.power));
+            if (skill.type === 'magic') {
+                dmg = Math.max(1, Math.floor(pStats.matk * 1.5 + skill.power));
+                if (isArcaneSurge) dmg = Math.floor(dmg * 1.3);
+            }
             battleState.enemies.forEach(e => {
                 if(e.hp > 0) {
-                    applyDamage(e, Math.max(1, dmg - e.def), skill.element, playerEnt);
-                    if(skill.name === 'Cleave') {
+                    let foeMitigation = (skill.type === 'magic') ? e.mdef : e.def;
+                    let targetDmg = Math.max(1, dmg - foeMitigation);
+                    triggerHitVFX(e.id, skillFX.vfx);
+                    applyDamage(e, targetDmg, skill.element, playerEnt);
+                    
+                    if(skill.name === 'Cleave' || skill.name === 'Whirlwind of Blades') {
                         applyStatus(e, 'bleed', 3);
+                    } else if(skill.name === 'Frost Nova') {
+                        if(Math.random() < 0.60) {
+                            if(Math.random() < 0.5) applyStatus(e, 'freeze', 1);
+                            else applyStatus(e, 'slow', 2);
+                        }
+                    } else if(skill.name === 'Blizzard') {
+                        if(Math.random() < 0.5) applyStatus(e, 'freeze', 1);
+                        else applyStatus(e, 'slow', 2);
+                    } else if(skill.name === 'Chain Lightning') {
+                        applyStatus(e, 'shock', 3);
+                    } else if(skill.name === 'Venom Spray') {
+                        applyStatus(e, 'poison', 3);
+                        if(e.statuses && e.statuses.poison) {
+                            let def = (typeof STATUS_TYPES_DB !== 'undefined') && STATUS_TYPES_DB.poison;
+                            let maxS = (def && def.maxStacks) ? def.maxStacks : 3;
+                            e.statuses.poison.stacks = Math.min(maxS, 2);
+                        }
                     }
                 }
             });
@@ -2739,8 +5274,10 @@
         processStatusesEndTurn(playerEnt);
         setCombatTimeout(processNextTurn, 1200);
     }
-    function applyDamage(target, amount, element, attacker = null) {
+    function applyDamage(target, amount, element, attacker = null, isCrit = false) {
         if (!target || target.hp <= 0) return;
+
+        let isTargetPlayer = (target.isPlayer || target.id === 'battle-player' || target === player);
 
         // 1. Mirage Dodge Check
         if (hasStatus(target, 'mirage')) {
@@ -2752,24 +5289,60 @@
                     if (mBuff.stacks <= 0) delete target.statuses.mirage;
                 }
                 logMsg(`${target.name} completely dodged the attack with Mirage!`, "#67e8f9");
+                playSFX('dodge');
                 floatText(target.id, "DODGED", "#67e8f9");
+                if (isTargetPlayer && player.skillTree && player.skillTree.momentum > 0) {
+                    applyStatus(target, 'haste', 2);
+                    logMsg("⚡ Momentum activated! Hero gained Haste (+30% SPD) for 2 turns!", "#eab308");
+                    floatText('battle-player', "MOMENTUM HASTE", "#eab308");
+                }
                 renderBattlefield();
                 return;
             }
         }
 
-        // 2. Elemental Affinity Multiplier
+        // Quick Reflexes Dodge Check (+2% evasion per rank)
+        if (isTargetPlayer && player.skillTree && player.skillTree.quickReflexes > 0) {
+            let dodgeChance = player.skillTree.quickReflexes * 2;
+            if (Math.random() * 100 < dodgeChance) {
+                logMsg(`Hero dodged ${attacker ? attacker.name + "'s" : "the"} attack with Quick Reflexes!`, "#67e8f9");
+                playSFX('dodge');
+                floatText(target.id || 'battle-player', "DODGED", "#67e8f9");
+                if (player.skillTree.momentum > 0) {
+                    applyStatus(target, 'haste', 2);
+                    logMsg("⚡ Momentum activated! Hero gained Haste (+30% SPD) for 2 turns!", "#eab308");
+                    floatText('battle-player', "MOMENTUM HASTE", "#eab308");
+                }
+                renderBattlefield();
+                return;
+            }
+        }
+
+        // 2. Elemental Affinity Multiplier & Resonance
         let multi = getElementalMultiplier(element, target.element);
+        let isAttackerPlayer = (attacker && (attacker.isPlayer || attacker.id === 'battle-player' || attacker === player)) || (!attacker && !target.isPlayer && target !== player);
+        if (multi > 1.0 && isAttackerPlayer && player.skillTree && player.skillTree.elementalResonance > 0) {
+            multi += (player.skillTree.elementalResonance * 0.05);
+        }
         amount = Math.floor(amount * multi);
         
         if(multi > 1.0) logMsg("It's super effective!", "#ffff55");
         if(multi < 1.0) logMsg("It's not very effective...", "#888888");
+
+        // Executioner Keystone (+35% damage to targets <= 30% HP)
+        if (isAttackerPlayer && !target.isPlayer && player.skillTree && player.skillTree.executioner > 0 && target.hp <= target.maxHp * 0.30) {
+            amount = Math.floor(amount * 1.35);
+            floatText(target.id, "EXECUTIONER!", "#ef4444");
+            logMsg(`⚔️ Executioner strikes weakened ${target.name} for +35% damage!`, "#ef4444");
+        }
 
         // 3. Freeze Shatter Check
         if (hasStatus(target, 'freeze') && element === ELEMENTS.Physical) {
             amount = Math.floor(amount * 1.5);
             delete target.statuses.freeze;
             logMsg(`Heavy physical strike shattered the ice on ${target.name} for 1.5x damage!`, "#38bdf8");
+            playSFX('magic_ice');
+            screenShake('medium');
             floatText(target.id, "SHATTER!", "#38bdf8");
         }
 
@@ -2802,28 +5375,48 @@
                 target.statuses.divine_barrier.value -= amount;
                 amount = 0;
                 logMsg(`${target.name}'s Divine Barrier absorbed the attack! (${target.statuses.divine_barrier.value} shield remaining)`, "#ffd700");
+                playSFX('shield_absorb');
                 floatText(target.id, "ABSORBED", "#ffd700");
             } else {
                 amount -= shield;
                 delete target.statuses.divine_barrier;
                 logMsg(`${target.name}'s Divine Barrier shattered!`, "#ffd700");
+                playSFX('shield_break');
+                screenShake('light');
                 floatText(target.id, "SHIELD BROKE", "#ffd700");
             }
             renderBattlefield();
         }
 
-        // Divine Retribution Reflection (Holy Templar Passive)
-        let isTargetPlayer = (target.isPlayer || target.id === 'battle-player' || target === player);
-        if (isTargetPlayer && playerHasPassive('divine_retribution') && attacker && attacker.hp > 0) {
+        // Divine Retribution Reflection & Thorned Bastion Reflection
+        if (isTargetPlayer && attacker && attacker.hp > 0) {
             let totalMitigated = absorbedAmount + (target.lastDefMitigated || 0);
             target.lastDefMitigated = 0;
-            if (totalMitigated > 0) {
+
+            if (playerHasPassive('divine_retribution') && totalMitigated > 0) {
                 let holyReflect = Math.max(1, Math.floor(totalMitigated * 0.30));
                 attacker.hp = Math.max(0, attacker.hp - holyReflect);
                 logMsg(`✨ Divine Retribution reflects ${holyReflect} Holy true damage back to ${attacker.name}!`, "#ffd700");
                 floatText(attacker.id, `-${holyReflect} Holy`, "#ffd700");
                 if (attacker.hp <= 0) {
                     logMsg(`${attacker.name} was defeated by Divine Retribution!`, "#ff8888");
+                    if(!player.questStats) player.questStats = { enemiesDefeated: 0, battlesWon: 0, bossesDefeated: 0 };
+                    player.questStats.enemiesDefeated = (player.questStats.enemiesDefeated || 0) + 1;
+                    if(attacker.isBoss) {
+                        player.questStats.bossesDefeated = (player.questStats.bossesDefeated || 0) + 1;
+                        if(typeof checkAchievements === 'function') checkAchievements();
+                    }
+                }
+            }
+
+            // Thorned Bastion Keystone (reflect 25% of mitigated damage as true damage)
+            if (player.skillTree && player.skillTree.thornedBastion > 0 && totalMitigated > 0 && attacker.hp > 0) {
+                let thornReflect = Math.max(1, Math.floor(totalMitigated * 0.25));
+                attacker.hp = Math.max(0, attacker.hp - thornReflect);
+                logMsg(`🛡️ Thorned Bastion reflects ${thornReflect} true damage back to ${attacker.name}!`, "#10b981");
+                floatText(attacker.id, `-${thornReflect} Reflect`, "#10b981");
+                if (attacker.hp <= 0) {
+                    logMsg(`${attacker.name} was defeated by Thorned Bastion!`, "#ff8888");
                     if(!player.questStats) player.questStats = { enemiesDefeated: 0, battlesWon: 0, bossesDefeated: 0 };
                     player.questStats.enemiesDefeated = (player.questStats.enemiesDefeated || 0) + 1;
                     if(attacker.isBoss) {
@@ -2841,16 +5434,35 @@
         if(target.hp < 0) target.hp = 0;
 
         // Death's Guillotine Execution Check (Reaper of Shadows Passive)
-        let isAttackerPlayer = (attacker && (attacker.isPlayer || attacker.id === 'battle-player' || attacker === player));
+        isAttackerPlayer = (attacker && (attacker.isPlayer || attacker.id === 'battle-player' || attacker === player));
+
+        // Blood Chalice Relic Lifesteal
+        if (isAttackerPlayer && !target.isPlayer && player.spire && player.spire.equippedRelic === 'blood_chalice' && amount > 0) {
+            let chaliceHeal = Math.max(1, Math.floor(amount * 0.10));
+            let pEnt = getPlayerCombatEntity();
+            pEnt.hp = Math.min(pStats.maxHp, pEnt.hp + chaliceHeal);
+            logMsg(`🩸 Blood Chalice restored ${chaliceHeal} HP to Hero!`, "#ef4444");
+            floatText('battle-player', `+${chaliceHeal} HP`, "#55ff55");
+            renderBattlefield();
+        }
+
         if (isAttackerPlayer && playerHasPassive('deaths_guillotine') && !target.isPlayer && wasAlive && target.hp > 0 && target.hp <= target.maxHp * 0.25) {
             target.hp = 0;
             logMsg(`☠️ Death's Guillotine triggered! Instantly executed ${target.name}!`, "#a855f7");
             floatText(target.id, "EXECUTED!", "#a855f7");
         }
 
-        // Undying Wrath Survival Check (Warlord of Carnage Passive)
+        // Hourglass Chronomancer Fatal Blow Rewind Check
         if (isTargetPlayer && target.hp <= 0 && wasAlive) {
-            if (playerHasPassive('undying_wrath') && !battleState.undyingWrathUsed) {
+            if (player.spire && player.spire.equippedRelic === 'hourglass_chronomancer' && !spireRun.hourglassUsed) {
+                spireRun.hourglassUsed = true;
+                let restoredHp = Math.max(1, Math.round(pStats.maxHp * 0.30));
+                target.hp = restoredHp;
+                pStats.hp = restoredHp;
+                if (player.baseStats) player.baseStats.hp = restoredHp;
+                logMsg("⌛ Chronomancer's Hourglass rewinds time! Fatal blow avoided!", "#38bdf8");
+                floatText('battle-player', "REWIND!", "#38bdf8");
+            } else if (playerHasPassive('undying_wrath') && !battleState.undyingWrathUsed) {
                 battleState.undyingWrathUsed = true;
                 target.hp = 1;
                 pStats.hp = 1;
@@ -2863,7 +5475,9 @@
         }
         
         logMsg(`${target.name} takes ${amount} damage.`);
-        floatText(target.id, `-${amount}`, '#ff3333');
+        applyHitFlash(target.id);
+        floatText(target.id, `-${amount}`, '#ff3333', isCrit);
+        if (isCrit) screenShake('medium');
         animateAction(target.id, 'anim-shake');
 
         // 6. Counter Stance Retaliation
@@ -2875,6 +5489,18 @@
         }
         
         if(target.hp <= 0 && wasAlive) {
+            if (!target.isPlayer) {
+                playSFX('enemy_death');
+
+                // Midas Touch Keystone: Defeating an enemy with a basic attack or critical hit grants bonus Gold equal to 10% of their Max HP
+                if (isAttackerPlayer && player.skillTree && player.skillTree.midasTouch > 0 && (element === ELEMENTS.Physical || isCrit)) {
+                    let bonusGold = Math.max(1, Math.floor(target.maxHp * 0.10));
+                    player.gold = (player.gold || 0) + bonusGold;
+                    updateHeader();
+                    logMsg(`🪙 Midas Touch! Gained +${bonusGold} bonus Gold from defeating ${target.name}!`, "#ffd700");
+                    floatText('battle-player', `+${bonusGold}G Midas`, "#ffd700");
+                }
+            }
             logMsg(`${target.name} was defeated!`, "#ff8888");
             if(!player.questStats) player.questStats = { enemiesDefeated: 0, battlesWon: 0, bossesDefeated: 0 };
             player.questStats.enemiesDefeated = (player.questStats.enemiesDefeated || 0) + 1;
@@ -2889,27 +5515,84 @@
        SUB-MENUS (Skills & Items in battle)
        ========================================================================= */
 
+    let activeSkillCategory = 'all';
+
     function openBattleSkills() {
         document.getElementById('battle-commands').classList.add('sub-menu-active');
         const content = document.getElementById('sub-menu-content');
         
+        content.innerHTML = `
+            <div style="display:flex; gap:4px; margin-bottom:8px; flex-shrink:0;">
+                <button class="btn cat-btn ${activeSkillCategory==='all'?'active':''}" style="flex:1; padding:4px 2px; font-size:11px;" onclick="filterBattleSkills('all')">All</button>
+                <button class="btn cat-btn ${activeSkillCategory==='offense'?'active':''}" style="flex:1; padding:4px 2px; font-size:11px;" onclick="filterBattleSkills('offense')">⚔️ Offense</button>
+                <button class="btn cat-btn ${activeSkillCategory==='defense'?'active':''}" style="flex:1; padding:4px 2px; font-size:11px;" onclick="filterBattleSkills('defense')">🛡️ Defense</button>
+                <button class="btn cat-btn ${activeSkillCategory==='utility'?'active':''}" style="flex:1; padding:4px 2px; font-size:11px;" onclick="filterBattleSkills('utility')">✨ Utility</button>
+            </div>
+            <div id="skills-items-container" style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:2px;"></div>
+        `;
+        renderSkillButtons(activeSkillCategory);
+    }
+
+    function filterBattleSkills(category) {
+        activeSkillCategory = category;
+        const catBtns = document.querySelectorAll('#sub-menu-content .cat-btn');
+        catBtns.forEach(btn => {
+            let isMatch = false;
+            if (category === 'all' && btn.innerText.includes('All')) isMatch = true;
+            else if (category === 'offense' && btn.innerText.includes('Offense')) isMatch = true;
+            else if (category === 'defense' && btn.innerText.includes('Defense')) isMatch = true;
+            else if (category === 'utility' && btn.innerText.includes('Utility')) isMatch = true;
+            if (isMatch) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        renderSkillButtons(category);
+    }
+
+    function renderSkillButtons(category) {
+        const listEl = document.getElementById('skills-items-container');
+        if (!listEl) return;
+        
         let html = '';
+        let hasSkills = false;
+        
         player.skills.forEach(skillName => {
             const skill = SKILLS_DB[skillName];
+            if (!skill) return;
+            
+            if (category !== 'all' && skill.category !== category) return;
+            
+            hasSkills = true;
             const cost = getSkillCost(skill);
             const canCast = pStats.mp >= cost;
-            html += `<button class="btn" style="width:100%; text-align:left; padding:8px 10px; font-size:13px; margin:2px 0;" ${canCast?'':'disabled'} onclick="selectSkill('${skillName}')">
-                        <b>${skill.name}</b> (${cost} MP) - <span style="font-size:11px; color:#aaa;">${skill.element}</span>
+            const catIcon = skill.category === 'offense' ? '⚔️' : (skill.category === 'defense' ? '🛡️' : '✨');
+            const targetDesc = skill.target === 'enemy_all' ? 'All Foes' : (skill.target === 'ally_single' || skill.target === 'self' ? 'Self' : 'Single');
+            
+            html += `<button class="btn" style="width:100%; text-align:left; padding:6px 10px; font-size:12px; margin:2px 0;" ${canCast?'':'disabled'} onclick="selectSkill('${skillName}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <b>${skill.name}</b>
+                            <span style="font-size:11px; color:#ffaa00; font-weight:bold;">${cost} MP</span>
+                        </div>
+                        <div style="font-size:10px; color:#94a3b8; display:flex; gap:6px; margin-top:2px;">
+                            <span>${catIcon} ${skill.element}</span>
+                            <span>• ${targetDesc}</span>
+                        </div>
                      </button>`;
         });
-        content.innerHTML = html;
+        
+        if (!hasSkills) {
+            html = '<p style="color:#aaa; text-align:center; padding:10px; font-size:12px;">No skills in this category.</p>';
+        }
+        
+        listEl.innerHTML = html;
     }
 
     function selectSkill(skillName) {
         const skill = SKILLS_DB[skillName];
-        if(skill.target === 'ally_single') {
+        if(!skill) return;
+
+        if(skill.target === 'ally_single' || skill.target === 'self') {
             let playerEnt = getPlayerCombatEntity();
-            if (hasStatus(playerEnt, 'silence')) {
+            if (hasStatus(playerEnt, 'silence') && (skill.type === 'magic' || skill.type === 'heal')) {
                 logMsg("Hero is Silenced and cannot cast spells!", "#94a3b8");
                 floatText('battle-player', "SILENCED", "#94a3b8");
                 return;
@@ -2917,26 +5600,68 @@
             let cost = getSkillCost(skill);
             player.baseStats.mp -= cost;
             pStats.mp -= cost;
-            let heal = skill.power + Math.floor(pStats.matk / 2);
-            if (hasStatus(playerEnt, 'burn')) heal = Math.floor(heal * 0.7);
-            
-            let decayDmg = 0;
-            if (hasStatus(playerEnt, 'decay')) {
-                decayDmg = Math.floor(heal * 0.25);
-                heal = Math.max(0, heal - decayDmg);
-                logMsg(`Hero's Decay corrupted healing into ${decayDmg} damage!`, "#a855f7");
-            }
-            player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + heal - decayDmg);
-            pStats.hp = player.baseStats.hp;
-            logMsg(`Hero casts ${skill.name}! Restored ${heal} HP.`, "#55ff55");
-            floatText('battle-player', `+${heal}`, '#55ff55');
 
-            // Tactical Buffs
-            if (skill.name === 'Heal') {
-                applyStatus(playerEnt, 'regeneration', 3);
-            } else if (skill.name === 'Recovery') {
-                let shieldVal = Math.floor(pStats.maxHp * 0.15);
+            if (skill.name === 'Battle Cry') {
+                applyStatus(playerEnt, 'haste', 3);
+                applyStatus(playerEnt, 'battle_cry', 3);
+                logMsg("Hero roars with Battle Cry! Gained Haste (+30% SPD) and +20% ATK for 3 turns!", "#f59e0b");
+                floatText('battle-player', "BATTLE CRY", "#f59e0b");
+            } else if (skill.name === 'Shield of Faith') {
+                if(playerEnt.statuses) {
+                    for(let sId in playerEnt.statuses) {
+                        let def = (typeof STATUS_TYPES_DB !== 'undefined') && STATUS_TYPES_DB[sId];
+                        if(def && (def.type === 'dot' || def.type === 'disable' || def.type === 'debuff' || def.type === 'ailment')) {
+                            delete playerEnt.statuses[sId];
+                        }
+                    }
+                }
+                let shieldVal = Math.floor(pStats.maxHp * 0.20);
                 applyStatus(playerEnt, 'divine_barrier', 3, shieldVal);
+                logMsg(`Hero casts Shield of Faith! Cleansed all debuffs and gained ${shieldVal} HP Divine Barrier!`, "#ffd700");
+                floatText('battle-player', `+${shieldVal} Shield`, '#ffd700');
+            } else if (skill.name === 'Blade Dance') {
+                applyStatus(playerEnt, 'counter_stance', 3);
+                logMsg("Hero enters Blade Dance counter-stance for 3 turns!", "#38bdf8");
+                floatText('battle-player', "COUNTER STANCE", "#38bdf8");
+            } else {
+                let heal = skill.power + Math.floor(pStats.matk / 2);
+                if (hasStatus(playerEnt, 'burn')) heal = Math.floor(heal * 0.7);
+                
+                let decayDmg = 0;
+                if (hasStatus(playerEnt, 'decay')) {
+                    decayDmg = Math.floor(heal * 0.25);
+                    heal = Math.max(0, heal - decayDmg);
+                    logMsg(`Hero's Decay corrupted healing into ${decayDmg} damage!`, "#a855f7");
+                }
+                let prevHp = pStats.hp;
+                let netHeal = Math.max(0, heal - decayDmg);
+                let excessHeal = Math.max(0, (prevHp + netHeal) - pStats.maxHp);
+
+                player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + netHeal);
+                pStats.hp = player.baseStats.hp;
+                playerEnt.hp = pStats.hp;
+                logMsg(`Hero casts ${skill.name}! Restored ${heal} HP.`, "#55ff55");
+                floatText('battle-player', `+${heal}`, '#55ff55');
+
+                // Overcharged Aegis Keystone: Excess healing converts into Divine Barrier up to 20% Max HP
+                if (player.skillTree && player.skillTree.overchargedAegis > 0 && excessHeal > 0) {
+                    let maxBarrier = Math.floor(pStats.maxHp * 0.20);
+                    let currentBarrier = (playerEnt.statuses && playerEnt.statuses.divine_barrier && playerEnt.statuses.divine_barrier.value) || 0;
+                    let barrierToAdd = Math.min(excessHeal, Math.max(0, maxBarrier - currentBarrier));
+                    if (barrierToAdd > 0) {
+                        applyStatus(playerEnt, 'divine_barrier', 3, currentBarrier + barrierToAdd);
+                        logMsg(`✨ Overcharged Aegis converted ${barrierToAdd} excess healing into Divine Barrier!`, "#ffd700");
+                        floatText('battle-player', `+${barrierToAdd} Barrier`, "#ffd700");
+                    }
+                }
+
+                // Tactical Buffs
+                if (skill.name === 'Heal') {
+                    applyStatus(playerEnt, 'regeneration', 3);
+                } else if (skill.name === 'Recovery') {
+                    let shieldVal = Math.floor(pStats.maxHp * 0.15);
+                    applyStatus(playerEnt, 'divine_barrier', 3, shieldVal);
+                }
             }
 
             renderBattlefield();
@@ -2949,6 +5674,12 @@
             closeSubMenu();
             executePlayerSkill(skill, null);
         } else {
+            const livingEnemies = (battleState && battleState.enemies) ? battleState.enemies.filter(e => e && e.hp > 0) : [];
+            if (livingEnemies.length === 1) {
+                closeSubMenu();
+                executePlayerSkill(skill, livingEnemies[0]);
+                return;
+            }
             logMsg(`Select a target for ${skill.name}.`);
             enterTargetingMode(skill);
         }
@@ -2977,7 +5708,100 @@
         content.innerHTML = html;
     }
 
+    /* =========================================================================
+       COMBAT FLOW & QUICK POTION ENGINE
+       ========================================================================= */
+
+    function getBestAvailableHealingPotion() {
+        if (!player || !player.inventory) return null;
+        const consumables = player.inventory.consumables || player.inventory;
+        
+        const maxHp = (typeof pStats !== 'undefined' && pStats.maxHp) ? pStats.maxHp : (player.baseStats ? player.baseStats.maxHp : 100);
+        const curHp = (typeof pStats !== 'undefined' && pStats.hp !== undefined) ? pStats.hp : (player.baseStats ? player.baseStats.hp : 100);
+        const missingHp = maxHp - curHp;
+        const hpPct = maxHp > 0 ? (curHp / maxHp) : 1;
+
+        const hasItem = (name) => (typeof consumables[name] === 'number' && consumables[name] > 0);
+        const getQty = (name) => consumables[name] || 0;
+
+        // If missing HP >= 250 and has Mega-Potion (or Max Potion if < 30% HP): prioritize Mega-Potion / Max Potion.
+        if (missingHp >= 250) {
+            if (hpPct < 0.3 && hasItem('Max Potion')) return { name: 'Max Potion', qty: getQty('Max Potion') };
+            if (hasItem('Mega-Potion')) return { name: 'Mega-Potion', qty: getQty('Mega-Potion') };
+            if (hasItem('Max Potion')) return { name: 'Max Potion', qty: getQty('Max Potion') };
+        }
+
+        // Else if missing HP >= 120 and has Hi-Potion: prioritize Hi-Potion.
+        if (missingHp >= 120 && hasItem('Hi-Potion')) {
+            return { name: 'Hi-Potion', qty: getQty('Hi-Potion') };
+        }
+
+        // Else if has Potion: use Potion.
+        if (hasItem('Potion')) {
+            return { name: 'Potion', qty: getQty('Potion') };
+        }
+
+        // Fallback: pick the highest tier healing potion with count > 0.
+        const tierOrder = ['Max Potion', 'Mega-Potion', 'Hi-Potion', 'Potion'];
+        for (let name of tierOrder) {
+            if (hasItem(name)) {
+                return { name: name, qty: getQty(name) };
+            }
+        }
+
+        return null;
+    }
+
+    function updateQuickPotionButton() {
+        const btn = document.getElementById('btn-quick-potion');
+        if (!btn) return;
+        const potion = getBestAvailableHealingPotion();
+        const isCombat = Boolean(battleState && battleState.active);
+        const canAct = !isCombat || Boolean(battleState.isPlayerTurn);
+        if (potion && potion.qty > 0) {
+            btn.innerText = `🧪 Heal: ${potion.name} (x${potion.qty})`;
+            btn.disabled = !canAct;
+            if (potion.qty <= 2) {
+                btn.style.color = '#fbbf24';
+                btn.style.borderColor = '#fbbf24';
+            } else {
+                btn.style.color = '#4ade80';
+                btn.style.borderColor = '#4ade80';
+            }
+        } else {
+            btn.innerText = `🧪 No Potions (x0)`;
+            btn.disabled = true;
+            btn.style.color = '#94a3b8';
+            btn.style.borderColor = '#475569';
+        }
+    }
+
+    function useQuickPotion() {
+        if (!battleState || !battleState.active) return;
+        if (!battleState.isPlayerTurn) {
+            showToast('Not Your Turn', 'Wait for the current action to finish!', 'warning');
+            return;
+        }
+        const potion = getBestAvailableHealingPotion();
+        if (!potion || potion.qty <= 0) {
+            showToast('No Potions', 'No healing potions available in inventory!', 'info');
+            updateQuickPotionButton();
+            return;
+        }
+        battleState.isPlayerTurn = false;
+        useItemInBattle(potion.name);
+        updateQuickPotionButton();
+    }
+
+    function repeatBattle() {
+        clearAllCombatTimers();
+        checkLevelUp();
+        const cfg = (battleState && battleState.lastBattleConfig) ? battleState.lastBattleConfig : { enemyCount: 1, isBoss: false };
+        startBattle(cfg.enemyCount, cfg.isBoss);
+    }
+
     function useItemInBattle(itemName) {
+        if (battleState) battleState.isPlayerTurn = false;
         const item = ITEMS_DB[itemName];
         if(!item) return;
 
@@ -3049,6 +5873,7 @@
         
         renderBattlefield();
         closeSubMenu();
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
         triggerRegen();
         setCombatTimeout(processNextTurn, 1000);
@@ -3059,6 +5884,9 @@
     }
 
     function attemptFlee() {
+        if (battleState) battleState.isPlayerTurn = false;
+        document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         if(Math.random() > 0.5) {
             logMsg("Fled from battle successfully!");
             clearAllCombatTimers();
@@ -3325,11 +6153,27 @@
         const cls = CLASSES_DB[classId];
         if(!cls) return;
         player.currentClass = classId;
+        
+        // Award signature class skills
+        let newSkills = [];
+        let classSkills = (typeof getClassSkills === 'function') ? getClassSkills(classId) : (cls.skills || []);
+        classSkills.forEach(s => {
+            if (!player.skills.includes(s)) {
+                player.skills.push(s);
+                newSkills.push(s);
+            }
+        });
+        
         computeStats();
         updateHeader();
         renderStats();
         renderClassAdvancement();
         showToast('Class Evolution Achieved!', `You have evolved into a ${cls.name}!`, 'level', 5000);
+        if (newSkills.length > 0) {
+            setTimeout(() => {
+                showToast('Skills Unlocked!', 'Gained: ' + newSkills.join(', '), 'quest', 5000);
+            }, 800);
+        }
     }
 
     /* =========================================================================
@@ -3339,7 +6183,9 @@
     function winBattle() {
         clearAllCombatTimers();
         battleState.active = false;
+        battleState.isPlayerTurn = false;
         if(typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(false);
+        playSFX('victory');
         
         let multi = 1.0;
         if(battleState.initialEnemyCount === 2) multi = 1.5;
@@ -3403,6 +6249,12 @@
         });
         let totalExp = Math.round(baseExp * multi);
         let totalGold = Math.round(baseGold * multi * fortuneMult * goldBonusMult);
+
+        // Midas Crucible Relic Gold Bonus (+50%)
+        if (player.spire && player.spire.equippedRelic === 'midas_crucible') {
+            totalGold = Math.round(totalGold * 1.5);
+            logMsg("💎 Midas Crucible: +50% Gold awarded!", "#fbbf24");
+        }
         
         logMsg("You won the battle!", "#55ff55");
         logMsg(`Gained ${totalExp} EXP and ${totalGold} Gold (Multiplier: ${multi}x).`, "#55ff55");
@@ -3419,6 +6271,13 @@
         
         if(!player.questStats) player.questStats = { enemiesDefeated: 0, battlesWon: 0, bossesDefeated: 0 };
         player.questStats.battlesWon = (player.questStats.battlesWon || 0) + 1;
+
+        // Award Companion Pet Bond EXP (+15 per victory)
+        if (player.pets && Array.isArray(player.pets.active)) {
+            player.pets.active.filter(Boolean).forEach(petId => {
+                if (typeof addPetExp === 'function') addPetExp(petId, 15);
+            });
+        }
         
         // Zone Conquest & Progression Unlock
         let defeatedBoss = battleState.enemies.find(e => e.isBoss);
@@ -3444,17 +6303,128 @@
         
         updateHeader();
         
+        // Infinite Spire Floor Victory Resolution
+        if (spireRun && spireRun.active) {
+            let floor = spireRun.currentFloor;
+            let floorShards = Math.max(2, Math.floor(floor * 1.5));
+            player.spire.astralShards += floorShards;
+            spireRun.shardsEarned += floorShards;
+            if (floor > player.spire.highestFloor) {
+                player.spire.highestFloor = floor;
+            }
+            logMsg(`✨ Gained ${floorShards} Astral Shards from Floor ${floor}!`, "#c084fc");
+
+            // Boss Floor Relic Drop Check (every 5th floor)
+            let droppedRelic = null;
+            if (floor % 5 === 0 && typeof RELICS_DB !== 'undefined') {
+                let unowned = Object.keys(RELICS_DB).filter(rId => !player.spire.relics.includes(rId));
+                if (unowned.length > 0 && Math.random() < 0.50) {
+                    let chosen = unowned[Math.floor(Math.random() * unowned.length)];
+                    player.spire.relics.push(chosen);
+                    droppedRelic = RELICS_DB[chosen];
+                    showToast('Ancient Relic Found!', `Discovered ${droppedRelic.icon} ${droppedRelic.name}!`, 'quest', 6000);
+                    logMsg(`🏆 ANCIENT RELIC DISCOVERED: ${droppedRelic.icon} ${droppedRelic.name}!`, "#ffd700");
+                }
+            }
+
+            updateHeader();
+            if (typeof renderSpireModal === 'function') renderSpireModal();
+
+            setCombatTimeout(() => {
+                checkLevelUp();
+                showSpireVictoryModal(floor, floorShards, droppedRelic);
+            }, 1500, true);
+            return;
+        }
+
+        battleState.lastBattleConfig = {
+            enemyCount: battleState.initialEnemyCount || 1,
+            isBoss: battleState.isBossFight || false,
+            areaId: (player && player.selectedArea) || 'area_1'
+        };
+
+        const cmdEl = document.getElementById('battle-commands');
+        if (cmdEl) cmdEl.classList.add('victory-mode-ui');
+        const vActions = document.getElementById('battle-victory-actions');
+        if (vActions) vActions.style.display = 'flex';
+
+        const actionsHtml = `
+            <div id="battle-victory-log-actions" style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                <button class="btn" style="padding: 10px 18px; font-size: 14px; font-weight: bold; color: #4ade80; border-color: #4ade80; background: rgba(74, 222, 128, 0.1);" onclick="repeatBattle()">⚔️ Hunt Again</button>
+                <button class="btn" style="padding: 10px 18px; font-size: 14px; color: #cbd5e1;" onclick="checkLevelUp(); switchScreen('town');">🏠 Return to Town</button>
+            </div>
+        `;
+        let logEl = document.getElementById('combat-log');
+        if (logEl) {
+            logEl.innerHTML += actionsHtml;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
         setCombatTimeout(() => {
-            checkLevelUp();
-            switchScreen('town');
-        }, 3500, true); 
+            if (!battleState.active) {
+                checkLevelUp();
+                switchScreen('town');
+            }
+        }, 10000, true); 
     }
 
     function loseBattle() {
+        if (battleState) battleState.isPlayerTurn = false;
+        // Ignis Phoenix Level 10 Apex Perk: Rebirth Flame
+        if (player.pets && Array.isArray(player.pets.active) && player.pets.active.includes('ignis_phoenix')) {
+            let phoenixLvl = (player.pets.levels && player.pets.levels['ignis_phoenix'] && player.pets.levels['ignis_phoenix'].level) || 1;
+            if (phoenixLvl >= 10 && battleState && !battleState.phoenixRebirthUsed) {
+                battleState.phoenixRebirthUsed = true;
+                let reviveHp = Math.max(1, Math.round(pStats.maxHp * 0.30));
+                player.baseStats.hp = reviveHp;
+                pStats.hp = reviveHp;
+                let pEnt = (typeof getPlayerCombatEntity === 'function') ? getPlayerCombatEntity() : null;
+                if (pEnt) pEnt.hp = reviveHp;
+                logMsg("🔥 Rebirth Flame: Ignis resurrects the Hero from the ashes!", "#ef4444");
+                if (typeof floatText === 'function') floatText('battle-player', "🔥 REBIRTH!", "#ef4444");
+                if (typeof screenShake === 'function') screenShake('heavy', 400);
+                if (typeof playSFX === 'function') playSFX('victory');
+                renderBattlefield();
+                setCombatTimeout(processNextTurn, 1000);
+                return;
+            }
+        }
+
+        // Chronomancer's Hourglass safety rewind check
+        if (player.spire && player.spire.equippedRelic === 'hourglass_chronomancer' && !spireRun.hourglassUsed) {
+            spireRun.hourglassUsed = true;
+            let restoredHp = Math.max(1, Math.round(pStats.maxHp * 0.30));
+            player.baseStats.hp = restoredHp;
+            pStats.hp = restoredHp;
+            let pEnt = getPlayerCombatEntity();
+            if (pEnt) pEnt.hp = restoredHp;
+            logMsg("⌛ Chronomancer's Hourglass rewinds time! Fatal blow avoided!", "#38bdf8");
+            floatText('battle-player', "REWIND!", "#38bdf8");
+            renderBattlefield();
+            return;
+        }
+
         clearAllCombatTimers();
         battleState.active = false;
         if(typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(false);
         logMsg("Hero was defeated...", "#ff0000");
+
+        // Infinite Spire Defeat Handling (No gold penalty, restore full HP/MP)
+        if (spireRun && spireRun.active) {
+            let reachedFloor = spireRun.currentFloor;
+            spireRun.active = false;
+            setCombatTimeout(() => {
+                showToast("Spire Defeat", `Defeated on Floor ${reachedFloor}. You keep all earned Shards and Relics!`, "info", 4000);
+                player.baseStats.hp = pStats.maxHp;
+                player.baseStats.mp = pStats.maxMp;
+                pStats.hp = pStats.maxHp;
+                pStats.mp = pStats.maxMp;
+                updateHeader();
+                switchScreen('town');
+            }, 2000, true);
+            return;
+        }
+
         setCombatTimeout(() => {
             showToast("Defeat", "Game Over! Returning to town with 1 HP.", "info", 4000);
             player.baseStats.hp = 1;
@@ -3466,3 +6436,996 @@
     }
 
     init();
+    /* =========================================================================
+       THE INFINITE SPIRE ENDLESS DUNGEON & ASTRAL ALTAR
+       ========================================================================= */
+
+    function getSpireCheckpoints() {
+        let highest = (player && player.spire && player.spire.highestFloor) || 0;
+        let checkpoints = [1];
+        let candidate = 11;
+        while (highest >= candidate - 1) {
+            checkpoints.push(candidate);
+            candidate += 10;
+        }
+        return checkpoints;
+    }
+
+    function enterTheSpire(startFloor) {
+        let floor = startFloor || 1;
+        let available = getSpireCheckpoints();
+        if (!available.includes(floor)) floor = 1;
+        
+        spireRun = {
+            active: true,
+            currentFloor: floor,
+            shardsEarned: 0,
+            hourglassUsed: false
+        };
+        startSpireBattle(floor);
+    }
+
+    function startSpireBattle(floor) {
+        if (typeof clearAllCombatTimers === 'function') clearAllCombatTimers();
+        closeAllModals();
+        switchScreen('battle');
+        const speedBtn = document.getElementById('btn-combat-speed');
+        if (speedBtn) speedBtn.innerText = `⚡ Speed: ${combatSpeed}x`;
+
+        spireRun.active = true;
+        spireRun.currentFloor = floor;
+        spireRun.hourglassUsed = false;
+
+        let isBossFloor = (floor % 5 === 0);
+        let scale = 1 + (floor * 0.10);
+        let floorLevel = Math.max(1, Math.floor(floor * 0.8));
+
+        battleState = {
+            active: true,
+            initialEnemyCount: isBossFloor ? 1 : (floor >= 10 ? (Math.random() < 0.5 ? 2 : 1) : 1),
+            enemies: [],
+            turnQueue: [],
+            targetingMode: null,
+            log: [],
+            playerStatuses: {},
+            playerEntity: null
+        };
+        player.statuses = battleState.playerStatuses;
+
+        // Custom Celestial Spire Arena Background
+        const arenaEl = document.getElementById('battle-arena');
+        if (arenaEl) {
+            arenaEl.style.background = isBossFloor 
+                ? 'radial-gradient(circle at 50% 30%, #450a0a 0%, #1e1b4b 60%, #020617 100%)'
+                : 'radial-gradient(circle at 50% 30%, #1e1b4b 0%, #0f172a 70%, #020617 100%)';
+        }
+
+        if (isBossFloor) {
+            let bossTemplate;
+            if (floor <= 5) bossTemplate = AREAS_DB.area_1.boss;
+            else if (floor <= 10) bossTemplate = AREAS_DB.area_2.boss;
+            else if (floor <= 15) bossTemplate = AREAS_DB.area_3.boss;
+            else if (floor <= 20) bossTemplate = AREAS_DB.area_4.boss;
+            else {
+                const bossTemplates = [
+                    AREAS_DB.area_1.boss,
+                    AREAS_DB.area_2.boss,
+                    AREAS_DB.area_3.boss,
+                    AREAS_DB.area_4.boss,
+                    AREAS_DB.area_5.boss
+                ];
+                let bIdx = (Math.floor(floor / 5) - 1) % bossTemplates.length;
+                bossTemplate = bossTemplates[bIdx];
+            }
+            let template = bossTemplate;
+            let bossHp = Math.round(template.hp * scale);
+            battleState.enemies.push({
+                index: 0,
+                id: 'enemy_0',
+                name: `[Spire Boss] ${template.name}`,
+                level: Math.max(template.level, Math.floor(floor * 0.9)),
+                element: template.element,
+                hp: bossHp,
+                maxHp: bossHp,
+                atk: Math.round(template.atk * scale),
+                def: Math.round(template.def * scale),
+                matk: Math.round(template.matk * scale),
+                mdef: Math.round(template.mdef * scale),
+                spd: Math.round(template.spd * Math.min(2.0, 1 + (floor * 0.03))),
+                exp: Math.round(template.exp * scale),
+                gold: Math.round(template.gold * scale),
+                ai: 'boss',
+                isBoss: true,
+                loot: template.loot,
+                statuses: {}
+            });
+        } else {
+            let areaKey = 'area_1';
+            if (floor <= 5) areaKey = 'area_1';
+            else if (floor <= 10) areaKey = 'area_2';
+            else if (floor <= 15) areaKey = 'area_3';
+            else if (floor <= 20) areaKey = 'area_4';
+            else areaKey = 'area_5';
+
+            let enemyPool = (AREAS_DB[areaKey] && AREAS_DB[areaKey].regularEnemies) ? AREAS_DB[areaKey].regularEnemies : ENEMIES_DB;
+            if (enemyPool.length === 0) enemyPool = ENEMIES_DB;
+
+            for (let i = 0; i < battleState.initialEnemyCount; i++) {
+                let template = enemyPool[Math.floor(Math.random() * enemyPool.length)];
+                let monHp = Math.round(template.hp * scale);
+                battleState.enemies.push({
+                    index: i,
+                    id: 'enemy_' + i,
+                    name: `${template.name} (F${floor})`,
+                    level: floorLevel,
+                    element: template.element,
+                    hp: monHp,
+                    maxHp: monHp,
+                    atk: Math.round(template.atk * scale),
+                    def: Math.round(template.def * scale),
+                    matk: Math.round(template.matk * scale),
+                    mdef: Math.round(template.mdef * scale),
+                    spd: Math.round(template.spd * Math.min(2.0, 1 + (floor * 0.03))),
+                    exp: Math.round(template.exp * scale),
+                    gold: Math.round(template.gold * scale),
+                    ai: template.ai,
+                    isBoss: false,
+                    loot: template.loot,
+                    statuses: {}
+                });
+            }
+        }
+
+        let logContainer = document.getElementById('combat-log');
+        logContainer.innerHTML = '';
+        if (isBossFloor) {
+            logMsg(`⚡ WARNING: You have reached Spire Boss Floor ${floor}!`, "#ef4444");
+            logMsg(`⚔️ ${battleState.enemies[0].name} emerges from the astral vortex!`, "#f59e0b");
+        } else {
+            logMsg(`🌀 Entered The Infinite Spire — Floor ${floor}!`, "#38bdf8");
+            logMsg(`Facing ${battleState.enemies.length} hostile astral entity(s).`, "#ffffff");
+        }
+
+        let pCombatEnt = getPlayerCombatEntity();
+        pCombatEnt.statuses = battleState.playerStatuses;
+
+        // Relic start-of-combat triggers
+        if (player.spire && player.spire.equippedRelic === 'aegis_colossus') {
+            let shieldVal = Math.round(pStats.maxHp * 0.25);
+            applyStatus(pCombatEnt, 'divine_barrier', 99, shieldVal);
+            logMsg(`🛡️ Aegis of the Colossus: Divine Barrier granted (${shieldVal} HP Shield)!`, "#ffd700");
+        }
+
+        // Class Passives start-of-combat triggers
+        if (playerHasPassive('aegis_ward')) {
+            let shieldVal = Math.round(pStats.maxHp * 0.15);
+            applyStatus(pCombatEnt, 'divine_barrier', 99, shieldVal);
+            logMsg(`🛡️ Aegis Ward: Divine Barrier granted (${shieldVal} HP Shield)!`, "#ffd700");
+        }
+        if (playerHasPassive('phantom_mirage')) {
+            applyStatus(pCombatEnt, 'mirage', 99, 0);
+            if (battleState.playerStatuses && battleState.playerStatuses.mirage) {
+                battleState.playerStatuses.mirage.stacks = 2;
+            }
+            logMsg("🌀 Phantom Mirage: 2 stacks of Mirage evasion granted!", "#67e8f9");
+        }
+
+        renderBattlefield();
+        if (typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(true);
+        startRound();
+    }
+
+    function ascendSpireFloor() {
+        closeAllModals();
+        let nextFloor = (spireRun && spireRun.currentFloor) ? spireRun.currentFloor + 1 : 1;
+        startSpireBattle(nextFloor);
+    }
+
+    function exitSpireToTown() {
+        let earned = (spireRun && spireRun.shardsEarned) || 0;
+        let floor = (spireRun && spireRun.currentFloor) || 1;
+        if (spireRun) spireRun.active = false;
+        closeAllModals();
+        player.baseStats.hp = pStats.maxHp;
+        player.baseStats.mp = pStats.maxMp;
+        pStats.hp = pStats.maxHp;
+        pStats.mp = pStats.maxMp;
+        updateHeader();
+        switchScreen('town');
+        showToast('Spire Run Complete', `Cashed out from Floor ${floor} with ${earned} Astral Shards!`, 'quest', 5000);
+    }
+
+    function showSpireVictoryModal(floor, shards, droppedRelic) {
+        const container = document.getElementById('spire-victory-content');
+        if (!container) return;
+
+        let relicHtml = '';
+        if (droppedRelic) {
+            relicHtml = `
+                <div style="margin-top:12px; padding:10px; background:rgba(255,215,0,0.1); border:1px solid #ffd700; border-radius:6px;">
+                    <div style="font-size:13px; color:#ffd700; font-weight:bold;">🏆 ANCIENT RELIC DISCOVERED!</div>
+                    <div style="font-size:16px; font-weight:bold; color:#fff; margin-top:3px;">${droppedRelic.icon} ${droppedRelic.name}</div>
+                    <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">${droppedRelic.desc}</div>
+                </div>
+            `;
+        }
+
+        container.innerHTML = `
+            <div style="padding:10px 5px;">
+                <div style="font-size:32px; margin-bottom:6px;">🌟</div>
+                <div style="font-size:20px; font-weight:bold; color:#ffd700; margin-bottom:4px;">Floor ${floor} Cleared!</div>
+                <div style="font-size:13px; color:#94a3b8; margin-bottom:14px;">The astral barrier yields before your might.</div>
+
+                <div style="background:#1e1b4b; border:1px solid #4338ca; border-radius:8px; padding:12px; margin-bottom:16px;">
+                    <div style="font-size:12px; color:#a5b4fc; text-transform:uppercase;">Floor Rewards Gained:</div>
+                    <div style="font-size:22px; font-weight:bold; color:#38bdf8; margin-top:4px;">✨ +${shards} Astral Shards</div>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Total Earned This Run: ${spireRun.shardsEarned} Shards</div>
+                    ${relicHtml}
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn" style="background:#22c55e; color:#fff; font-size:15px; padding:10px 18px; font-weight:bold;" onclick="ascendSpireFloor()">Ascend to Floor ${floor + 1} ➔</button>
+                    <button class="btn" style="background:#334155; color:#cbd5e1; font-size:13px; padding:8px 14px;" onclick="exitSpireToTown()">Cash Out & Return to Town</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('main-overlay').classList.add('active');
+        document.getElementById('modal-spire-victory').classList.add('active');
+    }
+
+    function renderSpireModal() {
+        const container = document.getElementById('spire-content');
+        if (!container) return;
+
+        if (!player.spire) {
+            player.spire = { highestFloor: 0, astralShards: 0, relics: [], equippedRelic: null, tomesUsed: { hp: 0, atk: 0, mp: 0 } };
+        }
+
+        let equippedRelicObj = (player.spire.equippedRelic && typeof RELICS_DB !== 'undefined') ? RELICS_DB[player.spire.equippedRelic] : null;
+        let equippedRelicName = equippedRelicObj ? `${equippedRelicObj.icon} ${equippedRelicObj.name}` : '<span style="color:#64748b; font-style:italic;">None</span>';
+
+        let checkpoints = getSpireCheckpoints();
+        let cpOptions = checkpoints.map(cp => `<option value="${cp}">Floor ${cp}${cp === 1 ? ' (Ground Floor)' : ''}</option>`).join('');
+
+        let ownedCount = player.spire.relics.length;
+        let relicCardsHtml = '';
+        if (typeof RELICS_DB !== 'undefined') {
+            for (let rId in RELICS_DB) {
+                let relic = RELICS_DB[rId];
+                let isOwned = player.spire.relics.includes(rId);
+                let isEquipped = (player.spire.equippedRelic === rId);
+
+                let badge = isEquipped 
+                    ? '<span style="font-size:10px; background:#ffd700; color:#000; font-weight:bold; padding:2px 6px; border-radius:4px;">EQUIPPED</span>'
+                    : (isOwned ? '<span style="font-size:10px; background:#22c55e; color:#fff; font-weight:bold; padding:2px 6px; border-radius:4px;">OWNED</span>' : '<span style="font-size:10px; background:#475569; color:#94a3b8; padding:2px 6px; border-radius:4px;">LOCKED</span>');
+
+                let actionBtn = '';
+                if (isOwned) {
+                    actionBtn = isEquipped
+                        ? `<button class="btn" style="width:100%; padding:4px 8px; font-size:11px; background:#dc2626; color:#fff;" onclick="equipRelic(null)">Unequip</button>`
+                        : `<button class="btn" style="width:100%; padding:4px 8px; font-size:11px; background:#3b82f6; color:#fff;" onclick="equipRelic('${rId}')">Equip</button>`;
+                } else {
+                    actionBtn = `<button class="btn" style="width:100%; padding:4px 8px; font-size:11px; opacity:0.5;" disabled>Locked (Boss Drop)</button>`;
+                }
+
+                relicCardsHtml += `
+                    <div class="relic-card ${isEquipped ? 'equipped' : ''} ${!isOwned ? 'locked' : ''}">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <span style="font-size:18px;">${relic.icon}</span>
+                                ${badge}
+                            </div>
+                            <div style="font-size:13px; font-weight:bold; color:${isEquipped ? '#ffd700' : '#fff'}; margin-bottom:4px;">${relic.name}</div>
+                            <div style="font-size:11px; color:#cbd5e1; line-height:1.3;">${relic.desc}</div>
+                        </div>
+                        <div style="margin-top:8px;">
+                            ${actionBtn}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e1b4b; border:1px solid #4338ca; border-radius:8px; padding:12px 16px; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-size:11px; color:#a5b4fc; text-transform:uppercase; letter-spacing:0.5px;">Highest Depth Cleared</div>
+                    <div style="font-size:22px; font-weight:bold; color:#ffd700;">Floor ${player.spire.highestFloor || 0}</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; color:#a5b4fc; text-transform:uppercase; letter-spacing:0.5px;">Astral Shards Holding</div>
+                    <div style="font-size:22px; font-weight:bold; color:#38bdf8;">✨ ${player.spire.astralShards || 0}</div>
+                </div>
+                <div>
+                    <div style="font-size:11px; color:#a5b4fc; text-transform:uppercase; letter-spacing:0.5px;">Equipped Relic</div>
+                    <div style="font-size:14px; font-weight:bold; color:#ffd700;">${equippedRelicName}</div>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:center; background:#0f172a; border:1px solid #334155; border-radius:8px; padding:12px 16px; margin-bottom:16px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:180px;">
+                    <label style="font-size:11px; color:#94a3b8; display:block; margin-bottom:4px; font-weight:bold;">Elevator Checkpoint (Ascend from):</label>
+                    <select id="spire-checkpoint-select" class="btn" style="width:100%; padding:6px 10px; background:#1e293b; color:#fff; font-size:13px; text-align:left;">
+                        ${cpOptions}
+                    </select>
+                </div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn" style="background:#22c55e; color:#fff; font-size:14px; padding:8px 16px; font-weight:bold;" onclick="enterTheSpire(parseInt(document.getElementById('spire-checkpoint-select').value))">🌀 Enter the Spire</button>
+                    <button class="btn" style="background:#6366f1; color:#fff; font-size:14px; padding:8px 16px;" onclick="openModal('modal-astral-altar')">✨ Astral Altar</button>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:15px; font-weight:bold; color:#f1f5f9;">Ancient Relics Vault (${ownedCount}/6 Discovered)</span>
+                <span style="font-size:11px; color:#94a3b8;">Drops from Spire Bosses on every 5th floor</span>
+            </div>
+            <div class="relic-grid">
+                ${relicCardsHtml}
+            </div>
+        `;
+    }
+
+    function equipRelic(relicId) {
+        if (!player.spire) return;
+        if (relicId === null || player.spire.equippedRelic === relicId) {
+            player.spire.equippedRelic = null;
+            showToast('Relic Unequipped', 'Unequipped ancient relic.', 'info');
+        } else if (player.spire.relics.includes(relicId) && typeof RELICS_DB !== 'undefined' && RELICS_DB[relicId]) {
+            player.spire.equippedRelic = relicId;
+            let r = RELICS_DB[relicId];
+            showToast('Relic Equipped!', `Equipped ${r.icon} ${r.name}!`, 'quest', 4000);
+        }
+        computeStats();
+        updateHeader();
+        renderStats();
+        renderSpireModal();
+    }
+
+    function renderAstralAltarModal() {
+        const container = document.getElementById('astral-altar-content');
+        if (!container) return;
+
+        if (!player.spire) {
+            player.spire = { highestFloor: 0, astralShards: 0, relics: [], equippedRelic: null, tomesUsed: { hp: 0, atk: 0, mp: 0 } };
+        }
+
+        let shards = player.spire.astralShards || 0;
+        let altarCardsHtml = '';
+
+        if (typeof ALTAR_SHOP_DB !== 'undefined') {
+            for (let itemId in ALTAR_SHOP_DB) {
+                let item = ALTAR_SHOP_DB[itemId];
+                let isAffordable = shards >= item.cost;
+                let isMaxed = false;
+                let subStatus = '';
+
+                if (item.type === 'tome') {
+                    let used = (player.spire.tomesUsed && player.spire.tomesUsed[item.stat]) || 0;
+                    isMaxed = used >= item.maxUses;
+                    subStatus = `<span style="font-size:11px; color:${isMaxed ? '#ef4444' : '#ffd700'}; font-weight:bold;">(${used}/${item.maxUses} Used)</span>`;
+                } else if (item.type === 'title') {
+                    let hasTitle = (player.activeTitle === item.title);
+                    if (hasTitle) {
+                        isMaxed = true;
+                        subStatus = `<span style="font-size:11px; color:#22c55e; font-weight:bold;">[EQUIPPED]</span>`;
+                    }
+                } else if (item.type === 'item') {
+                    let count = (player.inventory && player.inventory.consumables && player.inventory.consumables[item.itemName]) || 0;
+                    subStatus = `<span style="font-size:11px; color:#94a3b8;">In Bag: ${count}</span>`;
+                }
+
+                let canBuy = isAffordable && !isMaxed;
+                let btnText = isMaxed ? (item.type === 'title' ? 'Unlocked' : 'Maxed (5/5)') : `Purchase (✨ ${item.cost})`;
+
+                altarCardsHtml += `
+                    <div class="altar-card">
+                        <div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <div style="font-size:18px;">${item.icon}</div>
+                                ${subStatus}
+                            </div>
+                            <div style="font-size:14px; font-weight:bold; color:#fff; margin-bottom:4px;">${item.name}</div>
+                            <div style="font-size:11px; color:#cbd5e1; line-height:1.3;">${item.desc}</div>
+                        </div>
+                        <div style="margin-top:10px;">
+                            <button class="btn" style="width:100%; padding:6px 10px; font-size:12px; font-weight:bold; background:${canBuy ? '#6366f1' : '#334155'}; color:${canBuy ? '#fff' : '#94a3b8'};" ${canBuy ? '' : 'disabled'} onclick="buyAltarItem('${itemId}')">
+                                ${btnText}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e1b4b; border:1px solid #6366f1; border-radius:8px; padding:12px 16px; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <div style="font-size:13px; color:#c7d2fe;">The Astral Altar channels cosmic shards into permanent tomes, runes, and prestige.</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:11px; color:#a5b4fc; text-transform:uppercase;">Astral Shards Holding</div>
+                    <div style="font-size:22px; font-weight:bold; color:#38bdf8;">✨ ${shards}</div>
+                </div>
+            </div>
+
+            <div class="altar-grid">
+                ${altarCardsHtml}
+            </div>
+        `;
+    }
+
+    function buyAltarItem(itemId) {
+        if (!player.spire || typeof ALTAR_SHOP_DB === 'undefined') return;
+        const item = ALTAR_SHOP_DB[itemId];
+        if (!item) return;
+
+        if (player.spire.astralShards < item.cost) {
+            showToast('Insufficient Shards', `You need ✨ ${item.cost} Astral Shards to purchase this.`, 'info');
+            return;
+        }
+
+        if (item.type === 'tome') {
+            if (!player.spire.tomesUsed) player.spire.tomesUsed = { hp: 0, atk: 0, mp: 0 };
+            let used = player.spire.tomesUsed[item.stat] || 0;
+            if (used >= item.maxUses) {
+                showToast('Maximum Uses Reached', `You have already used the maximum of ${item.maxUses} ${item.name}s.`, 'info');
+                return;
+            }
+            player.spire.astralShards -= item.cost;
+            player.spire.tomesUsed[item.stat] = used + 1;
+            computeStats();
+            updateHeader();
+            renderStats();
+            renderAstralAltarModal();
+            showToast('Tome Consumed!', `${item.name} permanently increased your stats! (${used + 1}/${item.maxUses})`, 'level', 5000);
+        } else if (item.type === 'title') {
+            player.spire.astralShards -= item.cost;
+            player.activeTitle = item.title;
+            updateHeader();
+            renderStats();
+            renderAstralAltarModal();
+            showToast('Title Acquired!', `Equipped prestige title [${item.title}]!`, 'quest', 5000);
+        } else if (item.type === 'item') {
+            player.spire.astralShards -= item.cost;
+            if (!player.inventory.consumables) player.inventory.consumables = {};
+            player.inventory.consumables[item.itemName] = (player.inventory.consumables[item.itemName] || 0) + 1;
+            renderInventory();
+            renderAstralAltarModal();
+            showToast('Item Acquired!', `Added ${item.itemName} to your inventory!`, 'quest', 4000);
+        }
+    }
+
+
+if (typeof updateAudioButton === 'function') updateAudioButton();
+
+    /* =========================================================================
+       COMPANION PET & FAMILIAR SYSTEM (SANCTUARY, BONDING & CADENCE)
+       ========================================================================= */
+
+    let currentPetsTab = 'active';
+    let selectedPetFeedId = 'sprout_slimelet';
+
+    function setPetsTab(tab) {
+        currentPetsTab = tab;
+        const btnActive = document.getElementById('pets-tab-active');
+        const btnFeed = document.getElementById('pets-tab-feed');
+        if (btnActive && btnFeed) {
+            btnActive.classList.toggle('active', tab === 'active');
+            btnFeed.classList.toggle('active', tab === 'feed');
+        }
+        renderPetsModal();
+    }
+
+    function equipPet(petId, slotIdx) {
+        if (!player.pets) {
+            player.pets = { unlocked: ['sprout_slimelet'], active: [null, null], levels: { sprout_slimelet: { level: 1, exp: 0 } } };
+        }
+        if (slotIdx === 1 && player.level < 25) {
+            showToast("Slot Locked", "Slot 2 unlocks at Level 25!", "save");
+            return;
+        }
+        if (!Array.isArray(player.pets.active)) player.pets.active = ['sprout_slimelet', null];
+
+        // Unequip if already in another slot
+        if (player.pets.active[0] === petId) player.pets.active[0] = null;
+        if (player.pets.active[1] === petId) player.pets.active[1] = null;
+
+        player.pets.active[slotIdx] = petId;
+        computeStats();
+        updateHeader();
+        renderPetsModal();
+        const pet = (typeof PETS_DB !== 'undefined') ? PETS_DB[petId] : null;
+        showToast("Companion Equipped", `${pet ? pet.name : petId} equipped to Slot ${slotIdx + 1}!`, "level");
+    }
+
+    function unequipPet(slotIdx) {
+        if (!player.pets || !Array.isArray(player.pets.active)) return;
+        player.pets.active[slotIdx] = null;
+        computeStats();
+        updateHeader();
+        renderPetsModal();
+        showToast("Companion Unequipped", `Companion removed from Slot ${slotIdx + 1}.`, "info");
+    }
+
+    function addPetExp(petId, expGained) {
+        if (!player.pets) return;
+        if (!player.pets.levels) player.pets.levels = {};
+        if (!player.pets.levels[petId]) player.pets.levels[petId] = { level: 1, exp: 0 };
+        const pData = player.pets.levels[petId];
+        if (pData.level >= 10) return;
+
+        pData.exp += expGained;
+        let leveledUp = false;
+        while (pData.level < 10 && pData.exp >= pData.level * 100) {
+            pData.exp -= pData.level * 100;
+            pData.level++;
+            leveledUp = true;
+            const pet = (typeof PETS_DB !== 'undefined') ? PETS_DB[petId] : null;
+            if (pData.level === 10) {
+                pData.exp = 0;
+                showToast("🌟 APEX PERK UNLOCKED!", `${pet ? pet.name : petId}: ${pet ? pet.apexPerk : ''}`, "quest", 6000);
+                break;
+            }
+        }
+        if (leveledUp && pData.level < 10) {
+            const pet = (typeof PETS_DB !== 'undefined') ? PETS_DB[petId] : null;
+            showToast("🐾 Bond Level Up!", `${pet ? pet.name : petId} reached Bond Level ${pData.level}!`, "level", 4000);
+        }
+        computeStats();
+        updateHeader();
+        const modalEl = document.getElementById('modal-pets');
+        if (modalEl && modalEl.classList.contains('active')) {
+            renderPetsModal();
+        }
+    }
+
+    function feedPet(petId, treatType) {
+        if (!player.pets) return;
+        if (!player.pets.levels) player.pets.levels = {};
+        if (!player.pets.levels[petId]) player.pets.levels[petId] = { level: 1, exp: 0 };
+        const pData = player.pets.levels[petId];
+        const pet = (typeof PETS_DB !== 'undefined') ? PETS_DB[petId] : null;
+
+        if (pData.level >= 10) {
+            showToast("Max Bond Level", `${pet ? pet.name : petId} is already at Max Bond Level 10!`, "info");
+            return;
+        }
+
+        if (!player.materials) player.materials = { scrap: 0, dust: 0, shard: 0 };
+
+        if (treatType === 'scrap') {
+            if ((player.materials.scrap || 0) < 10) {
+                showToast("Insufficient Scraps", "Requires 10 Iron Scraps!", "save");
+                return;
+            }
+            player.materials.scrap -= 10;
+            addPetExp(petId, 50);
+            showToast("Fed Iron Scraps", `+50 Bond EXP to ${pet ? pet.name : petId}!`, "level");
+        } else if (treatType === 'dust') {
+            if ((player.materials.dust || 0) < 2) {
+                showToast("Insufficient Dust", "Requires 2 Arcane Dust!", "save");
+                return;
+            }
+            player.materials.dust -= 2;
+            addPetExp(petId, 100);
+            showToast("Fed Arcane Dust", `+100 Bond EXP to ${pet ? pet.name : petId}!`, "level");
+        } else if (treatType === 'shard') {
+            if ((player.materials.shard || 0) < 1) {
+                showToast("Insufficient Shards", "Requires 1 Void Shard!", "save");
+                return;
+            }
+            player.materials.shard -= 1;
+            addPetExp(petId, 300);
+            showToast("Fed Void Shard", `+300 Bond EXP to ${pet ? pet.name : petId}!`, "level");
+        } else if (treatType === 'gold') {
+            if ((player.gold || 0) < 150) {
+                showToast("Insufficient Gold", "Requires 150 Gold!", "save");
+                return;
+            }
+            player.gold -= 150;
+            addPetExp(petId, 150);
+            showToast("Gourmet Treat", `+150 Bond EXP to ${pet ? pet.name : petId}!`, "level");
+        }
+        renderPetsModal();
+    }
+
+    function selectPetFeed(petId) {
+        selectedPetFeedId = petId;
+        renderPetsModal();
+    }
+
+    function renderPetsModal() {
+        const container = document.getElementById('pets-content');
+        if (!container || typeof PETS_DB === 'undefined') return;
+
+        if (!player.pets) {
+            player.pets = {
+                unlocked: ['sprout_slimelet'],
+                active: [null, null],
+                levels: { sprout_slimelet: { level: 1, exp: 0 } }
+            };
+        }
+        if (!player.pets.active) player.pets.active = ['sprout_slimelet', null];
+        if (!player.pets.unlocked) player.pets.unlocked = ['sprout_slimelet'];
+        if (!player.pets.levels) player.pets.levels = {};
+
+        if (!selectedPetFeedId || !player.pets.unlocked.includes(selectedPetFeedId)) {
+            selectedPetFeedId = player.pets.unlocked[0] || 'sprout_slimelet';
+        }
+
+        if (currentPetsTab === 'active') {
+            const slot1Id = player.pets.active[0];
+            const slot2Id = player.pets.active[1];
+            const slot1Pet = slot1Id ? PETS_DB[slot1Id] : null;
+            const slot2Pet = slot2Id ? PETS_DB[slot2Id] : null;
+            const slot1Lvl = slot1Id && player.pets.levels[slot1Id] ? player.pets.levels[slot1Id].level : 1;
+            const slot2Lvl = slot2Id && player.pets.levels[slot2Id] ? player.pets.levels[slot2Id].level : 1;
+
+            let html = `
+                <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <!-- Slot 1 -->
+                    <div class="pet-slot-box ${slot1Pet ? 'pet-rarity-' + slot1Pet.rarity : ''}">
+                        <div style="font-size: 11px; text-transform: uppercase; color: #38bdf8; font-weight: bold; margin-bottom: 6px;">Slot 1 (Hero Companion)</div>
+                        ${slot1Pet ? `
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <div style="width: 50px; height: 50px;">${slot1Pet.sprite}</div>
+                                <div style="text-align: left;">
+                                    <div style="font-weight: bold; font-size: 15px; color: #f8fafc;">${slot1Pet.name}</div>
+                                    <div style="font-size: 12px; color: #4ade80;">Bond Lv.${slot1Lvl} · ${slot1Pet.element}</div>
+                                </div>
+                            </div>
+                            <div style="font-size: 12px; color: #94a3b8; margin: 8px 0;">Skill: <b style="color: #fbbf24;">${slot1Pet.action.name}</b> (every 2 turns)</div>
+                            <button class="btn" style="padding: 4px 12px; font-size: 12px; background: #dc2626; border-color: #ef4444;" onclick="unequipPet(0)">Unequip</button>
+                        ` : `
+                            <div style="padding: 20px 0; color: #64748b; font-size: 13px;">No Companion Equipped<br><span style="font-size: 11px;">Select a pet below to equip</span></div>
+                        `}
+                    </div>
+
+                    <!-- Slot 2 -->
+                    ${player.level < 25 ? `
+                        <div class="pet-slot-box pet-locked-slot">
+                            <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: bold; margin-bottom: 6px;">Slot 2 (Dual Companion)</div>
+                            <div style="padding: 16px 0; color: #f59e0b; font-size: 13px; font-weight: bold;">
+                                🔒 Locked until Level 25
+                                <div style="font-size: 11px; color: #94a3b8; font-weight: normal; margin-top: 4px;">Unlocks 2nd Companion Slot (Tier 2 Specialization)</div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="pet-slot-box ${slot2Pet ? 'pet-rarity-' + slot2Pet.rarity : ''}">
+                            <div style="font-size: 11px; text-transform: uppercase; color: #a855f7; font-weight: bold; margin-bottom: 6px;">Slot 2 (Dual Companion)</div>
+                            ${slot2Pet ? `
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                    <div style="width: 50px; height: 50px;">${slot2Pet.sprite}</div>
+                                    <div style="text-align: left;">
+                                        <div style="font-weight: bold; font-size: 15px; color: #f8fafc;">${slot2Pet.name}</div>
+                                        <div style="font-size: 12px; color: #4ade80;">Bond Lv.${slot2Lvl} · ${slot2Pet.element}</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 12px; color: #94a3b8; margin: 8px 0;">Skill: <b style="color: #fbbf24;">${slot2Pet.action.name}</b> (every 2 turns)</div>
+                                <button class="btn" style="padding: 4px 12px; font-size: 12px; background: #dc2626; border-color: #ef4444;" onclick="unequipPet(1)">Unequip</button>
+                            ` : `
+                                <div style="padding: 20px 0; color: #64748b; font-size: 13px;">Empty Slot<br><span style="font-size: 11px;">Select a pet below to equip</span></div>
+                            `}
+                        </div>
+                    `}
+                </div>
+
+                <h3 style="font-size: 16px; margin: 15px 0 10px; color: #f8fafc;">Unlocked Companions (${player.pets.unlocked.length})</h3>
+                <div style="max-height: 380px; overflow-y: auto; padding-right: 4px;">
+            `;
+
+            player.pets.unlocked.forEach(pId => {
+                const pet = PETS_DB[pId];
+                if (!pet) return;
+                const pLvl = player.pets.levels[pId] ? player.pets.levels[pId].level : 1;
+                const isEquippedSlot1 = slot1Id === pId;
+                const isEquippedSlot2 = slot2Id === pId;
+
+                let passiveStr = Object.entries(pet.passive).map(([k, v]) => `+${v}${k.includes('Pct') ? '%' : ''} ${k.replace('Pct', '').toUpperCase()}`).join(', ');
+
+                html += `
+                    <div class="pet-card pet-rarity-${pet.rarity}">
+                        <div style="width: 48px; height: 48px; flex-shrink: 0;">${pet.sprite}</div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-weight: bold; font-size: 14px; color: #f8fafc;">${pet.name}</span>
+                                <span style="font-size: 10px; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,0.4); color: #94a3b8;">${pet.rarity}</span>
+                                <span style="font-size: 11px; color: #4ade80;">Bond Lv.${pLvl}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">${pet.desc}</div>
+                            <div style="font-size: 11px; color: #38bdf8; margin-top: 4px;">Passive: <b>${passiveStr}</b> | Skill: <b>${pet.action.name}</b></div>
+                            <div style="font-size: 11px; color: ${pLvl >= 10 ? '#facc15' : '#64748b'}; margin-top: 2px;">Apex (Lv.10): ${pet.apexPerk}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+                            <button class="btn" style="padding: 4px 10px; font-size: 11px; ${isEquippedSlot1 ? 'background:#16a34a; border-color:#22c55e;' : ''}" onclick="equipPet('${pId}', 0)">
+                                ${isEquippedSlot1 ? '✓ In Slot 1' : 'Equip Slot 1'}
+                            </button>
+                            <button class="btn" style="padding: 4px 10px; font-size: 11px; ${isEquippedSlot2 ? 'background:#16a34a; border-color:#22c55e;' : ''}" ${player.level < 25 ? 'disabled' : ''} onclick="equipPet('${pId}', 1)">
+                                ${player.level < 25 ? '🔒 Lv 25' : (isEquippedSlot2 ? '✓ In Slot 2' : 'Equip Slot 2')}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        } else {
+            // Feed & Bond Tab
+            const pId = selectedPetFeedId;
+            const pet = PETS_DB[pId];
+            const pData = player.pets.levels[pId] || { level: 1, exp: 0 };
+            const reqExp = pData.level >= 10 ? 0 : pData.level * 100;
+            const expPct = pData.level >= 10 ? 100 : Math.min(100, Math.round((pData.exp / reqExp) * 100));
+
+            let petSelectorHtml = player.pets.unlocked.map(id => {
+                const p = PETS_DB[id];
+                const lvl = player.pets.levels[id] ? player.pets.levels[id].level : 1;
+                const isSel = id === selectedPetFeedId;
+                return `<button class="btn" style="padding: 4px 10px; font-size: 12px; ${isSel ? 'background: #3b82f6; border-color: #60a5fa;' : ''}" onclick="selectPetFeed('${id}')">${p ? p.name : id} (Lv.${lvl})</button>`;
+            }).join(' ');
+
+            let scraps = (player.materials && player.materials.scrap) || 0;
+            let dust = (player.materials && player.materials.dust) || 0;
+            let shard = (player.materials && player.materials.shard) || 0;
+            let gold = player.gold || 0;
+
+            let html = `
+                <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    ${petSelectorHtml}
+                </div>
+
+                ${pet ? `
+                    <div class="pet-card pet-rarity-${pet.rarity}" style="align-items: flex-start; padding: 16px;">
+                        <div style="width: 60px; height: 60px; flex-shrink: 0; margin-top: 4px;">${pet.sprite}</div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 18px; font-weight: bold; color: #f8fafc;">${pet.name}</span>
+                                <span style="font-size: 13px; font-weight: bold; color: #4ade80;">Bond Level ${pData.level} / 10 ${pData.level >= 10 ? '(MAX)' : ''}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #94a3b8; margin: 4px 0;">${pet.desc}</div>
+
+                            <div class="pet-exp-container">
+                                <div class="pet-exp-fill" style="width: ${expPct}%;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: #cbd5e1;">
+                                <span>EXP: ${pData.exp} / ${pData.level >= 10 ? 'MAX' : reqExp}</span>
+                                <span>${expPct}%</span>
+                            </div>
+
+                            <div style="margin-top: 10px; font-size: 12px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                                <div style="color: ${pData.level >= 10 ? '#facc15' : '#94a3b8'}; font-weight: bold;">
+                                    ${pData.level >= 10 ? '🌟 APEX PERK UNLOCKED' : '🔒 Apex Perk (Unlocks at Bond Lv. 10)'}
+                                </div>
+                                <div style="color: #cbd5e1; font-size: 11px; margin-top: 2px;">${pet.apexPerk}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size: 14px; margin: 16px 0 8px; color: #f8fafc;">Feeding & Training Station</h4>
+                    <div class="pet-feed-grid">
+                        <button class="pet-feed-btn" ${pData.level >= 10 || scraps < 10 ? 'disabled' : ''} onclick="feedPet('${pId}', 'scrap')">
+                            <div style="font-weight: bold; color: #e2e8f0;">⚙️ Iron Scraps</div>
+                            <div style="font-size: 11px; color: #4ade80; margin: 2px 0;">+50 Bond EXP</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Cost: 10 Scraps (You have: ${scraps})</div>
+                        </button>
+                        <button class="pet-feed-btn" ${pData.level >= 10 || dust < 2 ? 'disabled' : ''} onclick="feedPet('${pId}', 'dust')">
+                            <div style="font-weight: bold; color: #e2e8f0;">✨ Arcane Dust</div>
+                            <div style="font-size: 11px; color: #4ade80; margin: 2px 0;">+100 Bond EXP</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Cost: 2 Dust (You have: ${dust})</div>
+                        </button>
+                        <button class="pet-feed-btn" ${pData.level >= 10 || shard < 1 ? 'disabled' : ''} onclick="feedPet('${pId}', 'shard')">
+                            <div style="font-weight: bold; color: #e2e8f0;">💎 Void Shard</div>
+                            <div style="font-size: 11px; color: #4ade80; margin: 2px 0;">+300 Bond EXP</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Cost: 1 Shard (You have: ${shard})</div>
+                        </button>
+                        <button class="pet-feed-btn" ${pData.level >= 10 || gold < 150 ? 'disabled' : ''} onclick="feedPet('${pId}', 'gold')">
+                            <div style="font-weight: bold; color: #e2e8f0;">🍖 Gourmet Beast Treat</div>
+                            <div style="font-size: 11px; color: #4ade80; margin: 2px 0;">+150 Bond EXP</div>
+                            <div style="font-size: 11px; color: #94a3b8;">Cost: 150 Gold (You have: ${gold}G)</div>
+                        </button>
+                    </div>
+                ` : ''}
+            `;
+            container.innerHTML = html;
+        }
+    }
+
+    function triggerPetTurnCadence() {
+        if (!battleState || !battleState.active || !player.pets || !Array.isArray(player.pets.active)) return;
+        if (!battleState.petTurns) {
+            battleState.petTurns = { slot0: 0, slot1: 0, 0: 0, 1: 0 };
+        }
+
+        for (let slotIdx = 0; slotIdx < player.pets.active.length; slotIdx++) {
+            const petId = player.pets.active[slotIdx];
+            if (!petId || typeof PETS_DB === 'undefined' || !PETS_DB[petId]) continue;
+
+            const slotKey = slotIdx === 0 ? 'slot0' : 'slot1';
+            const currentPips = ((battleState.petTurns[slotKey] !== undefined) ? battleState.petTurns[slotKey] : battleState.petTurns[slotIdx]) || 0;
+            const newPips = currentPips + 1;
+
+            battleState.petTurns[slotKey] = newPips;
+            battleState.petTurns[slotIdx] = newPips;
+
+            if (newPips >= 2) {
+                battleState.petTurns[slotKey] = 0;
+                battleState.petTurns[slotIdx] = 0;
+                executePetAction(petId, slotIdx);
+            }
+        }
+        renderBattlefield();
+    }
+
+    function executePetAction(petId, slotIdx) {
+        if (typeof PETS_DB === 'undefined' || !PETS_DB[petId] || !battleState || !battleState.active) return;
+        const pet = PETS_DB[petId];
+        const lvl = (player.pets && player.pets.levels && player.pets.levels[petId] && player.pets.levels[petId].level) || 1;
+        const isApex = lvl >= 10;
+        const action = pet.action;
+        if (!action) return;
+
+        // Visual hop animation & sound
+        if (typeof document !== 'undefined') {
+            const petBadge = document.getElementById(`battle-pet-slot-${slotIdx}`);
+            if (petBadge) {
+                petBadge.classList.remove('anim-pet-hop');
+                void petBadge.offsetWidth;
+                petBadge.classList.add('anim-pet-hop');
+            }
+        }
+        if (typeof playSFX === 'function') {
+            if (pet.element === 'Earth' || pet.element === 'Water') playSFX('magic_holy');
+            else if (pet.element === 'Fire' || pet.element === 'Dark') playSFX('fireball');
+            else playSFX('slash');
+        }
+        if (typeof floatText === 'function') {
+            floatText(`battle-pet-slot-${slotIdx}`, `🐾 ${action.name}!`, '#4ade80');
+        }
+
+        let target = battleState.enemies.find(e => e.hp > 0);
+        let playerEnt = (typeof getPlayerCombatEntity === 'function') ? getPlayerCombatEntity() : null;
+
+        switch (action.type) {
+            case 'shield': {
+                // Sprout Slimelet: Pebble Guard (8% Max HP barrier, +15% if Apex)
+                let baseShield = Math.max(5, Math.round(pStats.maxHp * (action.valPct / 100)));
+                if (isApex) baseShield = Math.round(baseShield * 1.15);
+                battleState.playerBarrier = (battleState.playerBarrier || 0) + baseShield;
+                logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b>, granting a <b>+${baseShield} HP</b> barrier!`, '#4ade80');
+                if (typeof floatText === 'function') floatText('battle-player', `+${baseShield} Barrier`, '#4ade80');
+                break;
+            }
+            case 'damage_dot': {
+                // Cinder Pup: Ember Bite (damage + Burn DoT)
+                if (target) {
+                    let dmg = Math.max(5, Math.round((pStats.atk * 0.8) + (action.power * 0.6)));
+                    target.hp = Math.max(0, target.hp - dmg);
+                    logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b> dealing <b>${dmg}</b> damage to ${target.name}!`, '#fb923c');
+                    if (typeof floatText === 'function') floatText(target.id, `-${dmg}`, '#fb923c');
+                    if (typeof triggerElementalImpact === 'function') triggerElementalImpact(target.id, 'Fire');
+                    if (Math.random() <= (action.dotChance || 0.6)) {
+                        let stacks = isApex ? 2 : 1;
+                        for (let s = 0; s < stacks; s++) {
+                            if (typeof applyStatus === 'function') applyStatus(target, 'burn', 3);
+                        }
+                        logMsg(`🔥 ${target.name} is afflicted with ${stacks} stack(s) of Burn!`, '#fb923c');
+                    }
+                }
+                break;
+            }
+            case 'buff': {
+                // Breeze Finch: Tailwind Gust (Haste for 2 turns)
+                if (playerEnt && typeof applyStatus === 'function') {
+                    applyStatus('player', action.buff, action.turns);
+                    logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b>, granting Haste for ${action.turns} turns!`, '#38bdf8');
+                    if (typeof floatText === 'function') floatText('battle-player', 'HASTE!', '#38bdf8');
+                }
+                break;
+            }
+            case 'debuff_leech': {
+                // Shadow Wisp: Abyssal Gaze (damage, blind debuff, leech HP)
+                if (target) {
+                    let dmg = Math.max(5, Math.round((pStats.matk * 0.8) + (action.power * 0.5)));
+                    target.hp = Math.max(0, target.hp - dmg);
+                    let leechPct = isApex ? 0.9 : (action.leechPct || 0.3);
+                    let leechHp = Math.max(1, Math.round(dmg * leechPct));
+                    pStats.hp = Math.min(pStats.maxHp, pStats.hp + leechHp);
+                    player.baseStats.hp = pStats.hp;
+                    logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b> dealing <b>${dmg}</b> damage and leeching <b>+${leechHp} HP</b>!`, '#c084fc');
+                    if (typeof floatText === 'function') {
+                        floatText(target.id, `-${dmg}`, '#c084fc');
+                        floatText('battle-player', `+${leechHp} HP`, '#4ade80');
+                    }
+                    if (Math.random() <= (action.chance || 0.7) && typeof applyStatus === 'function') {
+                        applyStatus(target, 'blind', 2);
+                        logMsg(`👁️ ${target.name} is Blinded!`, '#c084fc');
+                    }
+                }
+                break;
+            }
+            case 'heal_cc': {
+                // Glacia Fox: Glacial Soothe (Heal HP 10%, Heal MP 15, Freeze CC)
+                let healHp = Math.max(5, Math.round(pStats.maxHp * (action.healHpPct / 100)));
+                let healMp = action.healMp || 15;
+                pStats.hp = Math.min(pStats.maxHp, pStats.hp + healHp);
+                pStats.mp = Math.min(pStats.maxMp, pStats.mp + healMp);
+                player.baseStats.hp = pStats.hp;
+                player.baseStats.mp = pStats.mp;
+                logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b>, restoring <b>+${healHp} HP</b> and <b>+${healMp} MP</b>!`, '#93c5fd');
+                if (typeof floatText === 'function') {
+                    floatText('battle-player', `+${healHp} HP / +${healMp} MP`, '#93c5fd');
+                }
+                if (target && Math.random() <= (action.ccChance || 0.5) && typeof applyStatus === 'function') {
+                    applyStatus(target, 'freeze', 1);
+                    logMsg(`❄️ ${target.name} is Frozen!`, '#93c5fd');
+                }
+                break;
+            }
+            case 'lightning_splash': {
+                // Storm Gryphon: Chain Surge (Primary damage + 50% splash, Shock)
+                if (target) {
+                    let mainDmg = Math.max(8, Math.round((pStats.atk * 0.9) + (action.power * 0.7)));
+                    target.hp = Math.max(0, target.hp - mainDmg);
+                    logMsg(`🐾 <b>${pet.name}</b> unleashes <b>${action.name}</b> dealing <b>${mainDmg}</b> shock damage to ${target.name}!`, '#facc15');
+                    if (typeof floatText === 'function') floatText(target.id, `-${mainDmg}`, '#facc15');
+                    if (typeof triggerElementalImpact === 'function') triggerElementalImpact(target.id, 'Wind');
+                    if (Math.random() <= (action.shockChance || 0.8) && typeof applyStatus === 'function') {
+                        applyStatus(target, 'shock', 2);
+                    }
+
+                    let splashDmg = Math.max(3, Math.round(mainDmg * (action.splashPct || 0.5)));
+                    battleState.enemies.filter(e => e.hp > 0 && e !== target).forEach(other => {
+                        other.hp = Math.max(0, other.hp - splashDmg);
+                        if (typeof floatText === 'function') floatText(other.id, `-${splashDmg}`, '#facc15');
+                    });
+                }
+                break;
+            }
+            case 'execute_damage': {
+                // Void Stalker: Void Strike (70 power, if target <= 20% HP deal 2.5x)
+                if (target) {
+                    let isExecute = (target.hp / target.maxHp <= (action.executeThreshold || 0.20));
+                    let mult = isExecute ? 2.5 : 1.0;
+                    let dmg = Math.max(10, Math.round(((pStats.atk * 1.0) + (action.power * 0.8)) * mult));
+                    target.hp = Math.max(0, target.hp - dmg);
+                    logMsg(`🐾 <b>${pet.name}</b> strikes with <b>${action.name}</b> dealing <b>${dmg}</b> ${isExecute ? 'CRITICAL EXECUTE ' : ''}damage!`, '#a855f7');
+                    if (typeof floatText === 'function') floatText(target.id, isExecute ? `EXECUTE -${dmg}!` : `-${dmg}`, '#a855f7');
+                    if (target.hp <= 0 && isApex) {
+                        logMsg(`💀 Reaper Instinct: Void Stalker executed target! Skill cooldowns reset!`, '#a855f7');
+                    }
+                }
+                break;
+            }
+            case 'aoe_fire': {
+                // Ignis Phoenix: Inferno Nova (AoE 60 power + burn all)
+                let baseDmg = Math.max(8, Math.round(((pStats.atk + pStats.matk) * 0.6) + (action.power * 0.6)));
+                logMsg(`🐾 <b>${pet.name}</b> unleashes <b>${action.name}</b> upon all enemies!`, '#ef4444');
+                battleState.enemies.filter(e => e.hp > 0).forEach(e => {
+                    e.hp = Math.max(0, e.hp - baseDmg);
+                    if (typeof floatText === 'function') floatText(e.id, `-${baseDmg}`, '#ef4444');
+                    if (typeof triggerElementalImpact === 'function') triggerElementalImpact(e.id, 'Fire');
+                    if (action.burnAll && typeof applyStatus === 'function') applyStatus(e, 'burn', 3);
+                });
+                break;
+            }
+        }
+    }
+
+
+// Mobile Web Audio API Unlock on First Touch
+function setupMobileAudioUnlock() {
+    const unlockAudio = () => {
+        if (typeof audioCtx !== 'undefined' && audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        window.removeEventListener('touchstart', unlockAudio);
+        window.removeEventListener('pointerdown', unlockAudio);
+    };
+    window.addEventListener('touchstart', unlockAudio, { passive: true, once: true });
+    window.addEventListener('pointerdown', unlockAudio, { passive: true, once: true });
+}
+if (typeof window !== 'undefined') {
+    setupMobileAudioUnlock();
+}

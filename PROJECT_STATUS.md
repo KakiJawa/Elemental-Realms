@@ -3,19 +3,310 @@
 ## Project Overview
 - **Project Type & Architecture:** Client-side web application built in HTML5, CSS3, and vanilla JavaScript (ES6+). Modular 3-tier file architecture (`index.html` markup shell, `css/style.css` stylesheet, `data/game_data.js` database constants, and `src/game.js` gameplay engine). Uses an in-memory state architecture with browser `localStorage` persistence and no external libraries, bundlers, build steps, or ES6 module CORS constraints (100% offline Windows `file:///` compatible).
 - **Main Entry Point & Files:**
-  - `index.html`: Lightweight HTML markup shell (178 lines) linking `css/style.css`, `data/game_data.js`, and `src/game.js`.
-  - `css/style.css`: Complete application stylesheet and keyframe animations (385 lines).
-  - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`) (898 lines).
-  - `src/game.js`: Game state, combat engine, status ailment processor, inventory, blacksmith workshop, class advancement, UI handlers, and initialization (3,468 lines).
-  - Scratch test tools: 12 test suites totaling 873 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, and `verify_battle_layout.py`) located in `.gemini/antigravity` scratch directory.
-- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 5 distinct progression zones, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
+  - `index.html`: Lightweight HTML markup shell (246 lines) linking `css/style.css`, `data/game_data.js`, and `src/game.js`.
+  - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
+  - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`) (1,180 lines).
+  - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, UI handlers, and initialization (5,980 lines).
+  - Scratch test tools: 21 test suites totaling 1,830 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, and `verify_mobile_portrait.py`) located in `.gemini/antigravity` scratch directory.
+- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 5 distinct progression zones, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Phase 3 Complete: Codebase Modularization.
-- **Feature Currently Being Developed:** None (Codebase modularized into `css/style.css`, `data/game_data.js`, and `src/game.js` with zero code deletions, 100% offline Windows `file:///` compatibility, and verified with 873/873 tests passing).
-- **Immediate Next Development Task:** Class-Exclusive Active Skills (Option B).
+- **Current Phase:** Mobile Portrait & Tablet Responsive Optimization Complete.
+- **Feature Currently Being Developed:** None (100% offline Mobile Portrait & Tablet Responsive Optimization complete: 360px–430px mobile phone & 768px tablet portrait layouts, safe area insets, touch ergonomics, 2-row responsive header, 2-column town touch grid, stacked top-down battle arena with thumb control zone, full-sheet modals, skill tree branch filter pills, and mobile Web Audio API unlock; verified with 1,830/1,830 tests passing across all 21 test suites).
+- **Immediate Next Development Task:** Bestiary & Monster Lore Compendium (Option E).
 
 ## Completed Features
+- **Mobile Portrait & Tablet Responsive Optimization Engine:**
+  - *Viewport & Modern Mobile Ergonomics (`index.html`, `css/style.css`):*
+    - Mobile-optimized viewport tag `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">`.
+    - Modern device safe area support: `body { padding-bottom: max(0px, env(safe-area-inset-bottom)); }` accommodating iPhone home indicator bars and display cutouts.
+    - Universal touch ergonomics: Applied `touch-action: manipulation;` and `-webkit-user-select: none; user-select: none;` across all interactive buttons, cards, entity boxes, and tabs to eliminate 300ms double-tap zoom latency and prevent accidental text selection during frantic combat.
+  - *Responsive Adaptive Header Bar (`.header-bar`):*
+    - Restructured into `.header-top-row` (branding and audio/slot/save/load controls) and `.header-stats` (level, class badge, title, HP, MP, Gold).
+    - Seamlessly transitions from single desktop horizontal toolbar into a structured 2-row layout on mobile portrait (`<= 768px`).
+  - *Town Hub 2-Column Mobile Touch Grid (`.town-grid`):*
+    - Transformed town building buttons into a thumb-friendly 2-column grid (`grid-template-columns: 1fr 1fr; gap: 10px;`) with a minimum height of 64px, eliminating awkward horizontal wrapping on mobile viewports.
+  - *Stacked Top-Down Mobile Combat Arena (`#battle-arena`):*
+    - Overhauled arena layout from 2-column horizontal split into a thumb-optimized vertical stack:
+      - **Top Zone (`#enemies-side`):** Reordered to the top (`order: 1 !important;`, flex: 1, min-height 180px) with spacious monster touch targets and auto-scrolling for multi-target encounters.
+      - **Middle Zone (`#player-side`):** Reordered directly below enemies (`order: 2 !important;`) as a horizontal compact strip containing the Hero visual sprite, full-width HP/MP status bars (`#battle-player-bars`), status effect tray, and companion pet badges.
+      - **Bottom Thumb Control Zone (`#battle-ui`):** Reordered with `flex-direction: column-reverse !important;` placing primary battle commands (`#cmd-main`, `#btn-quick-potion`, victory actions) directly under the player's thumbs with >= 44px touch targets.
+      - **Action Ticker (`#combat-log`):** Streamlined into a compact 2-line combat event ticker (55–75px) positioned directly above the command pad.
+  - *Full-Sheet Mobile Modals & Skill Tree Filter Tabs:*
+    - Mobile modals expand to `width: 95vw; max-height: 88vh;` with thumb-sized close touch targets (`min-width: 44px; min-height: 44px;`).
+    - Skill Tree Mobile Stack: `#st-content` transitions to a vertical single-column card stack.
+    - Branch Filter Tabs: Introduced `#st-branch-pills` (`[All] [⚔️ Damage] [🛡️ Sustain] [🔮 Arcana] [⚡ General]`) allowing players to isolate individual branches without long vertical scrolling.
+  - *Mobile Web Audio API Touch Unlock (`src/game.js`):*
+    - Added `setupMobileAudioUnlock()` listening to `touchstart` and `pointerdown` events to automatically resume suspended mobile browser `AudioContext` instances on first user touch.
+  - *Automated Verification:*
+    - 55 / 55 passed on dedicated mobile test suite `scratch/verify_mobile_portrait.py` (tested at 390x844 viewport via headless Edge).
+    - Full project regression: 1,830 / 1,830 passed across all 21 test suites on live `index.html` with zero regressions.
+- **Combat Flow & Inventory Safety QoL Suite:**
+  - *Hunt Again Instant Rematch (`repeatBattle`, `winBattle`):*
+    - Automatically records last battle parameters (`enemyCount`, `isBoss`, `areaId`) into `battleState.lastBattleConfig`.
+    - Victory Action Controls: Displays interactive `⚔️ Hunt Again` (`#btn-hunt-again`) and `🏠 Return to Town` (`#btn-return-town`) controls over `#battle-commands` (via `.victory-mode-ui`) and appended to `#combat-log`.
+    - Instant battle re-engagement without returning to town or re-navigating battle prep. Strictly preserves boss encounter flags and monster roster counts.
+    - 10-second safe fallback timer that automatically transitions to town if the player is AFK.
+  - *Combat Quick-Heal Potion Command (`useQuickPotion`, `getBestAvailableHealingPotion`, `updateQuickPotionButton`):*
+    - Two-column spanning button `#btn-quick-potion` integrated directly into `#cmd-main`.
+    - Smart healing resolution engine evaluating missing HP: prioritizes Mega-Potion / Max Potion if missing >= 250 HP (or < 30% HP), Hi-Potion if missing >= 120 HP, standard Potion, or highest available healing consumable.
+    - Dynamic UI synchronization: Updates button text with potion name and stack count (e.g. `🧪 Heal: Hi-Potion (x3)`), low stock warning color (`#fbbf24` when <= 2), and graceful disablement with `🧪 No Potions (x0)` when depleted.
+    - Single-click in-combat execution: Consumes potion, restores HP, displays floating combat text, and triggers turn delay.
+  - *Item Favorite & Lock System (`toggleItemLock`, `sellItem`, `salvageItem`, `salvageAllCommonUncommon`):*
+    - Lock toggle button (`.btn-lock-toggle`) on every equipment card with `🔒`/`🔓` toggle states and `item.locked` boolean flag.
+    - Visual protection indicators: `.equip-card.locked` with golden border glow and golden `LOCKED` badge.
+    - Sale protection guard in `sellItem()`: Aborts transaction and shows warning toast if item is locked.
+    - Salvage protection guard in Blacksmith single salvage (`salvageItem`/`salvageEquipment`): Aborts dismantling with warning toast if item is locked.
+    - Bulk salvage protection in `salvageAllCommonUncommon()` / `salvageBulk()`: Automatically filters out locked items, making locked Common and Uncommon gear 100% immune from destruction.
+  - *Batch Junk Vendor (`sellAllJunkEquipment`):*
+    - One-click `[💰 Sell Unlocked Junk]` button in `#modal-inventory` filter bar and `#modal-shop` navigation header.
+    - Automatically identifies all unlocked Common and Uncommon equipment, calculates total sell price, removes items from inventory, credits gold, plays coin SFX, and displays notification toast.
+    - Preserves all locked items as well as Rare, Epic, Legendary, and Mythic equipment.
+  - *Combat Defect Fixes & Hitbox Normalization:*
+    - **Deterministic Player Turn State & Out-of-Turn Quick Potion Guard:**
+      - Explicit `battleState.isPlayerTurn` state initialized to `false` in `startBattle()`, elevated to `true` when the Hero's turn starts in `processNextTurn()`, set to `false` on enemy turns or turn-skipping debuffs, and immediately cleared to `false` at the top of player actions (`executePlayerAttack`, `executePlayerSkill`, `useItemInBattle`, `attemptFlee`, `winBattle`, `loseBattle`).
+      - In-combat button synchronization in `updateQuickPotionButton()`: Evaluates `const canAct = !isCombat || Boolean(battleState.isPlayerTurn);` and disables `#btn-quick-potion` with muted styling during enemy actions.
+      - Defensive execution guard in `useQuickPotion()`: Rejects out-of-turn activation when `!battleState.isPlayerTurn` with warning toast notification, preventing turn queue desynchronization.
+    - **Basic Attack Soft-Lock Fix & CSS Hitbox Normalization:**
+      - Normalizes entity box child element hitboxes in `css/style.css`: Child elements (`.entity-sprite`, `svg`, `svg *`, `.status-tray`, `.status-badge`) assigned `pointer-events: none !important;` with `pointer-events: auto;` on `.entity-box`, ensuring mouse clicks cleanly bubble to the entity card container.
+      - Single-Enemy Auto-Target Fast-Path: `onAttackClicked()` and `selectSkill()` detect when only 1 enemy is alive and immediately execute attack/skill without prompting or trapping the player in `.targeting-mode-ui`.
+      - Resilient `handleEnemyClick(targetRef)`: Supports number index, string ID, or enemy object reference, with automatic fallback to living enemies.
+      - Clean `cancelTargeting()`: Resets `battleState.targetingMode = null` and invokes `enableCommands()` to dismiss targeting UI and re-enable command buttons.
+    - **Berserker Vampiric Fervor Runtime Crash & Soft-Lock Fix:**
+      - Resolved fatal `Uncaught ReferenceError: updateCombatUI is not defined` inside `executePlayerAttack()` that occurred when landing physical critical strikes with `vampiricFervor`.
+      - Replaced `updateCombatUI()` with `renderBattlefield()` and `updateHeader()`, allowing critical damage, Vampiric healing, Overcharged Aegis Divine Barrier conversion, `applyDamage()`, hit VFX, floating text, and turn timers to execute without interruption.
+      - Added failsafe fallback alias `function updateCombatUI()` mapped directly to `renderBattlefield()` (and exported to `window.updateCombatUI`) ensuring robust runtime compatibility.
+  - *Verification & Regressions:*
+    - 99 / 99 passed on `scratch/verify_combat_safety_qol.py` (including out-of-turn rejection, turn state transitions, fast-path auto-attacks, resilient clicks, CSS hitbox rules, and Berserker critical strike keystones).
+    - Full project regression: 1,775 / 1,775 passed across all 20 test suites on live `index.html` with zero regressions.
+- **ARPG Quality-of-Life & Intel Suite:**
+  - *Area Scouting & Drop Rate Guide (`renderBattlePrep`):*
+    - Dynamic `#zone-scouting-guide` panel integrated into Battle Prep modal (`#battle-prep-content`) displaying active exploration zone intel.
+    - Tactical Elemental Strategy Box calculating exact elemental weakness (+50% bonus damage taken) and resistance (-50% damage mitigated) directly from `ELEMENT_MODS`.
+    - Bestiary monster roster detailing regular monsters per zone with Level, Element, HP, ATK, EXP, Gold, and exact drop chances: `${l.item} (${chance * 100}%)` (e.g. `Leather Boots (15%)`, `Potion (30%)`).
+    - Gatekeeper Boss intel displaying boss stats, rewards (EXP, Gold), guaranteed 100% equipment drop notice, and bonus loot chances.
+    - Dynamic re-scouting: Clicking any unlocked zone card in Step 1 (`selectBattleArea`) immediately updates the scouting guide to that zone's bestiary and drop tables.
+  - *Side-by-Side Gear Stat Comparison Engine (`compareItemStats`, `renderInventory`):*
+    - Stat comparison function calculating total stats (upgraded baseStats + affixes + upgradeLevel) for candidate equipment vs. currently equipped item in that slot.
+    - Returns color-coded diff pills (`.stat-diff-pos` green `+X`, `.stat-diff-neg` red `-X`, `.stat-diff-eq` grey `±0`).
+    - Returns `<span class="stat-diff-pos">(New Slot Item!)</span>` when comparing against an empty equipment slot.
+    - Inlined into each `.equip-card` via `.equip-comparison-strip` alongside explicit Gear Score display.
+  - *Auto-Equip Best Gear Optimizer (`autoEquipBestGear`):*
+    - Accessible via `#btn-auto-equip` in `#modal-stats` header or programmatically.
+    - Weighted gear score heuristic: `(rarityMult * 50) + (atk * 2) + (def * 2) + (matk * 2) + (mdef * 2) + (maxHp * 0.5) + (maxMp * 0.5) + (spd * 3) + (crit * 4) + (upgradeLevel * 15)`, with rarity multipliers Common: 1, Uncommon: 2, Rare: 3, Epic: 4, Legendary: 5, Mythic: 6.
+    - Iterates across all 6 slots (`weapon`, `helmet`, `armor`, `gloves`, `boots`, `accessory`), finds the maximum score candidate in `player.inventory.equipment`, swaps superior gear, returns replaced gear safely to inventory, recalculates `pStats`, updates header and active modals, and displays informative feedback toasts (`showToast('Gear Optimized', ...)`).
+    - Idempotent: Does not alter equipment if already optimal and notifies the player.
+  - *Inventory Category Filtering & Sorting Engine:*
+    - Global state management via `invCategoryFilter` (`all`, `weapons`, `armor`, `accessories`, `consumables`) and `invSortOrder` (`rarity`, `power`, `name`).
+    - Category filter pills (`.inv-pill`) with `.active` highlight in `.inv-filter-bar`.
+    - Sort dropdown (`#inv-sort-select`) allowing instant sorting by Rarity (Mythic to Common), Gear Score Power, or Alphabetical Name.
+    - Cleanly unifies or separates consumables and equipment rendering while preserving 100% backward compatibility with legacy test assertions.
+  - *Transparent Character Stat Calculation Breakdown (`getStatBreakdown`, `renderStats`):*
+    - Itemized mathematical source decomposition isolating Base, Gear (all 6 slots), Skill Tree, Companion Pets, Achievements, and Infinite Spire tomes/relics.
+    - Native `title` hover tooltips on all core stat cells (`#stat-hp`, `#stat-mp`, `#stat-atk`, `#stat-def`, `#stat-matk`, `#stat-mdef`, `#stat-spd`, `#stat-crit`).
+    - Populates `#stat-breakdown-container` with an itemized `.stat-breakdown-panel` displaying mathematical source equations.
+  - *Verification & Zero Regressions:*
+    - Dedicated test suite `scratch/verify_qol_suite.py` asserting 81 test conditions with 100% pass rate.
+    - Full 19-suite regression run: 1,676 / 1,676 tests passing across the entire project with zero regressions.
+- **Skill Tree 2.0 & Level 50 Hard Cap:**
+  - *29 Talents Across 4 Progression Branches (`SKILL_TREE_DB`):*
+    - **Damage Branch (⚔️):**
+      - Tier 1 (0 pts): `ATK Training` (+2 ATK/rank, max 10), `Critical Training` (+2% Crit/rank, max 10), `Power Strike` (Active strike, 2 orbs).
+      - Tier 2 (5 pts in Damage): `Armor Break` (Active DEF shred, 2 orbs), `Combat Mastery` (+10% basic attack damage), `Precision Strikes` (+5% Crit damage/rank, max 5).
+      - Tier 3 Keystones (10 pts in Damage): `Executioner` (+35% bonus damage to enemies below 30% HP), `Vampiric Fervor` (Physical critical strikes restore 10% damage as HP).
+    - **Sustain Branch (🛡️):**
+      - Tier 1 (0 pts): `Vitality Training` (+10 Max HP/rank, max 10), `Defense Training` (+2 DEF/rank, max 10), `Recovery` (Active heal + barrier, 2 orbs).
+      - Tier 2 (5 pts in Sustain): `Regeneration` (Passive 3% Max HP end of turn), `Iron Skin` (+2 MDEF and +1% physical mitigation/rank, max 5), `Barrier Mastery` (Divine Barriers absorb +10% more damage/rank, max 3).
+      - Tier 3 Keystones (10 pts in Sustain): `Overcharged Aegis` (Excess healing at full HP converts into Divine Barrier up to 20% Max HP), `Thorned Bastion` (25% of all mitigated damage is reflected back to attacker as true damage).
+    - **Arcana Branch (🔮):**
+      - Tier 1 (0 pts): `Spirit Training` (+5 Max MP/rank, max 10), `Arcane Training` (+2 MATK/rank, max 10).
+      - Tier 2 (5 pts in Arcana): `Mana Efficiency` (10% reduction to all MP costs), `Elemental Resonance` (+5% bonus damage when exploiting elemental weaknesses/rank, max 5), `Affliction Potency` (All Burn, Poison, and Decay DoTs deal +10% damage/rank, max 5).
+      - Tier 3 Keystones (10 pts in Arcana): `Arcane Surge` (Magical skills have a 25% chance to cost 0 MP and deal +30% spell damage), `Decaying Curse` (Applying any debuff to an enemy immediately afflicts them with Decay).
+    - **General Branch (🌟):**
+      - Tier 1 (0 pts): `Speed Training` (+1 SPD/rank, max 10), `Fortune` (+3% Battle Gold/rank, max 10).
+      - Tier 2 (5 pts in General): `Treasure Sense` (Increases equipment and item drop chances), `Quick Reflexes` (+2% passive evasion dodge chance/rank, max 5).
+      - Tier 3 Keystones (10 pts in General): `Momentum` (Dodging an attack or landing a critical strike grants Haste [+30% SPD] for 2 turns), `Midas Touch` (Defeating an enemy with a basic attack or critical hit grants bonus Gold equal to 10% of their Max HP).
+  - *Tier-Gated Milestone Progression & Branch Calculator:*
+    - Centralized `getBranchPoints(branchName)` calculator measuring invested points (`rank * cost`).
+    - Milestone prerequisites: Tier 1 requires 0 branch points; Tier 2 strictly requires 5 invested points; Tier 3 Keystones strictly require 10 invested points.
+    - Strict Keystone exclusivity: Enforces a maximum of 1 active Keystone talent per branch at any time.
+  - *Respec & Reset Station (`respecSkillTree`):*
+    - Dedicated `#btn-st-respec` button in the Skill Tree header modal.
+    - Full refund calculation: Sums all invested orbs across all 29 nodes and returns them to `player.skillOrbs`.
+    - Respec fee logic: First reset is completely free (`hasRespecced: false`), subsequent resets cost 200 Gold.
+    - Clean state rollback: Resets all 29 talent ranks to 0, removes tree-unlocked active skills (`Power Strike`, `Armor Break`, `Recovery`) while strictly preserving base spells and class advancement skills, and recomputes all stats.
+  - *Level 50 Hard Cap Architecture:*
+    - Hard ceiling in `checkLevelUp()`: Clamps level strictly at 50 and zeroes out surplus EXP.
+    - Surplus EXP protection: Grants no level progression or stat runaway once Level 50 is reached.
+    - Header and character stats display `LV: 50 (MAX)` upon achieving the level cap.
+  - *100% Backward Compatibility & Legacy Save Migration:*
+    - All 13 legacy skill tree keys (`atkTraining`, `critTraining`, `powerStrike`, `armorBreak`, `combatMastery`, `vitalityTraining`, `defTraining`, `recovery`, `regeneration`, `spiritTraining`, `manaEfficiency`, `fortune`, `treasureSense`) are strictly preserved.
+    - `loadGame()` migration pipeline automatically populates all new nodes to 0 and initializes `hasRespecced: false` on legacy save profiles.
+  - (*Implemented and verified* via 108 dedicated Skill Tree 2.0 automated tests + 1,487 regression tests across 18 suites = 1,595/1,595 total passing tests).
+
+- **Companion Pet & Familiar System (Option H):**
+  - *8 Elemental Companions Across 5 Rarity Tiers (`PETS_DB`):*
+    - Diverse elemental companions with balanced stats, passives, active skills, Level 10 Apex Perks, and crisp inline SVGs:
+      - `Sprout Slimelet` (Earth, Common): +4% DEF, +4% Max HP passive; active skill `Pebble Guard` (+8% Max HP barrier); Apex Perk `Petrified Shell` (+15% barrier absorption).
+      - `Cinder Pup` (Fire, Common): +5% ATK passive; active skill `Ember Bite` (deals damage + 60% Burn DoT); Apex Perk `Wildfire Sparks` (applies 2 Burn stacks).
+      - `Breeze Finch` (Wind, Uncommon): +8 SPD, +3% Crit passive; active skill `Tailwind Gust` (grants Haste for 2 turns); Apex Perk `Gale Velocity` (+10% Crit during Haste).
+      - `Shadow Wisp` (Dark, Uncommon): +6% Crit, +5% MATK passive; active skill `Abyssal Gaze` (deals damage, applies Blind, leeches HP); Apex Perk `Soul Siphon` (triples leeched HP to 90%).
+      - `Glacia Fox` (Water, Rare): +8% Max HP, +10% Max MP passive; active skill `Glacial Soothe` (heals 10% HP, 15 MP, applies Freeze); Apex Perk `Permafrost Aura` (+30% shatter damage on frozen foes).
+      - `Storm Gryphon` (Wind, Rare): +12 SPD, +8% ATK passive; active skill `Chain Surge` (deals shock damage, 50% splash to all enemies, Shock); Apex Perk `Conduit Overcharge` (100% basic attack chain lightning).
+      - `Void Stalker` (Dark, Epic): +12% ATK, +10% Crit passive; active skill `Void Strike` (70 power, 2.5x critical execute if target <= 20% HP); Apex Perk `Reaper Instinct` (resets player skill cooldowns on execution).
+      - `Ignis the Phoenix` (Fire, Legendary): +15% ATK, +15% MATK, +10% Max HP passive; active skill `Inferno Nova` (AoE blazing strike + Burn to all foes); Apex Perk `Rebirth Flame` (resurrects Hero with 30% Max HP upon fatal blow once per combat encounter).
+  - *Level 25 Dual-Companion Gating Architecture:*
+    - Slot 1 unlocked from Level 1 for immediate companion support.
+    - Slot 2 strictly hard-gated behind Level 25 (Tier 2 Specialization milestone); displays clear lock indicator in UI (`🔒 Locked until Level 25`).
+    - Celebratory unlock toast banner upon crossing Level 25 in `checkLevelUp()`.
+    - Level guard in `computeStats()` preventing premature equipping or retention if level drops below 25.
+  - *Dynamic Passive Stat Scaling Math:*
+    - Stat passives scale according to `1 + ((lvl - 1) * 0.10)` (+10% bonus growth per Bond Level, up to 1.9x at Level 10).
+    - Minimum +1 stat clamp protection ensures low Level 1 base stats (e.g. DEF = 7) receive tangible boosts.
+    - Full dual-companion stacking when 2 pets are equipped at Level 25.
+  - *Combat 2-Turn Cadence & Visual Juicing:*
+    - Independent readiness counters (`battleState.petTurns.slot0` and `slot1`).
+    - Automatic turn advancement in combat loop: every 2 player turns triggers companion action, resets charge pips, plays hopping animation (`.anim-pet-hop`), triggers element-matched audio SFX, displays floating combat text, and logs combat entries.
+    - Dynamic mini-companion badges in `#player-pets-container` next to Hero showing SVG sprite, companion name, Bond Level, and readiness charge pips (`🐾 🐾`).
+  - *Ignis Phoenix Apex Rebirth Perk:*
+    - Intercepts fatal blows (`hp <= 0` in `loseBattle()`).
+    - Revives Hero immediately with 30% Max HP, triggers screen shake, plays victory fanfare, logs rebirth, and seamlessly continues combat (strictly once per battle).
+  - *Bonding & Feeding Station (Levels 1 to 10):*
+    - Max Bond Level 10 with progressive curve (`level * 100` EXP per level).
+    - Combat victories award +15 Bond EXP to all active companions.
+    - 4 feeding options: Iron Scraps (10 ➔ +50 EXP), Arcane Dust (2 ➔ +100 EXP), Void Shard (1 ➔ +300 EXP), Gourmet Beast Treat (150 Gold ➔ +150 EXP).
+    - Level up toasts and Level 10 Apex Perk banner celebrations.
+  - *Town Familiar Sanctuary UI (`#modal-pets`):*
+    - Dedicated Town Hub building `#btn-town-pets` (`🐾 Familiar Sanctuary`).
+    - Two interactive navigation tabs: `[🐾 Active Companions]` (dual slot management, unequip/swap collection) and `[🍖 Feed & Bond]` (companion selector, detailed stats, animated EXP bar, and feeding station).
+  - (*Implemented and verified* via 145 dedicated pet automated tests + 1,342 regression tests across 17 suites = 1,487/1,487 total passing tests).
+- **Combat Juice, Audio Synthesizer & Visual Polish Engine:**
+  - *Zero-Asset Web Audio Synthesizer (`playSFX`):*
+    - 100% offline, zero-asset audio engine running directly on native browser `AudioContext` without external MP3/WAV files.
+    - 20 programmatically synthesized retro 16-bit sound effects: melee attacks (`slash`), critical strikes (`crit`), 6 elemental magic spells (`magic_fire`, `magic_ice`, `magic_lightning`, `magic_holy`, `magic_dark`), defensive actions (`shield_absorb`, `shield_break`, `dodge`), milestones (`enemy_death`, `level_up`, `victory`), economy & crafting (`coin`, `anvil`), and suspenseful mystery box unboxing audio (`chest_shake`, `chest_burst`, `chest_reveal_rare`, `chest_reveal_legendary`, `chest_reveal_mythic`).
+    - Headless testing resilience: All audio operations are safely guarded against missing or restricted `AudioContext` environments.
+    - Master volume and muting cycle (`toggleAudio()`): 3-tier cycling (High [0.8] ➔ Low [0.3] ➔ Muted [0.0]) with header toggle button (`#btn-hdr-audio`: `🔊`, `🔉`, `🔇`) and `localStorage` persistence under `'er_audio_settings'`.
+  - *Combat Screen Shake Engine (`screenShake`):*
+    - 3-tier intensity shake system: `.shake-light` (±2px rapid vibration, 150ms), `.shake-medium` (±6px offset with ±1° rotational tilt, 250ms for Critical Hits and freeze shatters), and `.shake-heavy` (±12px impact rumble, 350ms for fatal blows, boss abilities, and Mythic gear unboxing).
+    - Smooth cleanup and reflow triggering avoiding animation cancellation glitches.
+  - *Visual Impact VFX & Slashing Slices (`triggerHitVFX` & `applyHitFlash`):*
+    - Sprite silhouette hit-flash (`.entity-hit-flash`): 80ms brightness boost (3.5x brightness, 1.5x contrast) on damaged entity sprites.
+    - Melee slash-arc overlay (`.vfx-slash-arc`): Sleek diagonal SVG crescent slicing across targets during physical strikes.
+    - 6 Elemental Particle Bursts: Custom transient particle bursts tailored to the damage element: Fire sparks, Ice crystal shards, Lightning sparks, Earth stone shatters, Light radiant halo, and Dark shadow vortex.
+  - *Juiced Critical Floating Combat Text & HP Tween:*
+    - Enhanced `floatText(targetId, text, color, isCrit)` with `.floating-text-crit`, 30px bold typography, crimson-to-gold gradient fill, drop-shadow, and pop-in bounce keyframe (`@keyframes critPopBounce`).
+    - Smooth HP bar transitions (`transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1)`) with momentary flash animation upon taking damage.
+  - (*Implemented and verified* via 81 dedicated audio/VFX automated tests + 1,261 regression tests across 16 suites = 1,342/1,342 total passing tests).
+- **Multi-Slot Save & Export/Import System:**
+  - *3-Profile Isolated Storage Architecture:*
+    - Slot 1 maps directly to legacy `localStorage` key `'er_save'` for 100% backward compatibility with all existing saves and automated tests.
+    - Slots 2 and 3 map cleanly to `'er_save_slot_2'` and `'er_save_slot_3'`.
+    - Active profile slot tracking via `er_active_slot` with fallback to Slot 1.
+    - Helper `getSaveSlotKey(slotNum)` ensures clean routing across all operations.
+  - *Rich Slot Manager UI (`#modal-saves`):*
+    - Accessible from anywhere via Header Bar (`#btn-hdr-saves`: `💾 Saves`) and Main Menu (`#btn-main-saves`: `💾 Manage Profiles`).
+    - Two interactive tabs: `Character Profiles` and `Export / Import`.
+    - Visual slot cards displaying Hero Name, Level, Class, Current Zone, Spire Floor, Gold, and Timestamp (`lastSaved`).
+    - Dynamic highlighting: `.active-slot` indicates the loaded character profile, while empty slots are labeled `[Empty Profile - Ready for New Hero]` with instant `[Save Current]` and `[Import to Slot]` actions.
+  - *Multi-Profile Management & Safety:*
+    - Independent save and load operations with `saveGame(slotNum)` and `loadGame(slotNum)`.
+    - Slot deletion via `deleteSaveSlot(slotNum)` protected with browser confirmation.
+    - Full combat safety guards: `saveGame` and `loadGame` are strictly blocked when `battleState.active === true`, and `#btn-hdr-saves` is disabled (`opacity: 0.4`, `cursor: not-allowed`) during battle.
+    - Robust migration fallback pipeline ensuring character loaded from any slot receives missing defaults (quests, achievements, spire, materials, skill tree, buffs).
+  - *Universal Export & Import Engine:*
+    - Safe UTF-8 Base64 serialization via `encodeSaveData()` and `decodeSaveData()` supporting UTF-8 symbols (emojis, accent marks).
+    - Accepts both encoded Base64 strings and raw JSON strings as fallback.
+    - Robust schema validation via `validateSaveData()` rejecting null, empty, or corrupted strings without crashing or corrupting existing saves.
+    - Dual import execution options: `[Import & Load Immediately]` (loads character into active memory and switches views) or `[Save to Slot Only]` (preserves active character while writing to selected slot).
+    - One-click copy (`navigator.clipboard` with fallback) and JSON file download (`.json`).
+  - (*Implemented and verified* via 79 dedicated save manager automated tests + 1,182 regression tests across 15 suites = 1,261/1,261 total passing tests).
+- **Town Shop & Merchant Overhaul (Option D):**
+  - *3-Tab Categorized Navigation (`#modal-shop`):*
+    - Upgraded the Town Merchant modal into a multi-tab emporium with responsive tabs: `⚔️ Equipment`, `🧪 Consumables`, and `🔨 Materials`.
+    - Seamless tab routing via `shopActiveTab` and `setShopTab(tab)` with default to `consumables` for instant potion access and backward compatibility.
+  - *Bulk Consumables Purchasing:*
+    - Enhanced all consumable listings (`Potion`, `Hi-Potion`, `Mega-Potion`, `Max Potion`, `Ether`, `Hi-Ether`, `Elixir`, `Cleansing Salve`, `Smoke Bomb`) with 3 purchase tiers: `[Buy x1]`, `[Buy x5]`, and `[Buy x10]`.
+    - Real-time gold calculation and automatic button disabling when the player has insufficient funds.
+  - *Zone-Tiered Armory Stock (`SHOP_EQUIPMENT_TIERS`):*
+    - Organized all equipment into 5 regional tiers matching progression areas (Whispering Woods, Crystal Caverns, Stormpeak Summit, Infernal Caldera, Abyssal Void).
+    - Added 12 new high-tier base items to `ITEMS_DB` for Area 4 (`Obsidian Blade`, `Dragon Scale Mail`, `Flameforged Crown`, `Lava Gauntlets`, `Cinder Striders`, `Fireheart Talisman`) and Area 5 (`Voidcleaver`, `Celestial Plate`, `Astral Hood`, `Voidtouch Grips`, `Phase Treads`, `Eye of the Cosmos`).
+    - Progression gating: Locked tiers are visually dimmed with clear requirements (`🔒 Locked (Requires conquering <Area Name>)`).
+  - *Blacksmith Materials Exchange (`SHOP_MATERIALS_DB`):*
+    - Added a direct materials counter banner displaying active counts of Iron Scraps, Arcane Dust, Void Shards, and Gold.
+    - Packs for Iron Scraps (`x5` for 60 G, `x20` for 220 G), Arcane Dust (`x1` for 100 G, `x5` for 450 G), and Void Shards (`x1` for 400 G, `x3` for 1,100 G, gated by Area 4 unlock).
+  - *Mystery Gear Gamble Coffers (`MYSTERY_BOXES_DB`) & Suspenseful Unboxing Reveal:*
+    - `Adventurer's Mystery Box` (250 G): Sealed coffer with guaranteed Rare (70%), Epic (25%), or Legendary (5%) gear.
+    - `Celestial Mystery Box` (1,000 G): High-roller coffer with guaranteed Epic (70%), Legendary (25%), or Mythic (5%) gear.
+    - Inline SVG coffer sprites (`Mystery Chest`, `Celestial Chest`) in `SVG_SPRITES`.
+    - Suspenseful unboxing stage (`#modal-unboxing`): 1.2s coffer shake animation (`@keyframes chestShake`), luminous 0.3s explosion (`@keyframes chestBurst`), followed by elastic pop-in reveal (`@keyframes itemRevealBounce`) displaying gear name, rarity badge, rolled affixes, base stats, and pulsing neon multi-color glow for Mythic reveals (`@keyframes mythicGlow`).
+    - Immediate claim (`[✨ Claim Equipment]`) or repeat unboxing (`[🎲 Open Another]`).
+  - (*Implemented and verified* via 84 dedicated shop automated tests + 1,098 regression tests across 14 suites = 1,182/1,182 total passing tests).
+- **The Infinite Spire Endless Dungeon & Ancient Relics Engine (Option C):**
+  - *Endless Scaling Floor Progression (Floors 1 to 50+):*
+    - Accessible directly from Town Hub via `#btn-town-spire` (`🌀 The Infinite Spire`) with `#modal-spire`.
+    - Permanent elevator checkpoint system granting instant access to every 10th milestone floor unlocked (Floor 1, 11, 21, 31, etc.).
+    - Formulaic enemy scaling (`floorLevel = Math.max(1, Math.floor(floor * 0.8))`, `scale = 1 + (floor * 0.10)`), with floor bracket enemy rosters (Floors 1-5: Area 1, Floors 6-10: Area 2, Floors 11-15: Area 3, Floors 16-20: Area 4, Floors 21+: Area 5/mixed).
+    - Every 5th floor features a dangerous Spire Boss encounter with custom celestial arena background visuals and special boss scaling.
+    - Spire defeat safety: Defeat inside the Spire does NOT halve gold and fully restores hero HP and MP back to 100% capacity upon returning to town.
+  - *Exclusive Ancient Relics System (`RELICS_DB`):*
+    - Dedicated Relic equipment slot with 6 collectible ancient artifacts dropped exclusively on Spire boss floors (50% drop rate):
+      - `Blood Chalice`: Restores 10% of damage dealt back to hero HP as lifesteal.
+      - `Thunderstone Core`: Basic attacks unleash chain lightning, dealing 50% splash damage to all other alive enemies.
+      - `Aegis of the Colossus`: Grants a permanent Divine Barrier absorbing damage up to 25% Max HP at the start of every combat encounter.
+      - `Hourglass of the Chronomancer`: Prevents fatal death once per Spire run / encounter, rewinding time to restore the hero to 30% Max HP.
+      - `Midas Crucible`: Permanently increases all combat gold earned by +50%.
+      - `Celestial Feather`: Permanently increases hero Speed by +15 SPD and Critical Chance by +10%.
+    - Interactive Relic collection & equipping UI within `#modal-spire` allowing players to equip/swap unlocked relics with active indicator badges.
+  - *Astral Shards Currency & The Astral Altar (`ALTAR_SHOP_DB`):*
+    - Clear rewards grant Astral Shards (`Math.max(1, Math.floor(floor * 1.5))` on regular floors; 3x on boss floors).
+    - Astral Altar town facility (`#modal-astral-altar`) featuring permanent character upgrades:
+      - `Tome of Vitality`: Permanently increases base Max HP by +20 (Max 5 uses, +100 HP total).
+      - `Tome of Power`: Permanently increases base ATK and MATK by +3 (Max 5 uses, +15 ATK/MATK total).
+      - `Tome of the Mind`: Permanently increases base Max MP by +10 (Max 5 uses, +50 MP total).
+      - `Mythic Reforge Rune`: Crafting consumable granting guaranteed max-tier rolls at the Blacksmith.
+      - `Spire Ascendant Title`: Prestige cosmetic title `[Spire Ascendant]` displayed in header and stats.
+    - Full integration into `computeStats()`, save/load serialization, and legacy save compatibility.
+  - (*Implemented and verified* via 97 dedicated Spire automated tests + 1,001 regression tests across 13 suites = 1,098/1,098 total passing tests).
+- **Class-Exclusive Active Skills & Categorized Combat Tabs:**
+  - *18 Signature Class Abilities across 9 Advanced Classes:*
+    - **Warrior:**
+      - `Heavy Slam`: 65 physical power, 10 MP, single foe. 50% chance to inflict `stun` (1 turn; converted to `slow` on bosses).
+      - `Battle Cry`: 0 power, 8 MP, self. Grants `haste` (+30% SPD) and `battle_cry` (+20% ATK) for 3 turns.
+    - **Berserker:**
+      - `Bloodthirst Strike`: 70 physical power, 12 MP, single foe. Restores 30% of damage dealt back to player HP.
+      - `Whirlwind of Blades`: 50 physical power, 16 MP, all foes. Applies `bleed` (3 turns) to all hit enemies.
+    - **Paladin:**
+      - `Holy Smite`: 60 magic power, 14 MP, single foe, Light element. Hybrid damage scaling with ATK (1.2x) and DEF (1.0x); deals 2.0x critical divine damage against Dark foes.
+      - `Shield of Faith`: 0 power, 15 MP, self, Light element. Purges all active negative DoTs, ailments, and debuffs (`burn`, `poison`, `decay`, `bleed`, `slow`, `blind`, `shock`, `armor_break`) and grants a `divine_barrier` absorbing 20% Max HP for 3 turns.
+    - **Mage:**
+      - `Arcane Missiles`: 55 magic power, 8 MP, single foe. Penetrates arcane defenses, ignoring 50% of the target's MDEF.
+      - `Frost Nova`: 35 magic power, 12 MP, all foes, Water element. 60% chance to inflict `freeze` (1 turn) or `slow` (2 turns) on each hit enemy.
+    - **Archmage:**
+      - `Blizzard`: 70 magic power, 20 MP, all foes, Water element. 100% chance to inflict `freeze` (1 turn) or `slow` (2 turns) across all targets (bosses automatically convert freeze into slow).
+      - `Chain Lightning`: 65 magic power, 18 MP, all foes, Wind element. Applies `shock` (3 turns) to all hit enemies, enabling massive lightning detonation splashes on subsequent hits.
+    - **Warlock:**
+      - `Soul Siphon`: 60 magic power, 14 MP, single foe, Dark element. Inflicts `decay` (3 turns) and leeches 50% of damage dealt back to heal the hero's HP.
+      - `Shadow Rupture`: 60 magic power, 16 MP, single foe, Dark element. Detonates active afflictions on the target (+35 damage per active DoT stack/type, dealing 1.5x burst damage if afflicted).
+    - **Rogue:**
+      - `Quick Slash`: 45 physical power, 6 MP, single foe. Grants +1 stack of `mirage` dodge evasion.
+      - `Smoke Screen`: 20 physical power, 8 MP, single foe. Inflicts `blind` (2 turns, 40% miss chance) on target and grants `haste` (3 turns, +30% SPD) to player.
+    - **Assassin:**
+      - `Shadow Step`: 75 physical power, 15 MP, single foe. Ignores 50% target DEF and executes a guaranteed Critical Hit (1.8x base, or 2.0x with focus).
+      - `Venom Spray`: 30 magic power, 16 MP, all foes, Earth element. Afflicts all enemies with 2 stacks of deadly `poison` (3 turns).
+    - **Shadowblade:**
+      - `Mirage Flurry`: 25 physical power, 14 MP, single foe. Strikes rapidly 3 times, each strike possessing +35% bonus critical chance.
+      - `Blade Dance`: 0 power, 12 MP, self. Enters `counter_stance` for 3 turns, instantly counter-attacking whenever struck by physical attacks.
+  - *Full Categorization of All 29 Skills (`SKILLS_DB`):*
+    - Tagged every ability across the database with explicit categories (`offense`, `defense`, or `utility`).
+    - Base skills categorized: `Fireball`, `Water Splash`, `Earth Spike`, `Wind Blade`, `Holy Light`, `Dark Blast`, `Cleave`, `Power Strike` (Offense); `Heal`, `Recovery` (Defense); `Armor Break` (Utility).
+  - *In-Combat Category Filter Tabs UI:*
+    - Replaced the monolithic skill list in `#sub-menu-content` with a clean tab bar (`[All]`, `[⚔️ Offense]`, `[🛡️ Defense]`, `[✨ Utility]`) and a scrolling `#skills-items-container`.
+    - Compact 2-line button layouts displaying Skill Name, MP Cost, Category Icon, Element, and Target Type (`Single`, `All Foes`, `Self`).
+    - Friendly empty-state fallback ("No skills in this category.") when a filter has no matching skills.
+  - *Automatic Unlock Pipeline & 100% Backward Compatibility:*
+    - `advanceClass(classId)` queries `getClassSkills(classId)` and automatically pushes newly qualified signature abilities into `player.skills`, triggering a celebratory toast.
+    - `loadGame()` retroactively scans `player.currentClass` on loaded saves and automatically populates any missing class skills.
+  - (*Implemented and verified* via 172 dedicated automated skills & combat tabs tests + 829 regression tests across 12 suites = 1,001/1,001 total passing tests).
 - **Codebase Modularization (Phase 3):**
   - Sliced the monolithic ~5,000-line `index.html` into a clean, maintainable 3-tier architecture:
     - `index.html`: Clean HTML markup shell (178 lines) with ordered script tags before `</body>`.
@@ -183,9 +474,8 @@
 
 ## Planned Features
 - **Confirmed Priorities:**
-  - **Class-Exclusive Active Skills (Option B):** Implement 2 to 3 signature active skills for each of the advanced classes.
-  - **Town Shop Overhaul:** Expanding merchant inventory with area-specific base gear, crafting materials, and consumable tiers.
-  - **Dungeon / Endless Tower Mode:** A wave-based gauntlet mode with escalating rewards.
+  - **Option E: Bestiary & Monster Lore Compendium:** Monster weaknesses, drop tables, kill counts, elemental resistances, and combat lore unlocks.
+  - **Option F: Town Expansion & Tavern Bounties:** Procedural daily bounty board and NPC mini-quests for gold and rare materials.
 
 ## Important Constraints
 - **Preserve Existing Gameplay:** Do not alter established combat formulas, elemental modifiers, or screen flows without explicit instruction.
@@ -196,5 +486,6 @@
 - **Incremental Changes:** Changes should be isolated and test-verified before advancing to subsequent phases; avoid wholesale rewrites.
 
 ## Last Updated
-- **Date:** 2026-10-23
-- **Description:** Phase 3 Complete: Codebase Modularization: Safely programmatically modularized monolithic `index.html` into `css/style.css` (385 lines), `data/game_data.js` (898 lines), `src/game.js` (3,468 lines), and a clean `index.html` markup shell (178 lines). Maintained 100% offline Windows `file:///` double-click capability with zero CORS issues. Verified with 44 modularization integrity/DOM tests and 829 regression tests (873/873 total passing tests across 12 suites). Next priority: Class-Exclusive Active Skills (Option B).
+- **Date:** 2026-10-24
+- **Description:** Mobile Portrait & Tablet Responsive Optimization Complete: Implemented comprehensive mobile phone (360px–430px) and tablet (768px) portrait responsiveness. Includes viewport-fit cover & safe area insets, touch-action manipulation, anti-selection guards, 2-row adaptive header, 2-column town touch grid, stacked top-down battle arena with thumb control zone, full-sheet modals, skill tree branch filter pills, and mobile Web Audio API touch unlock. Verified across all 21 test suites with 1,830/1,830 automated tests passing (100% pass rate with zero regressions).
+

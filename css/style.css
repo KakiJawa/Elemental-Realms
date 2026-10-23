@@ -1,3 +1,15 @@
+/* Mobile Touch Ergonomics */
+html, body {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+}
+button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet-badge, .tab-btn {
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
 :root {
             --fire: #ff4500; --water: #1e90ff; --earth: #8b4513; 
             --wind: #32cd32; --light: #ffd700; --dark: #800080;
@@ -13,7 +25,11 @@
         .screen.active { display: flex; }
 
         /* UI Panels */
-        .header-bar { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; border-bottom: 2px solid #444; flex-shrink: 0; }
+        .header-bar { background: #111; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #444; flex-shrink: 0; }
+        .header-top-row { display: flex; align-items: center; gap: 15px; }
+        .header-brand { font-size: 16px; font-weight: bold; color: #fff; }
+        .header-actions { display: flex; gap: 6px; }
+        .header-stats { display: flex; align-items: center; }
         .header-stats span { margin-right: 15px; font-weight: bold; }
         
         .main-content { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
@@ -45,7 +61,8 @@
         
         /* Bars */
         .bar-container { width: 100%; height: 12px; background: #222; border: 1px solid #000; border-radius: 6px; overflow: hidden; margin-bottom: 4px; pointer-events: none; position: relative; }
-        .bar-fill { height: 100%; transition: width 0.3s ease-out; }
+        .bar-fill { height: 100%; transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
+        #battle-player-hp-bar, .enemy-hp-bar { transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1); }
         .hp-fill { background: var(--hp-color); }
         .mp-fill { background: var(--mp-color); }
         .bar-text { position: absolute; top: -1px; left: 0; width: 100%; text-align: center; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 1px #000; }
@@ -53,6 +70,18 @@
         /* Targeting System */
         .targeting-active .entity-box.enemy:not(.dead) { cursor: crosshair; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
         .targeting-active .entity-box.enemy:not(.dead):hover { border: 2px solid red; box-shadow: 0 0 15px red; transform: scale(1.05); }
+
+        /* Ensure all child elements of entity boxes allow clicks to bubble cleanly */
+        .entity-box .entity-sprite,
+        .entity-box .entity-sprite svg,
+        .entity-box .entity-sprite svg *,
+        .entity-box .status-tray,
+        .entity-box .status-badge {
+            pointer-events: none !important;
+        }
+        .entity-box {
+            pointer-events: auto;
+        }
         
         /* Dead state */
         .dead { opacity: 0.3; filter: grayscale(100%); pointer-events: none; cursor: default; }
@@ -106,14 +135,140 @@
         .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #444; margin-bottom: 5px; background: #1a1a1a; }
         
         /* Skill Tree CSS */
-        #modal-skilltree { max-width: 800px; width: 95%; }
-        #modal-skilltree .modal-content { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
-        .skill-branch { flex: 1; min-width: 220px; background: #1a1a1a; padding: 10px; border: 1px solid #444; border-radius: 5px; max-height: 60vh; overflow-y: auto; }
-        .skill-branch h3 { text-align: center; color: #ffaa00; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
-        .skill-node { background: #2a2a2a; border: 1px solid #555; padding: 8px; margin-bottom: 8px; border-radius: 4px; display: flex; flex-direction: column; gap: 5px; }
-        .skill-node-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; color: #fff;}
-        .skill-node-desc { font-size: 12px; color: #aaa; }
-        .skill-node-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 5px;}
+/* =========================================================================
+   SKILL TREE 2.0 STYLES
+   ========================================================================= */
+
+#modal-skilltree { max-width: 900px; width: 95%; }
+
+#st-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.skill-branch {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 72vh;
+    overflow-y: auto;
+}
+
+.branch-header {
+    text-align: center;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 4px;
+}
+
+.branch-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.branch-points-badge {
+    font-size: 11px;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.tier-divider {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    background: rgba(30, 41, 59, 0.8);
+    padding: 3px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.skill-node {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid #475569;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.skill-node:hover:not(.node-locked) {
+    border-color: #60a5fa;
+    transform: translateY(-1px);
+}
+
+.skill-node-header {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 13px;
+    color: #f8fafc;
+}
+
+.skill-node-desc {
+    font-size: 11px;
+    color: #cbd5e1;
+    line-height: 1.3;
+}
+
+.skill-node-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.node-locked {
+    opacity: 0.55;
+    border: 1px dashed #64748b !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+}
+
+.node-locked-hint {
+    font-size: 10px;
+    color: #f59e0b;
+    font-style: italic;
+}
+
+.keystone-node {
+    border: 2px solid #eab308 !important;
+    background: radial-gradient(circle at top, rgba(234, 179, 8, 0.15), rgba(15, 23, 42, 0.85)) !important;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.35);
+    position: relative;
+}
+
+.keystone-node .skill-node-header span:first-child {
+    color: #facc15;
+}
+
+.keystone-badge {
+    background: #eab308;
+    color: #000;
+    font-size: 9px;
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    align-self: flex-start;
+}
 
         /* Quest CSS */
         #modal-quests { max-width: 600px; width: 90%; }
@@ -383,3 +538,1240 @@
             box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
             transition: all 0.2s;
         }
+
+        /* Combat Skill Category Filter Tabs */
+        .cat-btn {
+            background: #252836;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 2px;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .cat-btn:hover {
+            background: #334155;
+            border-color: #94a3b8;
+            color: #f8fafc;
+        }
+        .cat-btn.active {
+            background: #2563eb;
+            border-color: #60a5fa;
+            color: #ffffff;
+            box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
+        }
+/* =========================================================================
+   THE INFINITE SPIRE & ASTRAL ALTAR STYLING
+   ========================================================================= */
+.relic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.relic-card {
+    background: #1e1b4b;
+    border: 1px solid #4338ca;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.relic-card.equipped {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.35);
+    background: #2e1065;
+}
+.relic-card.locked {
+    opacity: 0.45;
+    border-style: dashed;
+    border-color: #475569;
+    background: #0f172a;
+}
+.altar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-top: 10px;
+}
+.altar-card {
+    background: #1e1b4b;
+    border: 1px solid #6366f1;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* =========================================================================
+   TOWN SHOP & MERCHANT OVERHAUL STYLES
+   ========================================================================= */
+
+.shop-nav-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px 8px 0 0;
+}
+
+.shop-tab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    background: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.shop-tab-btn:hover {
+    background: #334155;
+    color: #fff;
+    border-color: #475569;
+}
+
+.shop-tab-btn.active {
+    background: #334155;
+    color: #ffd700;
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.shop-bulk-btn-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.shop-bulk-btn {
+    padding: 5px 9px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 4px;
+    border: 1px solid #475569;
+    background: #1e293b;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.shop-bulk-btn:hover:not(:disabled) {
+    background: #3b82f6;
+    color: #ffffff;
+    border-color: #60a5fa;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+.shop-bulk-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #334155;
+    background: #0f172a;
+    color: #64748b;
+}
+
+.mystery-box-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.mystery-box-card {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+    border: 1px solid #38bdf8;
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mystery-box-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25);
+}
+
+.mystery-box-celestial {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(88, 28, 135, 0.95) 100%);
+}
+
+.mystery-box-celestial:hover {
+    box-shadow: 0 6px 22px rgba(245, 158, 11, 0.35);
+}
+
+.materials-stock-banner {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.unboxing-stage {
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    position: relative;
+}
+
+.unboxing-chest {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 15px auto;
+}
+
+.unboxing-chest.shaking {
+    animation: chestShake 0.4s infinite ease-in-out;
+}
+
+.unboxing-chest.bursting {
+    animation: chestBurst 0.35s forwards ease-out;
+}
+
+.unboxing-item-reveal {
+    animation: itemRevealBounce 0.5s ease-out forwards;
+    background: #1e293b;
+    border-radius: 10px;
+    padding: 18px;
+    max-width: 380px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.unboxing-item-reveal.mythic-reveal {
+    animation: itemRevealBounce 0.5s ease-out forwards, mythicGlow 2s infinite ease-in-out;
+}
+
+@keyframes chestShake {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    20% { transform: rotate(-6deg) scale(1.05); }
+    40% { transform: rotate(6deg) scale(1.05); }
+    60% { transform: rotate(-4deg) scale(1.08); }
+    80% { transform: rotate(4deg) scale(1.08); }
+}
+
+@keyframes chestBurst {
+    0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+    50% { transform: scale(1.3); filter: brightness(2); }
+    100% { transform: scale(1.8); opacity: 0; filter: brightness(3); }
+}
+
+@keyframes itemRevealBounce {
+    0% { transform: scale(0.3); opacity: 0; }
+    70% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes mythicGlow {
+    0%, 100% { box-shadow: 0 0 15px #f43f5e, 0 0 30px #f43f5e; }
+    50% { box-shadow: 0 0 25px #ec4899, 0 0 50px #8b5cf6; }
+}
+
+/* =========================================================================
+   MULTI-SLOT SAVE & EXPORT/IMPORT STYLES
+   ========================================================================= */
+
+.save-slot-card {
+    background: rgba(25, 25, 35, 0.9);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.save-slot-card.active-slot {
+    border: 2px solid #38bdf8;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    background: rgba(30, 41, 59, 0.95);
+}
+
+.save-slot-card.empty-slot {
+    border: 1px dashed #64748b;
+    opacity: 0.65;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.save-slot-card:hover {
+    border-color: #38bdf8;
+}
+
+.save-slot-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 6px;
+}
+
+.save-slot-info {
+    font-size: 13px;
+    color: #cbd5e1;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.save-slot-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.save-textarea {
+    background: #0f172a;
+    color: #4ade80;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 10px;
+    width: 100%;
+    height: 110px;
+    resize: vertical;
+    box-sizing: border-box;
+    word-break: break-all;
+}
+
+.save-textarea:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+}
+
+/* =========================================================================
+   COMBAT JUICE, AUDIO SYNTHESIZER & VISUAL POLISH ENGINE
+   ========================================================================= */
+
+/* Screen Shake Keyframes */
+@keyframes shakeLight {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-2px, 1px); }
+    40% { transform: translate(2px, -1px); }
+    60% { transform: translate(-1px, 2px); }
+    80% { transform: translate(1px, -2px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes shakeMedium {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    20% { transform: translate(-6px, 3px) rotate(-1deg); }
+    40% { transform: translate(6px, -4px) rotate(1deg); }
+    60% { transform: translate(-4px, 5px) rotate(-0.5deg); }
+    80% { transform: translate(5px, -3px) rotate(0.5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+@keyframes shakeHeavy {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    15% { transform: translate(-12px, 8px) rotate(-2deg); }
+    30% { transform: translate(12px, -9px) rotate(2deg); }
+    45% { transform: translate(-11px, 7px) rotate(-1.5deg); }
+    60% { transform: translate(9px, -8px) rotate(1.5deg); }
+    75% { transform: translate(-6px, 5px) rotate(-1deg); }
+    90% { transform: translate(4px, -3px) rotate(0.5deg); }
+    100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+.shake-light {
+    animation: shakeLight 0.15s ease-in-out !important;
+}
+
+.shake-medium {
+    animation: shakeMedium 0.25s ease-in-out !important;
+}
+
+.shake-heavy {
+    animation: shakeHeavy 0.35s ease-in-out !important;
+}
+
+/* Entity Hit-Flash */
+.entity-hit-flash {
+    filter: brightness(3.5) contrast(1.5) !important;
+    transition: filter 0.08s ease-in !important;
+}
+
+/* Health Bar Drain Flash */
+.hp-loss-flash {
+    animation: hpFlash 0.25s ease-out;
+}
+
+@keyframes hpFlash {
+    0% { filter: brightness(2.5); }
+    100% { filter: brightness(1.0); }
+}
+
+/* Juiced Critical Floating Text */
+.floating-text-crit {
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    background: linear-gradient(180deg, #fef08a 0%, #ef4444 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    filter: drop-shadow(0 0 4px #000) drop-shadow(2px 3px 0 #000) drop-shadow(0 0 10px rgba(239, 68, 68, 0.8)) !important;
+    animation: critPopBounce 1.1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+    z-index: 70 !important;
+}
+
+@keyframes critPopBounce {
+    0% { opacity: 0; transform: translate(-50%, 10px) scale(0.3); }
+    30% { opacity: 1; transform: translate(-50%, -20px) scale(1.35); }
+    50% { transform: translate(-50%, -15px) scale(1.1); }
+    80% { opacity: 1; transform: translate(-50%, -40px) scale(1.0); }
+    100% { opacity: 0; transform: translate(-50%, -65px) scale(0.85); }
+}
+
+/* Hit VFX Container & Overlays */
+.vfx-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vfx-slash-arc {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    animation: slashSlice 0.22s ease-out forwards;
+}
+
+@keyframes slashSlice {
+    0% { transform: scale(0.5) rotate(-35deg); opacity: 0.1; }
+    50% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+    100% { transform: scale(1.4) rotate(20deg); opacity: 0; }
+}
+
+.vfx-burst {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: burstFade 0.28s ease-out forwards;
+}
+
+@keyframes burstFade {
+    0% { transform: scale(0.4); opacity: 1; }
+    70% { transform: scale(1.2); opacity: 0.9; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+
+.vfx-spark, .vfx-shard {
+    position: absolute;
+    font-size: 22px;
+    animation: particleScatter 0.28s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+@keyframes particleScatter {
+    0% { transform: translate(0, 0) scale(0.8); opacity: 1; }
+    100% { transform: translate(var(--tx, 15px), var(--ty, -15px)) scale(1.3); opacity: 0; }
+}
+
+.vfx-spark.f1 { --tx: -20px; --ty: -20px; }
+.vfx-spark.f2 { --tx: 22px; --ty: -15px; }
+.vfx-spark.f3 { --tx: 0px; --ty: -28px; }
+
+.vfx-shard.i1 { --tx: -20px; --ty: 15px; }
+.vfx-shard.i2 { --tx: 18px; --ty: -20px; }
+.vfx-shard.i3 { --tx: 0px; --ty: 24px; }
+
+.vfx-spark.l1 { --tx: -24px; --ty: -10px; }
+.vfx-spark.l2 { --tx: 16px; --ty: 20px; }
+.vfx-spark.l3 { --tx: 4px; --ty: -26px; }
+
+.vfx-shard.e1 { --tx: -18px; --ty: 18px; }
+.vfx-shard.e2 { --tx: 20px; --ty: 12px; }
+.vfx-shard.e3 { --tx: 0px; --ty: -22px; }
+
+.vfx-halo {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 3px solid #fef08a;
+    box-shadow: 0 0 20px #fef08a, inset 0 0 15px #fde047;
+    animation: haloExpand 0.28s ease-out forwards;
+}
+
+@keyframes haloExpand {
+    0% { transform: scale(0.3); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+
+.vfx-vortex {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #7e22ce 0%, #3b0764 70%, transparent 100%);
+    box-shadow: 0 0 25px #a855f7;
+    animation: vortexSpin 0.28s ease-out forwards;
+}
+
+@keyframes vortexSpin {
+    0% { transform: scale(0.3) rotate(0deg); opacity: 0.9; }
+    100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+}
+
+/* =========================================================================
+   COMPANION PET & FAMILIAR SYSTEM STYLES
+   ========================================================================= */
+
+.pet-card {
+    background: rgba(30, 41, 59, 0.65);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.pet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.pet-rarity-Common {
+    border: 2px solid #94a3b8 !important;
+}
+
+.pet-rarity-Uncommon {
+    border: 2px solid #4ade80 !important;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.25);
+}
+
+.pet-rarity-Rare {
+    border: 2px solid #38bdf8 !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.pet-rarity-Epic {
+    border: 2px solid #c084fc !important;
+    box-shadow: 0 0 12px rgba(192, 132, 252, 0.35);
+}
+
+.pet-rarity-Legendary {
+    border: 2px solid #fb923c !important;
+    box-shadow: 0 0 15px rgba(251, 146, 60, 0.45);
+}
+
+.pet-slot-box {
+    background: rgba(15, 23, 42, 0.7);
+    border: 2px solid #38bdf8;
+    border-radius: 8px;
+    padding: 14px;
+    flex: 1;
+    min-width: 220px;
+    text-align: center;
+}
+
+.pet-locked-slot {
+    border: 2px dashed #64748b !important;
+    background: rgba(15, 23, 42, 0.45);
+    opacity: 0.8;
+}
+
+.battle-pet-badge {
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.battle-pet-badge .pet-pips {
+    font-size: 11px;
+    margin-top: 2px;
+}
+
+@keyframes pet-hop {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    50% {
+        transform: translateY(-8px) scale(1.1);
+    }
+}
+
+.anim-pet-hop {
+    animation: pet-hop 0.4s ease-in-out;
+}
+
+.pet-exp-container {
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    height: 14px;
+    position: relative;
+    overflow: hidden;
+    margin: 8px 0;
+    border: 1px solid #475569;
+}
+
+.pet-exp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4ade80, #22c55e);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.pet-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.pet-feed-btn {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid #64748b;
+    border-radius: 6px;
+    padding: 10px;
+    color: #f8fafc;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.pet-feed-btn:hover:not(:disabled) {
+    border-color: #4ade80;
+    background: rgba(51, 65, 85, 0.9);
+}
+
+.pet-feed-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================================================
+   ARPG QUALITY-OF-LIFE (QoL) & INTEL SUITE STYLES
+   ========================================================================== */
+
+/* Auto-Equip Button & Animations */
+#btn-auto-equip {
+    transition: all 0.2s ease;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+#btn-auto-equip:hover {
+    background: rgba(255, 215, 0, 0.25) !important;
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.4);
+    transform: translateY(-1px);
+}
+#btn-auto-equip:active {
+    transform: translateY(1px);
+}
+
+/* Equipment Side-by-Side Comparison */
+.equip-comparison-strip {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.equip-diff-pills {
+    display: inline-flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.stat-diff-pos {
+    color: #4ade80;
+    background: rgba(74, 222, 128, 0.12);
+    border: 1px solid rgba(74, 222, 128, 0.3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 10px;
+    display: inline-block;
+}
+
+.stat-diff-neg {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 10px;
+    display: inline-block;
+}
+
+.stat-diff-eq {
+    color: #94a3b8;
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    display: inline-block;
+}
+
+/* Inventory Filter Bar & Pills */
+.inv-filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #334155;
+    flex-wrap: wrap;
+}
+
+.inv-filter-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.inv-pill {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.inv-pill:hover {
+    border-color: #ffd700;
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.inv-pill.active {
+    background: #ffd700;
+    color: #0f172a;
+    border-color: #ffd700;
+    font-weight: bold;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+.inv-sort-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.inv-sort-dropdown {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #f8fafc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.inv-sort-dropdown:focus, .inv-sort-dropdown:hover {
+    border-color: #ffd700;
+}
+
+/* Area Scouting & Drop Rate Guide */
+.zone-intel-panel {
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid #3b82f6;
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.zone-intel-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #38bdf8;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.zone-intel-tactics {
+    background: rgba(56, 189, 248, 0.08);
+    border-left: 3px solid #38bdf8;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #cbd5e1;
+    margin-bottom: 10px;
+    border-radius: 0 4px 4px 0;
+    line-height: 1.4;
+}
+
+.zone-roster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 8px;
+}
+
+.zone-monster-card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 11px;
+}
+
+.zone-monster-card.zone-boss-card {
+    border: 1px solid #ffd700;
+    background: rgba(255, 215, 0, 0.06);
+    grid-column: 1 / -1;
+}
+
+.zone-drop-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin: 2px 3px 2px 0;
+    font-size: 10px;
+    color: #e2e8f0;
+}
+
+/* Stat Breakdown Panel */
+.stat-breakdown-panel {
+    margin-top: 12px;
+    padding: 8px 10px;
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid #334155;
+    border-radius: 6px;
+}
+
+.stat-breakdown-title {
+    font-size: 10px;
+    font-weight: bold;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-breakdown-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.stat-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.stat-breakdown-row:hover {
+    background: rgba(56, 189, 248, 0.1);
+}
+
+.stat-bd-name {
+    font-weight: bold;
+    color: #e2e8f0;
+    width: 45px;
+}
+
+.stat-bd-formula {
+    color: #94a3b8;
+    font-size: 10px;
+    text-align: right;
+    font-family: monospace;
+}
+
+
+/* ==========================================================================
+   COMBAT FLOW & INVENTORY SAFETY QOL STYLES
+   ========================================================================== */
+
+/* Quick Potion Button */
+#btn-quick-potion {
+    transition: all 0.2s ease;
+}
+#btn-quick-potion:hover:not(:disabled) {
+    background: rgba(74, 222, 128, 0.2) !important;
+    transform: translateY(-1px);
+}
+#btn-quick-potion:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #475569 !important;
+    color: #94a3b8 !important;
+}
+
+/* Battle Victory Actions Mode */
+.victory-mode-ui #cmd-main,
+.victory-mode-ui #target-prompt,
+.victory-mode-ui #battle-sub-menu {
+    display: none !important;
+}
+.victory-mode-ui #battle-victory-actions {
+    display: flex !important;
+}
+
+#btn-hunt-again:hover {
+    background: rgba(74, 222, 128, 0.25) !important;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
+    transform: translateY(-1px);
+}
+#btn-return-town:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Item Lock / Favorite System */
+.btn-lock-toggle {
+    background: transparent;
+    border: none;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+.btn-lock-toggle:hover {
+    transform: scale(1.25);
+}
+.btn-lock-toggle.locked {
+    filter: drop-shadow(0 0 4px #ffd700);
+}
+
+.equip-card.locked {
+    border-color: rgba(255, 215, 0, 0.6) !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.item-lock-badge {
+    font-size: 10px;
+    color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+    border: 1px solid #ffd700;
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-weight: bold;
+    display: inline-block;
+    letter-spacing: 0.5px;
+}
+
+/* Batch Sell Junk Button */
+#btn-sell-junk, #btn-shop-sell-junk {
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+#btn-sell-junk:hover, #btn-shop-sell-junk:hover {
+    background: rgba(251, 191, 36, 0.2) !important;
+    border-color: #f59e0b !important;
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================================
+   SKILL TREE BRANCH FILTER PILL STYLES
+   ========================================================================= */
+.st-pill-btn {
+    border-radius: 12px;
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #cbd5e1;
+    transition: all 0.2s ease;
+}
+.st-pill-btn:hover {
+    border-color: #38bdf8;
+    color: #fff;
+}
+.st-pill-btn.active {
+    background: #38bdf8 !important;
+    border-color: #38bdf8 !important;
+    color: #0f172a !important;
+    font-weight: bold;
+}
+
+/* =========================================================================
+   MOBILE PORTRAIT & TABLET RESPONSIVE ENGINE (<= 768px)
+   ========================================================================= */
+@media (max-width: 768px) {
+    /* Safe Area Padding for Modern Devices (iPhone Home Bar / Notch) */
+    body {
+        padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+    /* 1. Mobile Header Bar */
+    .header-bar {
+        padding: 8px 12px;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .header-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    .header-brand {
+        font-size: 16px;
+        font-weight: bold;
+        color: #f8fafc;
+    }
+    .header-actions {
+        display: flex;
+        gap: 4px;
+    }
+    .header-actions .btn {
+        margin: 0;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+    .header-stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
+        justify-content: flex-start;
+        align-items: center;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-top: 4px;
+        width: 100%;
+    }
+    .header-stats span {
+        margin-right: 0;
+    }
+    /* 2. Town Hub 2-Column Mobile Touch Grid */
+    .town-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        width: 100% !important;
+        max-width: 440px !important;
+        padding: 10px !important;
+        box-sizing: border-box;
+    }
+    .town-grid .btn {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 64px !important;
+        margin: 0 !important;
+        font-size: 13px !important;
+        padding: 8px 6px !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    /* 3. Stacked Top-Down Combat Arena */
+    #battle-arena {
+        flex-direction: column !important;
+        overflow: hidden;
+    }
+    #btn-combat-speed {
+        top: 8px;
+        right: 8px;
+        padding: 4px 10px;
+        font-size: 11px;
+    }
+    /* Top: Enemies Area (Spacious Touch Targets) */
+    #enemies-side {
+        order: 1 !important;
+        width: 100% !important;
+        flex: 1 !important;
+        min-height: 180px !important;
+        max-height: 48% !important;
+        padding: 8px !important;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        overflow-y: auto;
+    }
+    .entity-box {
+        width: 115px !important;
+        padding: 6px !important;
+    }
+    .entity-sprite {
+        width: 75px !important;
+        height: 75px !important;
+        margin-bottom: 4px !important;
+    }
+    .boss-sprite {
+        width: 110px !important;
+        height: 110px !important;
+    }
+    /* Middle: Player Strip */
+    #player-side {
+        order: 2 !important;
+        width: 100% !important;
+        border-right: none !important;
+        border-top: 1px dashed rgba(255, 255, 255, 0.15) !important;
+        border-bottom: 1px solid #333 !important;
+        padding: 6px 10px !important;
+        flex-shrink: 0;
+        background: rgba(0, 0, 0, 0.35);
+    }
+    #player-side .entity-box {
+        width: 100% !important;
+        max-width: 440px;
+        flex-direction: row !important;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        padding: 2px 4px !important;
+    }
+    #player-side .entity-sprite {
+        width: 44px !important;
+        height: 44px !important;
+        margin-bottom: 0 !important;
+        flex-shrink: 0;
+    }
+    #player-side .entity-name, #player-side .entity-element {
+        display: none; /* Streamlined for portrait */
+    }
+    #player-side .bar-container {
+        margin-bottom: 2px !important;
+        height: 11px !important;
+    }
+    #battle-player-bars {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    #player-pets-container {
+        margin-top: 0 !important;
+        flex-shrink: 0;
+    }
+    .battle-pet-badge {
+        padding: 2px 4px !important;
+        min-width: 50px !important;
+    }
+    /* 4. Bottom Thumb Control Zone & Combat Log */
+    #battle-ui {
+        height: auto !important;
+        max-height: 46vh !important;
+        flex-direction: column-reverse !important;
+        border-top: 2px solid #555;
+        padding-bottom: max(6px, env(safe-area-inset-bottom));
+        background: #18181b;
+    }
+    #battle-commands {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 8px !important;
+        min-height: 125px !important;
+        box-sizing: border-box;
+    }
+    .cmd-grid {
+        gap: 8px !important;
+    }
+    .cmd-grid .btn {
+        min-height: 48px !important;
+        font-size: 15px !important;
+        padding: 8px !important;
+        border-radius: 8px;
+    }
+    #btn-quick-potion {
+        min-height: 42px !important;
+        font-size: 13px !important;
+    }
+    /* Compact 2-Line Action Ticker */
+    #combat-log {
+        height: 65px !important;
+        max-height: 75px !important;
+        min-height: 55px !important;
+        padding: 6px 10px !important;
+        font-size: 11.5px !important;
+        border-right: none !important;
+        border-bottom: 1px solid #27272a !important;
+        background: #09090b;
+        flex: none !important;
+    }
+    /* Victory Actions on Mobile */
+    #battle-victory-actions .btn {
+        min-height: 48px !important;
+        font-size: 16px !important;
+    }
+    /* 5. Mobile Modals (Full-Sheet Optimization) */
+    .modal {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        max-height: 88vh !important;
+        padding: 12px 14px !important;
+        border-radius: 12px !important;
+    }
+    .modal-header {
+        font-size: 18px !important;
+        margin-bottom: 10px !important;
+    }
+    .close-btn {
+        font-size: 24px;
+        padding: 4px 10px;
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* Skill Tree Mobile Stack */
+    #st-content {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+    }
+    .st-branch, .skill-branch {
+        width: 100% !important;
+    }
+}

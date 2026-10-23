@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Elemental Realms</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -10,18 +10,22 @@
     <div id="toast-container"></div>
 
     <div class="header-bar">
-        <div>Elemental Realms</div>
+        <div class="header-top-row">
+            <div class="header-brand">Elemental Realms</div>
+            <div class="header-actions">
+                <button class="btn" id="btn-hdr-audio" style="padding: 2px 10px;" onclick="toggleAudio()" title="Sound Volume">🔊</button>
+                <button class="btn" id="btn-hdr-saves" style="padding: 2px 10px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-saves')">💾 Slots</button>
+                <button class="btn" id="btn-hdr-save" style="padding: 2px 10px;" onclick="saveGame()">Save</button>
+                <button class="btn" id="btn-hdr-load" style="padding: 2px 10px;" onclick="loadGame()">Load</button>
+            </div>
+        </div>
         <div class="header-stats">
-            <span id="hdr-title-wrap" style="margin-right: 10px; color: #ffd700; font-weight: bold;">[<span id="hdr-title">Novice</span>]</span>
-            <span id="hdr-class-wrap" style="margin-right: 15px; color: #a855f7; font-weight: bold;">[<span id="hdr-class">Novice</span>]</span>
+            <span id="hdr-title-wrap" style="color: #ffd700; font-weight: bold;">[<span id="hdr-title">Novice</span>]</span>
+            <span id="hdr-class-wrap" style="color: #a855f7; font-weight: bold;">[<span id="hdr-class">Novice</span>]</span>
             <span>LV: <span id="hdr-lvl">1</span></span>
             <span>HP: <span id="hdr-hp">100</span>/<span id="hdr-maxhp">100</span></span>
             <span>MP: <span id="hdr-mp">50</span>/<span id="hdr-maxmp">50</span></span>
             <span>Gold: <span id="hdr-gold">100</span></span>
-        </div>
-        <div>
-            <button class="btn" id="btn-hdr-save" style="padding: 2px 10px;" onclick="saveGame()">Save</button>
-            <button class="btn" id="btn-hdr-load" style="padding: 2px 10px;" onclick="loadGame()">Load</button>
         </div>
     </div>
 
@@ -29,8 +33,9 @@
     <div id="screen-main" class="screen active">
         <div class="main-content">
             <h1 style="font-size: 48px; margin-bottom: 40px; text-shadow: 0 0 10px var(--fire);">Elemental Realms</h1>
-            <button class="btn" style="font-size: 24px; width: 200px;" onclick="newGame()">New Game</button>
-            <button class="btn" style="font-size: 24px; width: 200px;" onclick="if(localStorage.getItem('er_save')) { loadGame(); } else { showToast('Load Failed', 'No save found.', 'save'); }">Load Game</button>
+            <button class="btn" style="font-size: 24px; width: 220px;" onclick="newGame()">New Game</button>
+            <button class="btn" style="font-size: 24px; width: 220px;" onclick="if(localStorage.getItem('er_save')) { loadGame(); } else { showToast('Load Failed', 'No save found.', 'save'); }">Load Game</button>
+            <button class="btn" id="btn-main-saves" style="font-size: 20px; width: 220px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-saves')">💾 Manage Saves</button>
         </div>
     </div>
 
@@ -38,7 +43,7 @@
     <div id="screen-town" class="screen">
         <div class="main-content">
             <h2 style="font-size: 32px; margin-bottom: 20px;">Town Hub</h2>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+            <div class="town-grid" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
                 <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-battle-prep')">Find Enemies<br>(Battle)</button>
                 <button class="btn" style="width: 150px; height: 100px;" onclick="healInTown()">Rest at Inn<br>(20 Gold)</button>
                 <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-shop')">Shop</button>
@@ -49,6 +54,8 @@
                 <button class="btn" id="btn-town-achievements" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-achievements')">Achievements</button>
                 <button class="btn" id="btn-town-blacksmith" style="width: 150px; height: 100px; color: #fb923c;" onclick="openModal('modal-blacksmith')">Blacksmith<br><span style="font-size: 12px; color: #fb923c;">Forge & Craft</span></button>
                 <button class="btn" id="btn-town-class" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-class-advancement')">Class Sanctum<br><span style="font-size: 12px; color: #a855f7;">Advancement</span></button>
+                <button class="btn" id="btn-town-spire" style="width: 150px; height: 100px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-spire')">The Infinite Spire<br><span style="font-size: 12px; color: #a855f7;" id="btn-town-spire-sub">🌀 Floor 0</span></button>
+                <button class="btn" id="btn-town-pets" style="width: 150px; height: 100px; color: #4ade80; border-color: #4ade80;" onclick="openModal('modal-pets')">🐾 Familiar Sanctuary<br><span style="font-size: 12px; color: #86efac;">Pets & Bonding</span></button>
             </div>
         </div>
     </div>
@@ -64,10 +71,13 @@
                     <div class="entity-sprite" id="player-sprite-visual">
                         <svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#aaaaaa"/><rect x="45" y="10" width="10" height="80" fill="#dddddd"/><rect x="20" y="45" width="60" height="10" fill="#dddddd"/></svg>
                     </div>
-                    <div class="bar-container"><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
-                    <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
-                    <div class="status-tray" id="statuses-player"></div>
+                    <div id="battle-player-bars" style="width: 100%;">
+                        <div class="bar-container"><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
+                        <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
+                        <div class="status-tray" id="statuses-player"></div>
+                    </div>
                 </div>
+                <div id="player-pets-container" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;"></div>
             </div>
             <div id="enemies-side">
                 <!-- Enemies injected here -->
@@ -81,6 +91,7 @@
                     <button class="btn" onclick="openBattleSkills()">Skills</button>
                     <button class="btn" onclick="openBattleItems()">Items</button>
                     <button class="btn" onclick="attemptFlee()">Flee</button>
+                    <button class="btn" id="btn-quick-potion" style="grid-column: span 2; color: #4ade80; border-color: #4ade80; font-size: 12px; font-weight: bold; background: rgba(74, 222, 128, 0.08);" onclick="useQuickPotion()">🧪 Quick Heal: None</button>
                 </div>
                 <div id="target-prompt">
                     Select a target...
@@ -90,6 +101,10 @@
                 <div id="battle-sub-menu">
                     <div id="sub-menu-content"></div>
                     <button id="btn-battle-back" class="btn" style="width: 100%;" onclick="closeSubMenu()">Back</button>
+                </div>
+                <div id="battle-victory-actions" style="display: none; flex-direction: column; gap: 8px; justify-content: center; height: 100%;">
+                    <button class="btn" id="btn-hunt-again" style="padding: 10px 18px; font-size: 14px; font-weight: bold; color: #4ade80; border-color: #4ade80; background: rgba(74, 222, 128, 0.1);" onclick="repeatBattle()">⚔️ Hunt Again</button>
+                    <button class="btn" id="btn-return-town" style="padding: 10px 18px; font-size: 14px; color: #cbd5e1;" onclick="checkLevelUp(); switchScreen('town');">🏠 Return to Town</button>
                 </div>
             </div>
         </div>
@@ -104,8 +119,14 @@
         <div id="battle-prep-content"></div>
     </div>
     <!-- Stats / Equip Modal -->
-    <div class="modal" id="modal-stats">
-        <div class="modal-header">Character Stats <span class="close-btn" onclick="closeAllModals()">×</span></div>
+    <div class="modal" id="modal-stats" style="max-width: 680px;">
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>Character Stats</span>
+                <button class="btn" id="btn-auto-equip" style="padding: 4px 12px; font-size: 12px; color: #ffd700; border-color: #ffd700; background: rgba(255, 215, 0, 0.1); cursor: pointer;" onclick="autoEquipBestGear()">⚡ Auto-Equip Best</button>
+            </div>
+            <span class="close-btn" onclick="closeAllModals()">&times;</span>
+        </div>
         <div style="display: flex; gap: 20px;">
             <div style="flex: 1;">
                 <div style="margin-bottom: 10px; font-size: 15px;"><b>Title:</b> <span id="stat-title" style="color:#ffd700; font-weight:bold;">Novice</span> &nbsp;|&nbsp; <b>Class:</b> <span id="stat-class" style="color:#a855f7; font-weight:bold;">Novice</span></div>
@@ -116,7 +137,8 @@
                     <tr><th>MATK</th><td id="stat-matk">10</td><th>MDEF</th><td id="stat-mdef">10</td></tr>
                     <tr><th>SPD</th><td id="stat-spd">10</td><th>CRIT</th><td id="stat-crit">5%</td></tr>
                 </table>
-                <p style="font-size: 12px; color: #aaa;">*Stats include equipment & skill tree bonuses</p>
+                <p style="font-size: 12px; color: #aaa; margin-bottom: 4px;">*Hover stats for breakdown or see details below</p>
+                <div id="stat-breakdown-container"></div>
             </div>
             <div style="flex: 1; border-left: 1px solid #444; padding-left: 20px;">
                 <h3 style="margin-bottom: 10px;">Equipment</h3>
@@ -126,14 +148,42 @@
     </div>
 
     <!-- Inventory Modal -->
-    <div class="modal" id="modal-inventory">
-        <div class="modal-header">Inventory <span class="close-btn" onclick="closeAllModals()">×</span></div>
+    <div class="modal" id="modal-inventory" style="max-width: 680px;">
+        <div class="modal-header">Inventory <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div class="inv-filter-bar">
+            <div class="inv-filter-pills">
+                <button class="inv-pill active" id="inv-filter-all" onclick="setInvFilter('all')">All</button>
+                <button class="inv-pill" id="inv-filter-weapons" onclick="setInvFilter('weapons')">Weapons</button>
+                <button class="inv-pill" id="inv-filter-armor" onclick="setInvFilter('armor')">Armor</button>
+                <button class="inv-pill" id="inv-filter-accessories" onclick="setInvFilter('accessories')">Accessories</button>
+                <button class="inv-pill" id="inv-filter-consumables" onclick="setInvFilter('consumables')">Consumables</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <button class="btn" id="btn-sell-junk" style="padding: 4px 10px; font-size: 11px; color: #fbbf24; border-color: #fbbf24; background: rgba(251, 191, 36, 0.08);" onclick="sellAllJunkEquipment()">💰 Sell Unlocked Junk</button>
+                <div class="inv-sort-group">
+                    <label for="inv-sort-select" style="font-size: 11px; color: #aaa;">Sort:</label>
+                    <select id="inv-sort-select" class="inv-sort-dropdown" onchange="setInvSort(this.value)">
+                        <option value="rarity">Rarity</option>
+                        <option value="power">Power</option>
+                        <option value="name">Name</option>
+                    </select>
+                </div>
+            </div>
+        </div>
         <div id="inventory-list"></div>
     </div>
 
     <!-- Shop Modal -->
-    <div class="modal" id="modal-shop">
-        <div class="modal-header">Shop (Gold: <span id="shop-gold"></span>) <span class="close-btn" onclick="closeAllModals()">×</span></div>
+    <div class="modal" id="modal-shop" style="max-width: 720px;">
+        <div class="modal-header">Town Merchant (Gold: <span id="shop-gold">0</span> G) <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div class="shop-nav-tabs" style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 8px;">
+                <button id="shop-tab-equipment" class="shop-tab-btn" onclick="setShopTab('equipment')">⚔️ Equipment</button>
+                <button id="shop-tab-consumables" class="shop-tab-btn active" onclick="setShopTab('consumables')">🧪 Consumables</button>
+                <button id="shop-tab-materials" class="shop-tab-btn" onclick="setShopTab('materials')">🔨 Materials</button>
+            </div>
+            <button class="btn" id="btn-shop-sell-junk" style="padding: 4px 10px; font-size: 11px; color: #fbbf24; border-color: #fbbf24; background: rgba(251, 191, 36, 0.08);" onclick="sellAllJunkEquipment()">💰 Sell Unlocked Junk</button>
+        </div>
         <div id="shop-list"></div>
     </div>
 
@@ -151,11 +201,18 @@
     </div>
 
     <!-- Skill Tree Modal -->
-    <div class="modal" id="modal-skilltree">
-        <div class="modal-header">Skill Tree <span style="font-size:16px; color:#ffd700;">(Orbs: <span id="st-orbs">0</span>)</span> <span class="close-btn" onclick="closeAllModals()">×</span></div>
-        <div class="modal-content" id="st-content">
-            <!-- Dynamically populated by JS -->
+    <div class="modal" id="modal-skilltree" style="max-width: 900px; width: 95%;">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span>Skill Tree</span>
+                <span style="font-size: 16px; color: #ffd700;">Orbs: <span id="st-orbs">0</span></span>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn" id="btn-st-respec" style="padding: 4px 12px; font-size: 13px; color: #38bdf8; border-color: #38bdf8;" onclick="respecSkillTree()">🔄 Respec Tree</button>
+                <span class="close-btn" onclick="closeAllModals()">&times;</span>
+            </div>
         </div>
+        <div id="st-content"></div>
     </div>
 
     <!-- Blacksmith Modal -->
@@ -168,6 +225,56 @@
     <div class="modal" id="modal-class-advancement" style="max-width: 720px;">
         <div class="modal-header">Class Sanctum & Advancement <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
         <div id="class-advancement-content"></div>
+    </div>
+
+    <!-- The Infinite Spire Modal -->
+    <div class="modal" id="modal-spire" style="max-width: 720px;">
+        <div class="modal-header">The Infinite Spire <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div id="spire-content"></div>
+    </div>
+
+    <!-- The Astral Altar Modal -->
+    <div class="modal" id="modal-astral-altar" style="max-width: 680px;">
+        <div class="modal-header">The Astral Altar <span class="close-btn" onclick="closeAllModals()">&times;</span></div>
+        <div id="astral-altar-content"></div>
+    </div>
+
+    <!-- Spire Post-Battle Victory Modal -->
+    <div class="modal" id="modal-spire-victory" style="max-width: 480px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; color: #38bdf8;">🌀 Spire Floor Cleared!</div>
+        <div id="spire-victory-content"></div>
+    </div>
+
+    <!-- Mystery Box Unboxing Reveal Modal -->
+    <div class="modal" id="modal-unboxing" style="max-width: 480px; z-index: 250; text-align: center;">
+        <div class="modal-header"><span id="unboxing-title">Opening Mystery Box...</span> <span class="close-btn" onclick="closeUnboxingModal()">&times;</span></div>
+        <div id="unboxing-stage" class="unboxing-stage"></div>
+    </div>
+
+    <!-- Save Manager Modal -->
+    <div class="modal" id="modal-saves" style="max-width: 720px;">
+        <div class="modal-header">
+            <span>💾 Save Profile Manager</span>
+            <span class="close-btn" onclick="closeAllModals()">&times;</span>
+        </div>
+        <div class="shop-nav-tabs" style="margin-bottom: 12px;">
+            <button id="save-tab-slots" class="shop-tab-btn active" onclick="setSaveTab('slots')">🎮 Save Profiles</button>
+            <button id="save-tab-export" class="shop-tab-btn" onclick="setSaveTab('export')">📋 Export / Import</button>
+        </div>
+        <div id="saves-content"></div>
+    </div>
+
+    <!-- Familiar Sanctuary Modal -->
+    <div class="modal" id="modal-pets" style="max-width: 760px;">
+        <div class="modal-header">
+            <span>🐾 Familiar Sanctuary</span>
+            <span class="close-btn" onclick="closeAllModals()">&times;</span>
+        </div>
+        <div class="shop-nav-tabs" style="margin-bottom: 12px;">
+            <button id="pets-tab-active" class="shop-tab-btn active" onclick="setPetsTab('active')">🐾 Active Companions</button>
+            <button id="pets-tab-feed" class="shop-tab-btn" onclick="setPetsTab('feed')">🍖 Feed & Bond</button>
+        </div>
+        <div id="pets-content"></div>
     </div>
 
     <!-- Database Constants First -->
