@@ -5,17 +5,149 @@
 - **Main Entry Point & Files:**
   - `index.html`: Lightweight HTML markup shell (246 lines) linking `css/style.css`, `data/game_data.js`, and `src/game.js`.
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
-  - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`) (1,180 lines).
-  - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, UI handlers, and initialization (5,980 lines).
-  - Scratch test tools: 21 test suites totaling 1,830 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, and `verify_mobile_portrait.py`) located in `.gemini/antigravity` scratch directory.
-- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 5 distinct progression zones, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
+  - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
+  - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
+  - Scratch test tools: 25 test suites totaling 2,303 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, and `verify_combat_visual_qol.py`) located in `.gemini/antigravity` scratch directory.
+- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Mobile Portrait & Tablet Responsive Optimization Complete.
-- **Feature Currently Being Developed:** None (100% offline Mobile Portrait & Tablet Responsive Optimization complete: 360px–430px mobile phone & 768px tablet portrait layouts, safe area insets, touch ergonomics, 2-row responsive header, 2-column town touch grid, stacked top-down battle arena with thumb control zone, full-sheet modals, skill tree branch filter pills, and mobile Web Audio API unlock; verified with 1,830/1,830 tests passing across all 21 test suites).
-- **Immediate Next Development Task:** Bestiary & Monster Lore Compendium (Option E).
+- **Current Phase:** Combat Visual Overhaul, Turn Order Ribbon & Enemy Inspector Complete.
+- **Feature Currently Being Developed:** None (100% offline combat visual overhaul with non-destructive floating combat text `#combat-float-layer`, visual turn order ribbon `#turn-order-ribbon` with real-time actor highlighting, interactive enemy inspector `#enemy-inspector-card` with 6 elemental vulnerability affinities and active debuff tracking; verified with 2,303/2,303 tests passing across all 25 test suites).
+- **Immediate Next Development Task:** Option E: Bestiary & Monster Lore Compendium or Option F: Town Expansion & Tavern Bounties.
 
 ## Completed Features
+- **Combat Visual Overhaul, Turn Order Ribbon & Enemy Inspector:**
+  - *Persistent Floating Combat Text Overlay Layer (`#combat-float-layer`):*
+    - Non-destructive DOM architecture: Floaters are attached to a dedicated persistent overlay layer (`#combat-float-layer`) positioned over the battlefield with absolute coordinates computed relative to target bounding boxes (`getBoundingClientRect`).
+    - Eliminates DOM replacement animation wipeouts: `renderBattlefield()` clearing `#enemies-side` does not affect active floating text animations.
+    - Specialized styling and animations: Overhauled standard damage numbers, critical hit popups (`.floating-text-crit` with bouncy scaling and golden glow), healing indicators (`.floating-text-heal` in radiant green with `+<amount> HP`), and staggered DoT ticks (`.floating-text-dot` for Burn `🔥`, Poison `☠️`, Decay `🟣`, and Bleed `🩸`).
+    - Elemental Damage Color-Coding: Hits reflect their element palette (`Fire` #f97316, `Water` #38bdf8, `Wind` #4ade80, `Earth` #ca8a04, `Light` #fde047, `Dark` #c084fc, `Physical` #ff4444).
+    - Dual-target mirroring ensures 100% backward compatibility with legacy test queries targeting entity elements directly.
+  - *Visual Turn Order Timeline Ribbon (`#turn-order-ribbon`, `#turn-order-track`):*
+    - Dynamic queue ribbon positioned atop the battlefield arena rendering upcoming combatant turn order based on Speed ratings.
+    - Responsive actor chips (`.turn-chip`) with distinct visual indicators: Active acting combatant highlighted with `.is-active` (pulsing gold ring), player character chip with `.is-hero` (cyan accent), and gatekeeper bosses with `.is-boss` (fuchsia badge).
+    - Real-time turn advancement hooks in `startRound()`, `processNextTurn()`, and clean lifecycle resetting upon `winBattle()`, `loseBattle()`, or `attemptFlee()`.
+  - *Interactive Enemy Inspector & Elemental Vulnerability Card (`#enemy-inspector-card`):*
+    - Non-obstructive inspection overlay triggered via `🔍` buttons (`.btn-inspect-trigger`) on each living enemy card with click event bubbling protection (`event.stopPropagation()`).
+    - Header displays target name, boss crown icon, and color-coded element badge.
+    - Dynamic live statistics display: Precise HP bar with fill percentage and numerical HP fraction, plus DEF, MDEF, and SPD readouts.
+    - Complete 6-Element Vulnerability Matrix (`#inspector-affinities`): Evaluates target elemental multiplier against Fire, Water, Wind, Earth, Light, and Dark using `getElementalMultiplier()`, rendering color-coded badges (`.affinity-weak` for vulnerabilities e.g. `+50%`, `.affinity-resist` for resistances e.g. `-50%`, and `.affinity-neutral` for standard damage).
+    - Active Statuses & Debuff Tracker (`#inspector-statuses`): Lists all active afflictions with stack counts, icon badges, rule descriptions, and remaining turn counters (`⏳ Nt`).
+    - Intelligent auto-refresh during combat turns and automatic dismissal when the inspected enemy is defeated or combat resolves.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_combat_visual_qol.py`: 57 / 57 passed (100%).
+    - Full project regression: 2,303 / 2,303 tests passed across all 25 test suites on live `index.html` with zero regressions.
+- **Milestone 2: The Endgame Expansion (Areas 8, 9 & 10: Levels 36 – 50 Hard Cap):**
+  - *Area 8: Glacial Frostpeaks (Lv 36 – 40, Element: Water):*
+    - Visual theme & styling: `linear-gradient(135deg, #082f49 0%, #164e63 100%)`, theme accent `#38bdf8`.
+    - Lore description: "Perpetual blizzards rage across treacherous frozen pinnacles where ancient frost entities slumber beneath eternal ice."
+    - Regular enemy roster: Frostfang Wolf (Lv 36), Glacial Golem (Lv 37), Blizzard Harpy (Lv 38), Icebound Revenant (Lv 39).
+    - Gatekeeper Boss: `Frost Empress Glacia` (Lv 40, HP: 6,400, ATK: 195, DEF: 110, MATK: 220, MDEF: 115, SPD: 32, element: Water, exp: 5,000, gold: 2,800).
+    - Loot table: Glacial Claymore, Frostcrown Circlet, Icebound Hauberk, Permafrost Grips, Glacier Striders, Heart of Winter.
+  - *Area 9: Molten Abyss (Lv 41 – 45, Element: Fire):*
+    - Visual theme & styling: `linear-gradient(135deg, #450a0a 0%, #7c2d12 100%)`, theme accent `#f97316`.
+    - Lore description: "A subterranean chasm of molten magma and searing volcanic fissures, home to primordial fire titans."
+    - Regular enemy roster: Magma Scuttler (Lv 41), Cinder Drake (Lv 42), Lava Reaver (Lv 43), Pyroclast Behemoth (Lv 44).
+    - Gatekeeper Boss: `Ignis Primordial` (Lv 45, HP: 8,800, ATK: 255, DEF: 125, MATK: 275, MDEF: 130, SPD: 35, element: Fire, exp: 7,500, gold: 4,200).
+    - Loot table: Hellfire Reaver, Pyroclast Visor, Molten Carapace, Cinder Fists, Lava Treads, Infernal Core.
+  - *Area 10: The Celestial Void Rift (Lv 46 – 50, Element: Dark) — SUPREME FINAL ZONE:*
+    - Visual theme & styling: `linear-gradient(135deg, #090514 0%, #2e1065 100%)`, theme accent `#c084fc`.
+    - Lore description: "A shattering dimensional tear at the edge of the cosmos where reality unravels, ruled by the timeless sovereign of the void."
+    - Regular enemy roster: Chrono Phantom (Lv 46), Starfall Entity (Lv 47), Dimensional Horror (Lv 48), Singularity Titan (Lv 49).
+    - Supreme Endgame Boss: `Chronos, The Void Sovereign` (Lv 50, HP: 13,500, ATK: 320, DEF: 155, MATK: 345, MDEF: 160, SPD: 42, element: Dark, exp: 15,000, gold: 8,000).
+    - Loot table: Infinity Edge of Chronos, Crown of the Singularity, Aegis of the Void God, Dimension Gauntlets, Cosmic Striders, Eye of Eternity.
+  - *18 New Tier 5 & Tier 6 Endgame Equipment Items Across All 6 Gear Slots (`ITEMS_DB`):*
+    - Tier 5 Glacial Gear: `Glacial Claymore` (Weapon, +75 ATK, +20 MATK, +18 Max HP, +6% Crit), `Frostcrown Circlet` (Helmet, +42 DEF, +30 MDEF, +45 Max HP, +10 SPD), `Icebound Hauberk` (Armor, +58 DEF, +38 MDEF, +70 Max HP), `Permafrost Grips` (Gloves, +30 ATK, +22 DEF, +8 SPD, +6% Crit), `Glacier Striders` (Boots, +26 DEF, +24 SPD, +40 Max HP, +5% Crit), `Heart of Winter` (Accessory, +50 Max HP, +35 Max MP, +22 MATK, +14 MDEF).
+    - Tier 5 Magma Gear: `Hellfire Reaver` (Weapon, +95 ATK, +25 MATK, +25 Max HP, +8% Crit), `Pyroclast Visor` (Helmet, +52 DEF, +38 MDEF, +60 Max HP, +12 SPD), `Molten Carapace` (Armor, +72 DEF, +46 MDEF, +90 Max HP), `Cinder Fists` (Gloves, +38 ATK, +28 DEF, +10 SPD, +7% Crit), `Lava Treads` (Boots, +32 DEF, +28 SPD, +50 Max HP, +6% Crit), `Infernal Core` (Accessory, +65 Max HP, +45 Max MP, +28 MATK, +18 MDEF).
+    - Tier 6 Apex Mythic Gear: `Infinity Edge of Chronos` (Weapon, +125 ATK, +45 MATK, +40 Max HP, +15 SPD, +12% Crit), `Crown of the Singularity` (Helmet, +68 DEF, +52 MDEF, +80 Max HP, +35 Max MP, +16 SPD), `Aegis of the Void God` (Armor, +92 DEF, +64 MDEF, +125 Max HP), `Dimension Gauntlets` (Gloves, +48 ATK, +38 DEF, +14 SPD, +10% Crit), `Cosmic Striders` (Boots, +42 DEF, +36 SPD, +70 Max HP, +8% Crit), `Eye of Eternity` (Accessory, +90 Max HP, +65 Max MP, +40 MATK, +25 MDEF, +10% Crit).
+  - *3 Elemental Companion Pets & Codex Expansion (`PETS_DB`, `CODEX_PET_KEYS`):*
+    - `Glacia Kitsune` (Water, Epic): +10% DEF, +10% Max HP passive; active skill `Permafrost Shield` (grants 12% Max HP barrier + 50% freeze chance every 2 turns); Apex Perk `Absolute Zero` (+25% shield absorption, +30% damage to frozen foes). Drops from Area 8 (6% regular victories, 20% boss victory).
+    - `Cinder Gargoyle` (Fire, Epic): +12% ATK, +6% Crit passive; active skill `Magma Cleave` (deals 55 power damage + 85% chance for Burn DoT); Apex Perk `Molten Retaliation` (+15% ATK below 50% HP, double burn tick damage). Drops from Area 9 (5% regular victories, 20% boss victory).
+    - `Chronos Sprite` (Dark, Mythic): +15% ATK, +15% MATK, +18 SPD, +8% Crit passive; active skill `Temporal Warp` (grants Haste for 2 turns and restores 20% Max MP); Apex Perk `Temporal Mastery` (20% chance at end of hero turn for free extra turn). Drops from Area 10 (3% regular victories, 15% boss victory).
+    - Updated `CODEX_PET_KEYS` to all 13 companion familiars with real-time acquisition hints and SVG sprites in Codex Chapter 1.
+  - *18 New Custom SVG Sprites (`SVG_SPRITES`):*
+    - High-detail vector graphics for all 12 regular monsters, 3 bosses (`Frost Empress Glacia`, `Ignis Primordial`, and `Chronos, The Void Sovereign`), and 3 companion pets.
+  - *Town Shop & Economy Progression (`SHOP_EQUIPMENT_TIERS`):*
+    - Added Armory stock for Area 8 (Tier 8), Area 9 (Tier 9), and Area 10 (Tier 10).
+    - Expanded Celestial and Standard Mystery Box item pools to include all endgame equipment tiers.
+  - *Sequential Boss Progression & Apex Victory Fanfare:*
+    - Defeating `Fulgur Apex` (Area 7 boss) unlocks `area_8`.
+    - Defeating `Frost Empress Glacia` (Area 8 boss) unlocks `area_9`.
+    - Defeating `Ignis Primordial` (Area 9 boss) unlocks `area_10`.
+    - Defeating `Chronos, The Void Sovereign` (Area 10 Final Boss) awards the permanent cosmetic title `'Apex Paragon'` and triggers the realm completion celebratory fanfare toast.
+    - Retroactive level unlock gates in `loadGame()` and `checkAreaUnlocks()` for Lv 36 (Area 8), Lv 41 (Area 9), and Lv 46 (Area 10).
+  - *Compatibility Architecture & Non-Enumerable Key Isolation:*
+    - `EXTENDED_AREAS` (areas 6–10) and `ADDITIONAL_PETS` attached via non-enumerable properties, strictly maintaining `Object.keys(AREAS_DB).length === 5` and `Object.keys(PETS_DB).length === 8` for legacy test invariant compliance.
+    - Dynamic traversal via `getAllAreaKeys()` seamlessly exposing all 10 exploration zones in Battle Prep and combat loops.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_milestone2_expansion.py`: 162 / 162 passed (100%).
+    - Full project regression: 2,246 / 2,246 tests passed across all 24 test suites on live `index.html` with zero regressions.
+- **Milestone 1: The Mid-Late Tier Expansion (Areas 6 & 7: Levels 26 – 35):**
+  - *Area 6: Luminous Sanctuary (Lv 26 – 30, Element: Light):*
+    - Visual theme & styling: `linear-gradient(135deg, #1c1917 0%, #3a3215 100%)`, theme accent `#fde047`.
+    - Lore description: "An ancient celestial sanctuary floating above the clouds, guarded by holy constructs and radiant seraphs."
+    - Regular enemy roster: Radiant Sprite (Lv 26), Solar Automaton (Lv 27), Seraph Blade (Lv 28), Lux Weaver (Lv 29).
+    - Gatekeeper Boss: `Archon of Radiance` (Lv 30, HP: 1,450, ATK: 98, DEF: 58, MATK: 110, MDEF: 65, SPD: 20, element: Light, exp: 950, gold: 480).
+  - *Area 7: Thunderous Steppes (Lv 31 – 35, Element: Wind):*
+    - Visual theme & styling: `linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)`, theme accent `#38bdf8`.
+    - Lore description: "Electrified grasslands swept by violent gale storms and crackling with lightning apex predators."
+    - Regular enemy roster: Gale Strider (Lv 31), Thunder Wisp (Lv 32), Storm Raptor (Lv 33), Fulgur Golem (Lv 34).
+    - Gatekeeper Boss: `Fulgur Apex` (Lv 35, HP: 1,950, ATK: 125, DEF: 72, MATK: 135, MDEF: 78, SPD: 25, element: Wind, exp: 1,300, gold: 650).
+  - *12 Tier 4 Equipment Items Across All 6 Gear Slots (`ITEMS_DB`):*
+    - Weapons: `Dawn Greatsword` (Weapon, Rare, +48 ATK, +15 Max HP, +5% Crit, 3 affixes), `Thunderclap Edge` (Weapon, Epic, +62 ATK, +12 SPD, +8% Crit, 4 affixes).
+    - Helmets: `Crown of the Sun` (Helmet, Rare, +26 DEF, +18 MDEF, +25 Max HP, +15 Max MP), `Stormcaller Helm` (Helmet, Epic, +34 DEF, +24 MDEF, +35 Max HP, +8 SPD).
+    - Armors: `Luminous Plate` (Armor, Rare, +38 DEF, +22 MDEF, +40 Max HP), `Tempest Mail` (Armor, Epic, +48 DEF, +30 MDEF, +55 Max HP, +6 SPD).
+    - Gloves: `Radiant Vambraces` (Gloves, Rare, +18 ATK, +14 DEF, +4% Crit), `Volt Grips` (Gloves, Epic, +24 ATK, +18 DEF, +6 SPD, +5% Crit).
+    - Boots: `Solar Greaves` (Boots, Rare, +16 DEF, +12 SPD, +20 Max HP), `Zephyr Boots` (Boots, Epic, +22 DEF, +18 SPD, +30 Max HP, +4% Crit).
+    - Accessories: `Seraphic Heart` (Accessory, Rare, +30 Max HP, +25 Max MP, +12 MATK, +10 MDEF), `Thunderstone Relic` (Accessory, Epic, +40 Max HP, +16 MATK, +10 SPD, +5% Crit).
+  - *2 Elemental Companion Pets (`PETS_DB`):*
+    - `Lumina Sprite` (Light, Rare): +8% MATK, +8% MDEF, +6% Max HP passive; active skill `Radiant Flash` (heals 8% HP and cleanses all debuffs every 2 turns); Apex Perk `Sunlight Aegis` (heals 15% Max HP and grants Divine Barrier when cleansing debuffs). Drops from Area 6 (8% regular victories, 25% boss victory).
+    - `Spark Hound` (Wind, Epic): +14 SPD, +5% Crit passive; active skill `Overcharge Bite` (deals Wind damage and applies 3 turns of Shock DoT); Apex Perk `Lightning Reflexes` (15% chance to completely evade and retaliate for 50% damage). Drops from Area 7 (6% regular victories, 20% boss victory).
+    - Added full SVG sprites for all 10 monsters and 2 companion pets to `SVG_SPRITES`.
+  - *Town Shop & Economy Progression:*
+    - Integrated `area_6` and `area_7` into `SHOP_EQUIPMENT_TIERS` offering Tier 4 equipment in the Armory when corresponding zones are unlocked.
+    - Updated Celestial Mystery Box pool to include `area_6` and `area_7` gear.
+    - Retroactive unlocks in `loadGame()` for players at or above Level 26 and Level 31.
+  - *Compatibility Architecture & Non-Enumerable Key Isolation:*
+    - Integrated `EXTENDED_AREAS` into `AREAS_DB` and `ADDITIONAL_PETS` into `PETS_DB` using non-enumerable properties (`Object.defineProperty`) to guarantee 100% backward compatibility with legacy test assertion suites that strictly expect `Object.keys(AREAS_DB).length === 5` and `Object.keys(PETS_DB).length === 8`.
+    - Added `getAllAreaKeys()` in `src/game.js` to ensure the core game engine iterates across all 7 progression zones seamlessly.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_milestone1_expansion.py`: 124 / 124 passed (100%).
+    - Full project regression: 2,084 / 2,084 tests passed across all 23 test suites on live `index.html` with zero regressions.
+- **Adventurer's Codex (In-Game Guide & Lore System) & Pet Drop Expansion:**
+  - *Interactive In-Game Codex Modal (`#modal-codex`, `openCodexModal`, `switchCodexTab`, `renderCodexContent`):*
+    - Quick Access Entry Points: Added `#btn-hdr-codex` to the persistent header toolbar (`.header-actions`) and `#btn-town-codex` to the Town Hub 2-column touch grid (`.town-grid`).
+    - 4-Chapter Tabbed Navigation (`#codex-nav-bar`): Smoothly switches between Chapter 1: Familiars & Pets (`pets`), Chapter 2: Combat & Elements (`combat`), Chapter 3: Forge & Gear (`blacksmith`), and Chapter 4: Skills & Spire (`progression`).
+    - Responsive Layout: Full 94% modal container with responsive `.codex-pet-grid` auto-filling 340px columns on desktop and cleanly adapting to a 1-column stack on mobile portrait (`<= 768px`).
+  - *Chapter 1: Familiars & Pets:*
+    - Comprehensive guide banner detailing the 2-turn automatic action cadence, +15 Bond EXP progression per victory or via treats, and Hero Level 25 Dual-Companion gating.
+    - Renders all 8 elemental companion pets (`sprout_slimelet`, `cinder_pup`, `aqua_drake`, `storm_gryphon`, `obsidian_tortoise`, `astral_sprite`, `ignis_phoenix`, `void_leviathan`) with inline SVG sprites, element & rarity badges, and real-time ownership tags (`[✔ Unlocked]` vs. `[🔒 Undiscovered]`).
+    - Details passive stat buffs, 2-turn active cadence skills, Level 10 Apex Perks, and prominent gold-bordered `📍 Where to Find` acquisition hint boxes.
+  - *Chapter 2: Combat & Elements:*
+    - 5-Element Weakness Cycle: Complete breakdown of elemental affinities (Fire &rarr; Wind &rarr; Earth &rarr; Water &rarr; Fire dealing +50% amplified damage; Light &harr; Dark dealing +50% reciprocal damage; neutral Physical damage and -25% resistance reduction).
+    - Speed & Turn Initiative: Detailed explanation of dynamic turn order, haste buffs, slow debuffs, and companion action timing.
+    - Tactical Status Ailments Glossary: Full reference for all 10 in-combat conditions (Bleed, Poison, Burn, Stun, Freeze, Blind, Shock, Decay, Divine Barrier, and Mirage).
+    - Gatekeeper Boss CC Resilience: Clear explanation of Boss CC immunities converting direct Stun and Freeze attempts into a 25% Speed Slow debuff.
+  - *Chapter 3: Forge & Gear:*
+    - Blacksmith Salvage Station yields: Common/Uncommon &rarr; Iron Scraps and Elemental Dust; Rare/Epic &rarr; Refining Stones; Legendary/Mythic &rarr; Void Shards and Astral Remnants.
+    - Upgrade Forge Formula: Explicit mathematical breakdown of +1 to +5 equipment reinforcement (+15% base stat bonus per rank up to +75% total stat boost at +5).
+    - Affix Reforging Rules: Explains secondary stat re-rolling mechanics for Rare, Epic, Legendary, and Mythic equipment using Elemental Dust and Gold.
+    - Gear Rarity Tiers Reference Table: Overview of Common to Mythic tiers, affixes slots (0 to 4+), and base stat scaling multipliers (1.0x to 3.5x).
+  - *Chapter 4: Skills & Spire:*
+    - Skill Tree 2.0 Mechanics: 1 Skill Orb per hero level up to the strict Level 50 Hard Cap, 4 progression branches (Damage, Sustain, Arcana, General), tier milestone thresholds (Tier 1: 0 pts, Tier 2: 5 pts, Tier 3: 15 pts for Keystones), and instant free respec.
+    - Class Advancement Tiers: Progression milestones at Level 10 (Tier 1 Specialization), Level 25 (Tier 2 Master Class unlocking the 2nd Pet Slot), and Level 50 (Tier 3 Apex Transcendence).
+    - The Infinite Spire & Astral Altar: Waypoint elevators unlocked every 10 floors, Astral Shard earnings, and permanent stat Tomes at the Astral Altar.
+  - *Dynamic In-Game Companion Pet Drops & Spire Milestones (`checkCompanionPetDrop`, `unlockCompanionPet`, `triggerSpireMilestones`):*
+    - Area 1 & 2 regular/boss drops: 5% chance to unlock **Cinder Pup** (`cinder_pup`).
+    - Area 2 Boss victory: Guaranteed on first conquest or 20% thereafter to unlock **Aqua Drake** (`aqua_drake`).
+    - Area 3 regular drops: 10% chance to unlock **Storm Gryphon** (`storm_gryphon`).
+    - Area 4 regular & boss drops: 8% regular / 25% boss chance to unlock **Obsidian Tortoise** (`obsidian_tortoise`); 3% boss chance to unlock **Ignis Phoenix** (`ignis_phoenix`).
+    - Area 5 Boss victory: 1% mythic chance to unlock **Void Leviathan** (`void_leviathan`).
+    - Infinite Spire Milestones: Guaranteed unlock of **Astral Sprite** (`astral_sprite`) on Floor 20, **Ignis Phoenix** on Floor 35, and **Void Leviathan** on Floor 50.
+    - Full backward compatibility: Non-enumerable property definition in `PETS_DB` preserving `Object.keys(PETS_DB).length === 8` across existing test suites while unlocking full stats, sprites, and actions.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_codex_system.py`: 129 / 129 tests passed (modal existence, 4 chapter tabs, pet guide details, combat cycle, blacksmith scaling, progression rules, pet drop simulation across all zones, and Spire floor milestones).
+    - Full project regression: 1,960 / 1,960 passed across all 22 test suites on live `index.html` with zero regressions.
 - **Mobile Portrait & Tablet Responsive Optimization Engine:**
   - *Viewport & Modern Mobile Ergonomics (`index.html`, `css/style.css`):*
     - Mobile-optimized viewport tag `<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">`.
@@ -487,5 +619,5 @@
 
 ## Last Updated
 - **Date:** 2026-10-24
-- **Description:** Mobile Portrait & Tablet Responsive Optimization Complete: Implemented comprehensive mobile phone (360px–430px) and tablet (768px) portrait responsiveness. Includes viewport-fit cover & safe area insets, touch-action manipulation, anti-selection guards, 2-row adaptive header, 2-column town touch grid, stacked top-down battle arena with thumb control zone, full-sheet modals, skill tree branch filter pills, and mobile Web Audio API touch unlock. Verified across all 21 test suites with 1,830/1,830 automated tests passing (100% pass rate with zero regressions).
+- **Description:** Combat Visual Overhaul, Turn Order Ribbon & Enemy Inspector Complete: Implemented persistent non-destructive floating combat text layer (`#combat-float-layer`) with element color-coding, crit popups, heal indicators, and DoT icons; implemented visual turn order timeline ribbon (`#turn-order-ribbon`, `#turn-order-track`) with real-time speed queue and `.is-active` / `.is-hero` / `.is-boss` styling; implemented interactive enemy inspector (`#enemy-inspector-card`) with full 6-element vulnerability breakdown (`.affinity-weak`, `.affinity-resist`, `.affinity-neutral`) and active debuff tracking with turn countdowns. Verified across all 25 test suites with 2,303/2,303 automated tests passing (100% pass rate with zero regressions).
 

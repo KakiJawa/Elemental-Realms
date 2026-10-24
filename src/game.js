@@ -905,6 +905,8 @@ if (typeof window !== 'undefined') {
                     if (pet.passive.maxMpPct) pStats.maxMp += Math.max(1, Math.round((bStats.maxMp || 50) * (pet.passive.maxMpPct * scale / 100)));
                     if (pet.passive.spd) pStats.spd += Math.round(pet.passive.spd * scale);
                     if (pet.passive.crit) pStats.crit += Math.round(pet.passive.crit * scale);
+                    if (pet.passive.spdPct) pStats.spd += Math.max(1, Math.round((bStats.spd || 10) * (pet.passive.spdPct * scale / 100)));
+                    if (pet.passive.critPct) pStats.crit += Math.round(pet.passive.critPct * scale);
                 }
             });
         }
@@ -1682,7 +1684,7 @@ if (typeof window !== 'undefined') {
             entity.hp = Math.max(0, entity.hp - dmg);
             if (!entity.isPlayer) totalEnemyDotDmg += dmg;
             logMsg(`${entity.name} takes ${dmg} burn damage!`, "#ff4500");
-            floatText(entity.id, `-${dmg} Burn`, "#ff4500");
+            floatText(entity.id, `🔥 -${dmg} Burn`, "#ff4500", false, 'dot');
             animateAction(entity.id, 'anim-shake');
         }
 
@@ -1693,7 +1695,7 @@ if (typeof window !== 'undefined') {
             entity.hp = Math.max(0, entity.hp - dmg);
             if (!entity.isPlayer) totalEnemyDotDmg += dmg;
             logMsg(`${entity.name} takes ${dmg} poison damage (${stacks}x)!`, "#22c55e");
-            floatText(entity.id, `-${dmg} Poison`, "#22c55e");
+            floatText(entity.id, `☠️ -${dmg} Poison`, "#22c55e", false, 'dot');
             animateAction(entity.id, 'anim-shake');
         }
 
@@ -1703,7 +1705,7 @@ if (typeof window !== 'undefined') {
             entity.hp = Math.max(0, entity.hp - dmg);
             if (!entity.isPlayer) totalEnemyDotDmg += dmg;
             logMsg(`${entity.name} suffers ${dmg} decay damage!`, "#a855f7");
-            floatText(entity.id, `-${dmg} Decay`, "#a855f7");
+            floatText(entity.id, `🟣 -${dmg} Decay`, "#a855f7", false, 'dot');
             animateAction(entity.id, 'anim-shake');
         }
 
@@ -1713,7 +1715,7 @@ if (typeof window !== 'undefined') {
             player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + leech);
             pStats.hp = player.baseStats.hp;
             logMsg(`🔮 Soul Siphon leeches ${leech} HP from active DoTs!`, "#a855f7");
-            floatText('battle-player', `+${leech} HP`, "#a855f7");
+            floatText('battle-player', `+${leech} HP`, "#a855f7", false, 'heal');
         }
 
         // D. Berserk Self-Damage
@@ -1846,6 +1848,27 @@ if (typeof window !== 'undefined') {
         }
     }
 
+
+function getAllAreaKeys() {
+    if (typeof AREAS_DB === 'undefined') return [];
+    const keys = Object.keys(AREAS_DB);
+    ['area_6', 'area_7', 'area_8', 'area_9', 'area_10'].forEach(k => {
+        if (AREAS_DB[k] && !keys.includes(k)) keys.push(k);
+    });
+    return keys;
+}
+window.getAllAreaKeys = getAllAreaKeys;
+
+function checkAreaUnlocks() {
+    if (!player || !player.unlockedAreas) return;
+    if (player.level >= 26 && !player.unlockedAreas.includes('area_6')) player.unlockedAreas.push('area_6');
+    if (player.level >= 31 && !player.unlockedAreas.includes('area_7')) player.unlockedAreas.push('area_7');
+    if (player.level >= 36 && !player.unlockedAreas.includes('area_8')) player.unlockedAreas.push('area_8');
+    if (player.level >= 41 && !player.unlockedAreas.includes('area_9')) player.unlockedAreas.push('area_9');
+    if (player.level >= 46 && !player.unlockedAreas.includes('area_10')) player.unlockedAreas.push('area_10');
+}
+window.checkAreaUnlocks = checkAreaUnlocks;
+
         function renderBattlePrep() {
         const container = document.getElementById('battle-prep-content');
         if(!container) return;
@@ -1868,7 +1891,7 @@ if (typeof window !== 'undefined') {
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px;">
         `;
 
-        for(let aId in AREAS_DB) {
+        for(let aId of getAllAreaKeys()) {
             let a = AREAS_DB[aId];
             let isUnlocked = player.unlockedAreas.includes(aId);
             let isSelected = player.selectedArea === aId;
@@ -2182,6 +2205,11 @@ if (typeof window !== 'undefined') {
             if(player.level >= 11 && !player.unlockedAreas.includes('area_3')) player.unlockedAreas.push('area_3');
             if(player.level >= 16 && !player.unlockedAreas.includes('area_4')) player.unlockedAreas.push('area_4');
             if(player.level >= 21 && !player.unlockedAreas.includes('area_5')) player.unlockedAreas.push('area_5');
+            if(player.level >= 26 && !player.unlockedAreas.includes('area_6')) player.unlockedAreas.push('area_6');
+            if(player.level >= 31 && !player.unlockedAreas.includes('area_7')) player.unlockedAreas.push('area_7');
+            if(player.level >= 36 && !player.unlockedAreas.includes('area_8')) player.unlockedAreas.push('area_8');
+            if(player.level >= 41 && !player.unlockedAreas.includes('area_9')) player.unlockedAreas.push('area_9');
+            if(player.level >= 46 && !player.unlockedAreas.includes('area_10')) player.unlockedAreas.push('area_10');
 
             if(!player.selectedArea || !player.unlockedAreas.includes(player.selectedArea)) {
                 player.selectedArea = player.unlockedAreas[player.unlockedAreas.length - 1] || 'area_1';
@@ -2635,6 +2663,7 @@ if (typeof window !== 'undefined') {
         
         if (leveledUp) {
             playSFX('level_up');
+            checkAreaUnlocks();
             player.skillOrbs += totalOrbsGained;
             computeStats();
             
@@ -2915,8 +2944,14 @@ if (typeof window !== 'undefined') {
                     if (statKey === 'mdef' && pet.passive.mdefPct) result.pets += Math.max(1, Math.round((bStats.mdef || 10) * (pet.passive.mdefPct * scale / 100)));
                     if (statKey === 'maxHp' && pet.passive.maxHpPct) result.pets += Math.max(1, Math.round((bStats.maxHp || 100) * (pet.passive.maxHpPct * scale / 100)));
                     if (statKey === 'maxMp' && pet.passive.maxMpPct) result.pets += Math.max(1, Math.round((bStats.maxMp || 50) * (pet.passive.maxMpPct * scale / 100)));
-                    if (statKey === 'spd' && pet.passive.spd) result.pets += Math.round(pet.passive.spd * scale);
-                    if (statKey === 'crit' && pet.passive.crit) result.pets += Math.round(pet.passive.crit * scale);
+                    if (statKey === 'spd') {
+                        if (pet.passive.spd) result.pets += Math.round(pet.passive.spd * scale);
+                        if (pet.passive.spdPct) result.pets += Math.max(1, Math.round((bStats.spd || 10) * (pet.passive.spdPct * scale / 100)));
+                    }
+                    if (statKey === 'crit') {
+                        if (pet.passive.crit) result.pets += Math.round(pet.passive.crit * scale);
+                        if (pet.passive.critPct) result.pets += Math.round(pet.passive.critPct * scale);
+                    }
                 }
             });
         }
@@ -4283,13 +4318,13 @@ if (typeof window !== 'undefined') {
         // 2. Select eligible base item
         let eligibleItems = [];
         if (boxKey === 'celestial') {
-            ['area_3', 'area_4', 'area_5'].forEach(a => {
+            ['area_3', 'area_4', 'area_5', 'area_6', 'area_7', 'area_8', 'area_9', 'area_10'].forEach(a => {
                 if (typeof SHOP_EQUIPMENT_TIERS !== 'undefined' && SHOP_EQUIPMENT_TIERS[a]) {
                     eligibleItems.push(...SHOP_EQUIPMENT_TIERS[a].items);
                 }
             });
         } else {
-            let tiersToCheck = ['area_1', 'area_2', 'area_3', 'area_4', 'area_5'];
+            let tiersToCheck = ['area_1', 'area_2', 'area_3', 'area_4', 'area_5', 'area_6', 'area_7', 'area_8', 'area_9', 'area_10'];
             for (let a of tiersToCheck) {
                 let isUnlocked = (player.unlockedAreas && player.unlockedAreas.includes(a)) || ((player.level || 1) >= (AREAS_DB[a]?.minLevel || 1));
                 if (isUnlocked && typeof SHOP_EQUIPMENT_TIERS !== 'undefined' && SHOP_EQUIPMENT_TIERS[a]) {
@@ -4425,6 +4460,9 @@ if (typeof window !== 'undefined') {
     function startBattle(count = 1, isBossFight = false) {
         if (typeof clearAllCombatTimers === 'function') clearAllCombatTimers();
         closeAllModals();
+        if (typeof closeEnemyInspector === 'function') closeEnemyInspector();
+        const ribbonTrack = document.getElementById('turn-order-track');
+        if (ribbonTrack) ribbonTrack.innerHTML = '';
         switchScreen('battle');
         const speedBtn = document.getElementById('btn-combat-speed');
         if (speedBtn) speedBtn.innerText = `⚡ Speed: ${combatSpeed}x`;
@@ -4606,6 +4644,7 @@ if (typeof window !== 'undefined') {
             let spriteSvg = SVG_SPRITES[e.name] || SVG_SPRITES['Stone Golem'] || '';
 
             el.innerHTML = `
+                <button class="btn-inspect-trigger" onclick="event.stopPropagation(); inspectEnemy(${e.index});" title="Inspect enemy stats & affinities">🔍</button>
                 <div class="entity-name">${e.name}</div>
                 <div class="entity-element elem-${e.element}">${e.element}</div>
                 <div class="${spriteClass}">${spriteSvg}</div>
@@ -4621,6 +4660,14 @@ if (typeof window !== 'undefined') {
 
         updateHeader();
         if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
+        if (battleState && battleState.inspectedEnemyIndex !== undefined && battleState.inspectedEnemyIndex !== null) {
+            const inspected = battleState.enemies && battleState.enemies[battleState.inspectedEnemyIndex];
+            if (inspected && inspected.hp > 0) {
+                inspectEnemy(battleState.inspectedEnemyIndex);
+            } else {
+                closeEnemyInspector();
+            }
+        }
     }
     function logMsg(text, color = '#cccccc') {
         const logEl = document.getElementById('combat-log');
@@ -4748,26 +4795,252 @@ if (typeof window !== 'undefined') {
         return { sfx: 'slash', vfx: 'physical' };
     }
 
-    function floatText(targetId, text, color, isCrit = false) {
+    function floatText(targetId, text, color, isCrit = false, type = 'normal') {
+        const floatLayer = document.getElementById('combat-float-layer');
         const targetEl = document.getElementById(targetId);
-        if(!targetEl) return;
+        if (!targetEl && !floatLayer) return;
+
+        let posX = 50;
+        let posY = 50;
+
+        if (floatLayer && targetEl && typeof floatLayer.getBoundingClientRect === 'function' && typeof targetEl.getBoundingClientRect === 'function') {
+            const layerRect = floatLayer.getBoundingClientRect();
+            const targetRect = targetEl.getBoundingClientRect();
+            const staggerX = (Math.random() - 0.5) * 36;
+            if (targetRect.width > 0 || targetRect.height > 0) {
+                posX = (targetRect.left + (targetRect.width / 2) - layerRect.left) + staggerX;
+                posY = (targetRect.top + (targetRect.height * 0.35) - layerRect.top);
+            } else {
+                posX = 50 + staggerX;
+                posY = 50;
+            }
+        }
+
         const floatEl = document.createElement('div');
-        floatEl.className = 'floating-text' + (isCrit ? ' floating-text-crit' : '');
+        let typeClass = isCrit ? 'floating-text-crit' : (type === 'heal' ? 'floating-text-heal' : (type === 'dot' ? 'floating-text-dot' : ''));
+        floatEl.className = `floating-text ${typeClass}`.trim();
+        
         let displayText = text;
         if (isCrit && !String(text).startsWith('CRIT!')) {
             displayText = 'CRIT! ' + text;
         }
-        floatEl.innerText = displayText;
+        floatEl.innerHTML = displayText;
+
         if (color && !isCrit) {
             floatEl.style.color = color;
         }
-        floatEl.style.left = '50%';
-        floatEl.style.top = isCrit ? '15%' : '20%';
-        floatEl.style.transform = 'translate(-50%, 0)';
-        targetEl.appendChild(floatEl);
-        setTimeout(() => {
-            if (floatEl.parentNode) floatEl.parentNode.removeChild(floatEl);
-        }, isCrit ? 1200 : 1000);
+
+        if (floatLayer) {
+            floatEl.style.left = `${posX}px`;
+            floatEl.style.top = `${posY}px`;
+            floatLayer.appendChild(floatEl);
+            setTimeout(() => {
+                if (floatEl.parentNode) floatEl.parentNode.removeChild(floatEl);
+            }, isCrit ? 1250 : 1100);
+        }
+
+        // Mirror to targetEl for backward-compatibility with test suites querying target element directly
+        if (targetEl && targetEl !== floatLayer) {
+            const mirrorEl = floatEl.cloneNode(true);
+            mirrorEl.style.left = '50%';
+            mirrorEl.style.top = isCrit ? '15%' : '20%';
+            mirrorEl.style.transform = 'translate(-50%, 0)';
+            targetEl.appendChild(mirrorEl);
+            setTimeout(() => {
+                if (mirrorEl.parentNode) mirrorEl.parentNode.removeChild(mirrorEl);
+            }, isCrit ? 1250 : 1100);
+        }
+    }
+    if (typeof window !== 'undefined') {
+        window.floatText = floatText;
+    }
+
+    /* =========================================================================
+       TURN ORDER TIMELINE RIBBON
+       ========================================================================= */
+
+    function renderTurnOrderRibbon() {
+        const track = document.getElementById('turn-order-track');
+        if (!track) return;
+        track.innerHTML = '';
+        if (!battleState || !battleState.active) return;
+
+        const list = [];
+        if (battleState.currentActor) {
+            list.push({ ...battleState.currentActor, isActive: true });
+        }
+        if (battleState.turnQueue && Array.isArray(battleState.turnQueue)) {
+            battleState.turnQueue.forEach((actor, idx) => {
+                list.push({ ...actor, isActive: (!battleState.currentActor && idx === 0) });
+            });
+        }
+
+        if (list.length === 0) return;
+
+        list.forEach(actor => {
+            const chip = document.createElement('div');
+            const isPlayer = actor.type === 'player';
+            let isBoss = false;
+            if (!isPlayer && battleState.enemies && actor.index !== undefined && battleState.enemies[actor.index]) {
+                const e = battleState.enemies[actor.index];
+                isBoss = Boolean(e.isBoss || e.rank === 'boss' || e.tier === 'boss');
+            }
+            let classes = ['turn-chip'];
+            if (isPlayer) classes.push('is-hero');
+            if (isBoss) classes.push('is-boss');
+            if (actor.isActive) classes.push('is-active');
+
+            chip.className = classes.join(' ');
+            const icon = isPlayer ? '🛡️' : (isBoss ? '👑' : '👾');
+            chip.innerHTML = `<span class="chip-icon">${icon}</span> <span class="chip-name">${actor.name || (isPlayer ? 'Hero' : 'Enemy')}</span>`;
+            if (actor.type) chip.dataset.type = actor.type;
+            if (actor.index !== undefined) chip.dataset.index = actor.index;
+            track.appendChild(chip);
+        });
+    }
+    if (typeof window !== 'undefined') {
+        window.renderTurnOrderRibbon = renderTurnOrderRibbon;
+    }
+
+    /* =========================================================================
+       ENEMY INSPECTOR & ELEMENTAL VULNERABILITIES
+       ========================================================================= */
+
+    function closeEnemyInspector() {
+        const card = document.getElementById('enemy-inspector-card');
+        if (card) card.classList.add('hidden');
+        if (battleState) battleState.inspectedEnemyIndex = null;
+    }
+
+    function inspectEnemy(targetRef) {
+        if (!battleState || !battleState.enemies) return;
+        let enemy = null;
+        let idx = null;
+        if (typeof targetRef === 'number') {
+            idx = targetRef;
+            enemy = battleState.enemies[idx];
+        } else if (typeof targetRef === 'string') {
+            const match = targetRef.match(/\d+/);
+            if (match) {
+                idx = parseInt(match[0], 10);
+                enemy = battleState.enemies[idx];
+            } else {
+                idx = battleState.enemies.findIndex(e => e.name === targetRef || e.id === targetRef);
+                if (idx !== -1) enemy = battleState.enemies[idx];
+            }
+        } else if (targetRef && typeof targetRef === 'object') {
+            enemy = targetRef;
+            idx = battleState.enemies.indexOf(enemy);
+            if (idx === -1 && enemy.index !== undefined) idx = enemy.index;
+        }
+
+        if (!enemy || enemy.hp <= 0) {
+            closeEnemyInspector();
+            return;
+        }
+
+        battleState.inspectedEnemyIndex = idx;
+
+        const card = document.getElementById('enemy-inspector-card');
+        if (!card) return;
+
+        // Header: Name & Element
+        const nameEl = document.getElementById('inspector-name');
+        if (nameEl) nameEl.innerText = (enemy.isBoss ? '👑 ' : '') + enemy.name;
+
+        const elemEl = document.getElementById('inspector-element-badge');
+        if (elemEl) {
+            elemEl.innerText = enemy.element || 'Neutral';
+            elemEl.className = `inspector-element-badge elem-${enemy.element}`;
+        }
+
+        // HP Bar & Text
+        const hpFill = document.getElementById('inspector-hp-fill');
+        if (hpFill) {
+            const hpPct = Math.max(0, Math.min(100, (enemy.hp / enemy.maxHp) * 100));
+            hpFill.style.width = `${hpPct}%`;
+        }
+        const hpText = document.getElementById('inspector-hp-text');
+        if (hpText) hpText.innerText = `${enemy.hp} / ${enemy.maxHp} HP`;
+
+        // Defense & Speed
+        const defEl = document.getElementById('inspector-def');
+        if (defEl) defEl.innerText = enemy.def;
+        const mdefEl = document.getElementById('inspector-mdef');
+        if (mdefEl) mdefEl.innerText = enemy.mdef || 0;
+        const spdEl = document.getElementById('inspector-spd');
+        if (spdEl) spdEl.innerText = enemy.spd;
+
+        // Elemental Affinities
+        const affContainer = document.getElementById('inspector-affinities');
+        if (affContainer) {
+            affContainer.innerHTML = '';
+            const allElements = ['Fire', 'Water', 'Wind', 'Earth', 'Light', 'Dark'];
+            const elemIcons = {
+                Fire: '🔥',
+                Water: '💧',
+                Wind: '💨',
+                Earth: '🌿',
+                Light: '✨',
+                Dark: '🌑'
+            };
+
+            allElements.forEach(elem => {
+                let mult = 1.0;
+                if (typeof getElementalMultiplier === 'function') {
+                    mult = getElementalMultiplier(elem, enemy.element);
+                }
+                const pill = document.createElement('span');
+                if (mult > 1.0) {
+                    const pct = Math.round((mult - 1.0) * 100);
+                    pill.className = 'affinity-pill affinity-weak';
+                    pill.innerText = `${elemIcons[elem] || ''} Weak to ${elem} (+${pct}%)`.trim();
+                } else if (mult < 1.0) {
+                    const pct = Math.round((1.0 - mult) * 100);
+                    pill.className = 'affinity-pill affinity-resist';
+                    pill.innerText = `${elemIcons[elem] || ''} Resists ${elem} (-${pct}%)`.trim();
+                } else {
+                    pill.className = 'affinity-pill affinity-neutral';
+                    pill.innerText = `${elemIcons[elem] || ''} ${elem} (Normal)`.trim();
+                }
+                affContainer.appendChild(pill);
+            });
+        }
+
+        // Active Statuses & Debuffs
+        const statusContainer = document.getElementById('inspector-statuses');
+        if (statusContainer) {
+            statusContainer.innerHTML = '';
+            const activeStatuses = Object.values(enemy.statuses || {}).filter(s => s && s.duration > 0);
+            if (activeStatuses.length === 0) {
+                statusContainer.innerHTML = '<span style="font-size: 11px; color: #64748b; font-style: italic;">No active status effects or debuffs.</span>';
+            } else {
+                activeStatuses.forEach(st => {
+                    const def = (typeof STATUS_TYPES_DB !== 'undefined' && STATUS_TYPES_DB[st.id]) || {};
+                    const icon = st.icon || def.icon || '✨';
+                    const name = st.name || def.name || st.id;
+                    const desc = def.desc || '';
+                    const stacksText = (st.stacks && st.stacks > 1) ? ` (${st.stacks}x)` : '';
+                    const row = document.createElement('div');
+                    row.className = 'inspector-status-item';
+                    row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.6); padding: 4px 8px; border-radius: 4px; margin-bottom: 4px; font-size: 11px;';
+                    row.innerHTML = `
+                        <div>
+                            <span style="font-weight: bold; color: ${st.color || '#e2e8f0'};">${icon} ${name}${stacksText}</span>
+                            <span style="color: #94a3b8; margin-left: 6px; font-size: 10px;">${desc}</span>
+                        </div>
+                        <span style="font-weight: bold; color: #facc15; white-space: nowrap; margin-left: 8px;">⏳ ${st.duration}t</span>
+                    `;
+                    statusContainer.appendChild(row);
+                });
+            }
+        }
+
+        card.classList.remove('hidden');
+    }
+    if (typeof window !== 'undefined') {
+        window.inspectEnemy = inspectEnemy;
+        window.closeEnemyInspector = closeEnemyInspector;
     }
 
     function startRound() {
@@ -4777,7 +5050,7 @@ if (typeof window !== 'undefined') {
             if(e.hp > 0) battleState.turnQueue.push({ type: 'enemy', index: e.index, spd: e.spd, name: e.name });
         });
         battleState.turnQueue.sort((a, b) => b.spd - a.spd);
-        
+        if (typeof renderTurnOrderRibbon === 'function') renderTurnOrderRibbon();
         processNextTurn();
     }
 
@@ -4794,6 +5067,8 @@ if (typeof window !== 'undefined') {
         }
 
         const currentTurn = battleState.turnQueue.shift();
+        battleState.currentActor = currentTurn;
+        if (typeof renderTurnOrderRibbon === 'function') renderTurnOrderRibbon();
         
         if(currentTurn.type === 'player') {
             battleState.isPlayerTurn = false;
@@ -4828,7 +5103,7 @@ if (typeof window !== 'undefined') {
                 player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + heal);
                 pStats.hp = player.baseStats.hp;
                 logMsg(`Regeneration restores ${heal} HP.`, "#55ff55");
-                floatText('battle-player', `+${heal}`, '#55ff55');
+                floatText('battle-player', `+${heal} HP`, '#4ade80', false, 'heal');
                 renderBattlefield();
             }
         }
@@ -4919,7 +5194,7 @@ if (typeof window !== 'undefined') {
             let bDmg = Math.max(2, Math.floor(pStats.maxHp * 0.04) + 4);
             playerEnt.hp = Math.max(0, playerEnt.hp - bDmg);
             logMsg(`Hero suffers ${bDmg} bleed damage from attacking!`, "#ef4444");
-            floatText('battle-player', `-${bDmg} Bleed`, "#ef4444");
+            floatText('battle-player', `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
             if (playerEnt.hp <= 0) {
                 loseBattle();
                 return;
@@ -5065,7 +5340,7 @@ if (typeof window !== 'undefined') {
             let bDmg = Math.max(2, Math.floor(pStats.maxHp * 0.04) + 4);
             playerEnt.hp = Math.max(0, playerEnt.hp - bDmg);
             logMsg(`Hero suffers ${bDmg} bleed damage from casting!`, "#ef4444");
-            floatText('battle-player', `-${bDmg} Bleed`, "#ef4444");
+            floatText('battle-player', `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
             if (playerEnt.hp <= 0) {
                 loseBattle();
                 return;
@@ -5476,7 +5751,17 @@ if (typeof window !== 'undefined') {
         
         logMsg(`${target.name} takes ${amount} damage.`);
         applyHitFlash(target.id);
-        floatText(target.id, `-${amount}`, '#ff3333', isCrit);
+        const elemColors = {
+            Fire: '#f97316',
+            Water: '#38bdf8',
+            Wind: '#4ade80',
+            Earth: '#ca8a04',
+            Light: '#fde047',
+            Dark: '#c084fc',
+            Physical: '#ff4444'
+        };
+        const hitColor = elemColors[element] || '#ff4444';
+        floatText(target.id, `-${amount}`, hitColor, isCrit);
         if (isCrit) screenShake('medium');
         animateAction(target.id, 'anim-shake');
 
@@ -5490,6 +5775,9 @@ if (typeof window !== 'undefined') {
         
         if(target.hp <= 0 && wasAlive) {
             if (!target.isPlayer) {
+                if (battleState && (battleState.inspectedEnemyIndex === target.index || (battleState.enemies && battleState.enemies[battleState.inspectedEnemyIndex] === target))) {
+                    if (typeof closeEnemyInspector === 'function') closeEnemyInspector();
+                }
                 playSFX('enemy_death');
 
                 // Midas Touch Keystone: Defeating an enemy with a basic attack or critical hit grants bonus Gold equal to 10% of their Max HP
@@ -5837,12 +6125,12 @@ if (typeof window !== 'undefined') {
             player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + healVal);
             pStats.hp = player.baseStats.hp;
             logMsg(`Hero uses ${itemName}! Restored ${healVal} HP.`, "#55ff55");
-            floatText('battle-player', `+${healVal}`, '#55ff55');
+            floatText('battle-player', `+${healVal} HP`, '#4ade80', false, 'heal');
         } else if(item.effect === 'heal_hp_full') {
             player.baseStats.hp = pStats.maxHp;
             pStats.hp = pStats.maxHp;
             logMsg(`Hero uses ${itemName}! HP fully restored!`, "#55ff55");
-            floatText('battle-player', "FULL HP", '#55ff55');
+            floatText('battle-player', "FULL HP", '#4ade80', false, 'heal');
         } else if(item.effect === 'heal_mp') {
             let healVal = item.value || 30;
             player.baseStats.mp = Math.min(pStats.maxMp, pStats.mp + healVal);
@@ -5857,7 +6145,7 @@ if (typeof window !== 'undefined') {
             pStats.hp = player.baseStats.hp;
             pStats.mp = player.baseStats.mp;
             logMsg(`Hero drinks an Elixir! Restored ${healHp} HP and ${healMp} MP.`, "#ffd700");
-            floatText('battle-player', `+${healHp} HP`, '#55ff55');
+            floatText('battle-player', `+${healHp} HP`, '#4ade80', false, 'heal');
         } else if(item.effect === 'cleanse') {
             if(battleState.playerStatuses) {
                 for(let sId in battleState.playerStatuses) {
@@ -5891,6 +6179,10 @@ if (typeof window !== 'undefined') {
             logMsg("Fled from battle successfully!");
             clearAllCombatTimers();
             battleState.active = false; 
+            battleState.currentActor = null;
+            if (typeof closeEnemyInspector === 'function') closeEnemyInspector();
+            const ribbonTrack = document.getElementById('turn-order-track');
+            if (ribbonTrack) ribbonTrack.innerHTML = '';
             if(typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(false);
             setCombatTimeout(() => { 
                 switchScreen('town'); 
@@ -5931,7 +6223,7 @@ if (typeof window !== 'undefined') {
             let bDmg = Math.max(2, Math.floor(enemy.maxHp * 0.04) + 4);
             enemy.hp = Math.max(0, enemy.hp - bDmg);
             logMsg(`${enemy.name} suffers ${bDmg} bleed damage from moving!`, "#ef4444");
-            floatText(enemy.id, `-${bDmg} Bleed`, "#ef4444");
+            floatText(enemy.id, `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
             renderBattlefield();
             if (enemy.hp <= 0) {
                 logMsg(`${enemy.name} was defeated by Bleed!`, "#ff8888");
@@ -5977,10 +6269,11 @@ if (typeof window !== 'undefined') {
                     decayDmg = Math.floor(healAmount * 0.25);
                     healAmount = Math.max(0, healAmount - decayDmg);
                     logMsg(`${enemy.name}'s Decay corrupted healing into ${decayDmg} damage!`, "#a855f7");
+                    floatText(enemy.id, `Corrupted! -${decayDmg}`, "#a855f7", false, 'dot');
                 }
                 enemy.hp = Math.min(enemy.maxHp, enemy.hp + healAmount - decayDmg);
                 logMsg(`${enemy.name} casts Heal! Restores ${healAmount} HP.`, "#55ff55");
-                floatText(enemy.id, `+${healAmount}`, "#55ff55");
+                floatText(enemy.id, `+${healAmount} HP`, "#4ade80", false, 'heal');
             } 
             else if (action === 'magic') {
                 let dmg = Math.max(1, Math.floor(enemy.matk * 1.5) - pStats.mdef);
@@ -6184,6 +6477,10 @@ if (typeof window !== 'undefined') {
         clearAllCombatTimers();
         battleState.active = false;
         battleState.isPlayerTurn = false;
+        battleState.currentActor = null;
+        if (typeof closeEnemyInspector === 'function') closeEnemyInspector();
+        const ribbonTrack = document.getElementById('turn-order-track');
+        if (ribbonTrack) ribbonTrack.innerHTML = '';
         if(typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(false);
         playSFX('victory');
         
@@ -6282,7 +6579,7 @@ if (typeof window !== 'undefined') {
         // Zone Conquest & Progression Unlock
         let defeatedBoss = battleState.enemies.find(e => e.isBoss);
         if(defeatedBoss && typeof AREAS_DB !== 'undefined') {
-            for(let aId in AREAS_DB) {
+            for(let aId of getAllAreaKeys()) {
                 let a = AREAS_DB[aId];
                 if(a.boss && a.boss.name === defeatedBoss.name) {
                     let num = parseInt(aId.split('_')[1]);
@@ -6296,6 +6593,11 @@ if (typeof window !== 'undefined') {
                     }
                     break;
                 }
+            }
+            if (defeatedBoss.name === 'Chronos, The Void Sovereign' || (defeatedBoss.name && defeatedBoss.name.includes('Chronos'))) {
+                player.activeTitle = 'Apex Paragon';
+                logMsg("👑 CONGRATULATIONS! You have conquered Chronos and completed the Elemental Realms!", "#facc15");
+                showToast('Realm Conquered!', '👑 CONGRATULATIONS! You have conquered Chronos and completed the Elemental Realms!', 'achievement', 9000);
             }
         }
 
@@ -6313,6 +6615,9 @@ if (typeof window !== 'undefined') {
                 player.spire.highestFloor = floor;
             }
             logMsg(`✨ Gained ${floorShards} Astral Shards from Floor ${floor}!`, "#c084fc");
+
+            // Spire Milestone Pet Companion Unlocks
+            if (typeof triggerSpireMilestones === 'function') triggerSpireMilestones(floor);
 
             // Boss Floor Relic Drop Check (every 5th floor)
             let droppedRelic = null;
@@ -6342,6 +6647,11 @@ if (typeof window !== 'undefined') {
             isBoss: battleState.isBossFight || false,
             areaId: (player && player.selectedArea) || 'area_1'
         };
+
+        // Companion Pet Drop System
+        if (typeof checkCompanionPetDrop === 'function') {
+            checkCompanionPetDrop(battleState.lastBattleConfig.areaId, battleState.isBossFight || battleState.lastBattleConfig.isBoss);
+        }
 
         const cmdEl = document.getElementById('battle-commands');
         if (cmdEl) cmdEl.classList.add('victory-mode-ui');
@@ -6406,6 +6716,10 @@ if (typeof window !== 'undefined') {
 
         clearAllCombatTimers();
         battleState.active = false;
+        battleState.currentActor = null;
+        if (typeof closeEnemyInspector === 'function') closeEnemyInspector();
+        const ribbonTrack = document.getElementById('turn-order-track');
+        if (ribbonTrack) ribbonTrack.innerHTML = '';
         if(typeof updateSaveLoadButtons === 'function') updateSaveLoadButtons(false);
         logMsg("Hero was defeated...", "#ff0000");
 
@@ -7288,6 +7602,48 @@ if (typeof updateAudioButton === 'function') updateAudioButton();
         let playerEnt = (typeof getPlayerCombatEntity === 'function') ? getPlayerCombatEntity() : null;
 
         switch (action.type) {
+            case 'shield_freeze': {
+                // Glacia Kitsune: Permafrost Shield
+                let baseShield = Math.max(5, Math.round(pStats.maxHp * ((action.valPct || 12) / 100)));
+                if (isApex) baseShield = Math.round(baseShield * 1.25);
+                battleState.playerBarrier = (battleState.playerBarrier || 0) + baseShield;
+                logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b>, granting a <b>+${baseShield} HP</b> barrier!`, '#38bdf8');
+                if (typeof floatText === 'function') floatText('battle-player', `+${baseShield} Barrier`, '#38bdf8');
+                if (target && Math.random() <= (action.freezeChance || 0.5) && typeof applyStatus === 'function') {
+                    applyStatus(target, 'freeze', 1);
+                    logMsg(`❄️ ${target.name} is Frozen solid!`, '#38bdf8');
+                }
+                break;
+            }
+            case 'buff_time': {
+                // Chronos Sprite: Temporal Warp
+                let healMp = Math.max(5, Math.round(pStats.maxMp * ((action.healMpPct || 20) / 100)));
+                pStats.mp = Math.min(pStats.maxMp, pStats.mp + healMp);
+                player.baseStats.mp = pStats.mp;
+                if (typeof applyStatus === 'function') {
+                    applyStatus('player', 'haste', action.turns || 2);
+                }
+                logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b>, accelerating time! (+${healMp} MP & Haste for ${action.turns || 2} turns)`, '#c084fc');
+                if (typeof floatText === 'function') {
+                    floatText('battle-player', `+${healMp} MP`, '#38bdf8');
+                    floatText('battle-player', 'HASTE!', '#c084fc');
+                }
+                break;
+            }
+            case 'heal_cleanse': {
+                // Lumina Sprite: Solar Blessing
+                let healHp = Math.max(5, Math.round(pStats.maxHp * ((action.valPct || 10) / 100)));
+                pStats.hp = Math.min(pStats.maxHp, pStats.hp + healHp);
+                player.baseStats.hp = pStats.hp;
+                logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b>, restoring <b>+${healHp} HP</b> and cleansing dark energies!`, '#fef08a');
+                if (typeof floatText === 'function') floatText('battle-player', `+${healHp} HP`, '#fef08a');
+                if (player.statuses) {
+                    ['burn', 'poison', 'bleed', 'decay', 'blind', 'slow'].forEach(deb => {
+                        if (player.statuses[deb]) delete player.statuses[deb];
+                    });
+                }
+                break;
+            }
             case 'shield': {
                 // Sprout Slimelet: Pebble Guard (8% Max HP barrier, +15% if Apex)
                 let baseShield = Math.max(5, Math.round(pStats.maxHp * (action.valPct / 100)));
@@ -7298,19 +7654,25 @@ if (typeof updateAudioButton === 'function') updateAudioButton();
                 break;
             }
             case 'damage_dot': {
-                // Cinder Pup: Ember Bite (damage + Burn DoT)
+                // Cinder Pup: Ember Bite (Fire/Burn) | Spark Hound: Overcharge Bite (Wind/Shock)
                 if (target) {
                     let dmg = Math.max(5, Math.round((pStats.atk * 0.8) + (action.power * 0.6)));
                     target.hp = Math.max(0, target.hp - dmg);
-                    logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b> dealing <b>${dmg}</b> damage to ${target.name}!`, '#fb923c');
-                    if (typeof floatText === 'function') floatText(target.id, `-${dmg}`, '#fb923c');
-                    if (typeof triggerElementalImpact === 'function') triggerElementalImpact(target.id, 'Fire');
+                    let elem = pet.element || 'Fire';
+                    let dotType = action.dot || (elem === 'Wind' ? 'shock' : 'burn');
+                    let color = (dotType === 'shock' || elem === 'Wind') ? '#38bdf8' : '#fb923c';
+                    let icon = dotType === 'shock' ? '⚡' : '🔥';
+                    let dotLabel = dotType.charAt(0).toUpperCase() + dotType.slice(1);
+
+                    logMsg(`🐾 <b>${pet.name}</b> uses <b>${action.name}</b> dealing <b>${dmg}</b> damage to ${target.name}!`, color);
+                    if (typeof floatText === 'function') floatText(target.id, `-${dmg}`, color);
+                    if (typeof triggerElementalImpact === 'function') triggerElementalImpact(target.id, elem);
                     if (Math.random() <= (action.dotChance || 0.6)) {
                         let stacks = isApex ? 2 : 1;
                         for (let s = 0; s < stacks; s++) {
-                            if (typeof applyStatus === 'function') applyStatus(target, 'burn', 3);
+                            if (typeof applyStatus === 'function') applyStatus(target, dotType, 3);
                         }
-                        logMsg(`🔥 ${target.name} is afflicted with ${stacks} stack(s) of Burn!`, '#fb923c');
+                        logMsg(`${icon} ${target.name} is afflicted with ${stacks} stack(s) of ${dotLabel}!`, color);
                     }
                 }
                 break;
@@ -7429,3 +7791,364 @@ function setupMobileAudioUnlock() {
 if (typeof window !== 'undefined') {
     setupMobileAudioUnlock();
 }
+
+/* =========================================================================
+   ADVENTURER'S CODEX & COMPANION PET DROP SYSTEM
+   ========================================================================= */
+
+function closeModal(modalId) {
+    if (modalId) {
+        const m = document.getElementById(modalId);
+        if (m) m.classList.remove('active');
+    } else {
+        closeAllModals();
+    }
+}
+window.closeModal = closeModal;
+
+// Companion Pet Drop System
+function checkCompanionPetDrop(areaId, isBoss) {
+    if (!player.pets) player.pets = { unlocked: ['sprout_slimelet'], active: [null, null], levels: {} };
+    if (!Array.isArray(player.pets.unlocked)) player.pets.unlocked = ['sprout_slimelet'];
+    const unlocked = player.pets.unlocked;
+    let candidate = null;
+    // Area 1 & 2 regular/boss drops
+    if ((areaId === 'area_1' || areaId === 'area_2') && !unlocked.includes('cinder_pup') && Math.random() < 0.05) {
+        candidate = 'cinder_pup';
+    } else if (areaId === 'area_2' && isBoss && !unlocked.includes('aqua_drake') && (Math.random() < 0.20 || !player.questStats || player.questStats.bossesDefeated <= 1)) {
+        candidate = 'aqua_drake';
+    } else if (areaId === 'area_3' && !unlocked.includes('storm_gryphon') && Math.random() < 0.10) {
+        candidate = 'storm_gryphon';
+    } else if (areaId === 'area_4' && !unlocked.includes('obsidian_tortoise') && Math.random() < (isBoss ? 0.25 : 0.08)) {
+        candidate = 'obsidian_tortoise';
+    } else if (areaId === 'area_4' && isBoss && !unlocked.includes('ignis_phoenix') && Math.random() < 0.03) {
+        candidate = 'ignis_phoenix';
+    } else if (areaId === 'area_5' && isBoss && !unlocked.includes('void_leviathan') && Math.random() < 0.01) {
+        candidate = 'void_leviathan';
+    } else if (areaId === 'area_6' && !unlocked.includes('lumina_sprite') && Math.random() < (isBoss ? 0.25 : 0.08)) {
+        candidate = 'lumina_sprite';
+    } else if (areaId === 'area_7' && !unlocked.includes('spark_hound') && Math.random() < (isBoss ? 0.20 : 0.06)) {
+        candidate = 'spark_hound';
+    } else if (areaId === 'area_8' && !unlocked.includes('glacia_kitsune') && Math.random() < (isBoss ? 0.20 : 0.06)) {
+        candidate = 'glacia_kitsune';
+    } else if (areaId === 'area_9' && !unlocked.includes('cinder_gargoyle') && Math.random() < (isBoss ? 0.20 : 0.05)) {
+        candidate = 'cinder_gargoyle';
+    } else if (areaId === 'area_10' && !unlocked.includes('chronos_sprite') && Math.random() < (isBoss ? 0.15 : 0.03)) {
+        candidate = 'chronos_sprite';
+    }
+    if (candidate && PETS_DB[candidate]) {
+        unlockCompanionPet(candidate);
+    }
+}
+window.checkCompanionPetDrop = checkCompanionPetDrop;
+
+function unlockCompanionPet(petId) {
+    if (!player.pets) player.pets = { unlocked: ['sprout_slimelet'], active: [null, null], levels: {} };
+    if (!Array.isArray(player.pets.unlocked)) player.pets.unlocked = ['sprout_slimelet'];
+    if (!player.pets.unlocked.includes(petId)) {
+        player.pets.unlocked.push(petId);
+        if (!player.pets.levels) player.pets.levels = {};
+        if (!player.pets.levels[petId]) player.pets.levels[petId] = { level: 1, exp: 0 };
+        const pet = PETS_DB[petId];
+        if (typeof playSFX === 'function') playSFX('chest_reveal_legendary');
+        if (pet) {
+            logMsg(`🐾 <b>NEW COMPANION UNLOCKED:</b> ${pet.name} (${pet.rarity}) has joined you!`, "#4ade80");
+            showToast("🐾 New Companion!", `Unlocked ${pet.name} (${pet.rarity})! Check Familiar Sanctuary.`, "quest", 6000);
+        }
+        if (typeof renderPetsModal === 'function') renderPetsModal();
+        if (typeof renderCodexContent === 'function' && document.getElementById('modal-codex') && document.getElementById('modal-codex').classList.contains('active')) {
+            renderCodexContent();
+        }
+    }
+}
+window.unlockCompanionPet = unlockCompanionPet;
+
+function triggerSpireMilestones(floor) {
+    if (!player.pets) player.pets = { unlocked: ['sprout_slimelet'], active: [null, null], levels: {} };
+    if (!Array.isArray(player.pets.unlocked)) player.pets.unlocked = ['sprout_slimelet'];
+    if (floor >= 20 && !player.pets.unlocked.includes('astral_sprite')) {
+        unlockCompanionPet('astral_sprite');
+    }
+    if (floor >= 35 && !player.pets.unlocked.includes('ignis_phoenix')) {
+        unlockCompanionPet('ignis_phoenix');
+    }
+    if (floor >= 50 && !player.pets.unlocked.includes('void_leviathan')) {
+        unlockCompanionPet('void_leviathan');
+    }
+}
+window.triggerSpireMilestones = triggerSpireMilestones;
+
+let currentCodexTab = 'pets';
+
+function openCodexModal(tab) {
+    if (tab) currentCodexTab = tab;
+    openModal('modal-codex');
+    switchCodexTab(currentCodexTab);
+}
+window.openCodexModal = openCodexModal;
+
+function switchCodexTab(tab) {
+    currentCodexTab = tab || 'pets';
+    document.querySelectorAll('.codex-tab').forEach(btn => {
+        btn.classList.remove('active');
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.includes(`'${currentCodexTab}'`)) {
+            btn.classList.add('active');
+        }
+    });
+    renderCodexContent();
+}
+window.switchCodexTab = switchCodexTab;
+
+function renderCodexContent() {
+    const container = document.getElementById('codex-content');
+    if (!container) return;
+
+    if (currentCodexTab === 'pets') {
+        let petKeys = window.CODEX_PET_KEYS || [
+            'sprout_slimelet', 'cinder_pup', 'aqua_drake', 'storm_gryphon',
+            'obsidian_tortoise', 'astral_sprite', 'ignis_phoenix', 'void_leviathan'
+        ];
+        
+        let unlocked = (player && player.pets && Array.isArray(player.pets.unlocked)) ? player.pets.unlocked : ['sprout_slimelet'];
+
+        let html = `
+            <div class="codex-card" style="border-left: 4px solid #4ade80; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0.9)); margin-bottom: 12px;">
+                <div style="font-size: 14px; font-weight: bold; color: #4ade80; margin-bottom: 4px;">🐾 Companion Familiar Guide & Bonding Mechanics</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.5;">
+                    • <b>2-Turn Action Cadence:</b> Equipped companions execute tactical actions every 2 turns in battle without consuming hero MP or turn time.<br>
+                    • <b>Bond Progression:</b> Companions earn <b>+15 Bond EXP</b> per battle victory while equipped, or through training snacks. Level 10 unlocks their signature <b>Apex Perk</b>!<br>
+                    • <b>Dual-Companion Mastery:</b> Reach <b>Hero Level 25</b> (Master Class) to unlock the 2nd companion battle slot for dual passive and tactical synergies.
+                </div>
+            </div>
+            <div class="codex-pet-grid">
+        `;
+
+        petKeys.forEach(key => {
+            const pet = PETS_DB[key];
+            if (!pet) return;
+            const isOwned = unlocked.includes(key);
+            const rarityColors = {
+                'Common': '#94a3b8',
+                'Uncommon': '#4ade80',
+                'Rare': '#38bdf8',
+                'Epic': '#c084fc',
+                'Legendary': '#f59e0b',
+                'Mythic': '#ec4899'
+            };
+            const rColor = rarityColors[pet.rarity] || '#fbbf24';
+
+            const elemColors = {
+                'Fire': '#ef4444',
+                'Water': '#38bdf8',
+                'Wind': '#22c55e',
+                'Earth': '#eab308',
+                'Light': '#fef08a',
+                'Dark': '#a855f7'
+            };
+            const eColor = elemColors[pet.element] || '#ffffff';
+
+            let passiveStr = Object.entries(pet.passive || {}).map(([k, v]) => {
+                const labelMap = {
+                    atkPct: `+${v}% ATK`,
+                    matkPct: `+${v}% MATK`,
+                    defPct: `+${v}% DEF`,
+                    mdefPct: `+${v}% MDEF`,
+                    maxHpPct: `+${v}% Max HP`,
+                    maxMpPct: `+${v}% Max MP`,
+                    spd: `+${v} SPD`,
+                    spdPct: `+${v}% SPD`,
+                    crit: `+${v}% Crit`,
+                    critPct: `+${v}% Crit`
+                };
+                return labelMap[k] || `+${v} ${k}`;
+            }).join(', ');
+
+            html += `
+                <div class="codex-card" style="display: flex; flex-direction: column; justify-content: space-between; border-color: ${isOwned ? '#334155' : '#27272a'}; opacity: ${isOwned ? '1.0' : '0.9'};">
+                    <div>
+                        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                            <div style="width: 48px; height: 48px; min-width: 48px; background: rgba(0,0,0,0.5); border-radius: 8px; border: 1px solid #334155; padding: 4px; display: flex; align-items: center; justify-content: center;">
+                                ${pet.sprite}
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <b style="font-size: 15px; color: #fff;">${pet.name}</b>
+                                    ${isOwned ? '<span class="codex-badge-owned">✔ Unlocked</span>' : '<span class="codex-badge-unowned">🔒 Undiscovered</span>'}
+                                </div>
+                                <div style="display: flex; gap: 6px; margin-top: 3px;">
+                                    <span style="font-size: 10.5px; font-weight: bold; color: ${eColor}; background: rgba(0,0,0,0.4); padding: 1px 6px; border-radius: 4px; border: 1px solid ${eColor}44;">${pet.element}</span>
+                                    <span style="font-size: 10.5px; font-weight: bold; color: ${rColor}; background: rgba(0,0,0,0.4); padding: 1px 6px; border-radius: 4px; border: 1px solid ${rColor}44;">${pet.rarity}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="font-size: 11.5px; color: #94a3b8; margin-bottom: 8px; font-style: italic;">
+                            "${pet.desc}"
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 5px;">
+                            <span style="color: #60a5fa; font-weight: bold;">Passive:</span> <span style="color: #e2e8f0;">${passiveStr || 'None'}</span>
+                        </div>
+                        <div style="font-size: 12px; margin-bottom: 5px;">
+                            <span style="color: #facc15; font-weight: bold;">Active (2-turn):</span> <span style="color: #e2e8f0;">${pet.action ? pet.action.name : 'Attack'}</span>
+                        </div>
+                        <div style="font-size: 11.5px; margin-bottom: 6px; background: rgba(168, 85, 247, 0.1); border-left: 3px solid #c084fc; padding: 4px 6px; border-radius: 0 4px 4px 0;">
+                            <span style="color: #c084fc; font-weight: bold;">👑 Apex Perk (Lv 10):</span> <span style="color: #e2e8f0;">${pet.apexPerk || 'Apex Synergy'}</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px; padding: 6px 10px; background: rgba(251, 191, 36, 0.1); border: 1px solid #fbbf24; border-radius: 6px; font-size: 11.5px; color: #fde047;">
+                        📍 <b>Where to Find:</b> ${pet.obtainHint || 'Available in adventures.'}
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+        container.innerHTML = html;
+        return;
+    }
+
+    if (currentCodexTab === 'combat') {
+        container.innerHTML = `
+            <div class="codex-card" style="border-left: 4px solid #ef4444; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #f87171; margin-bottom: 8px;">⚔️ 5-Element Weakness Cycle & Affinities</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; font-size: 12.5px; line-height: 1.6; margin-bottom: 10px;">
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 6px; border: 1px solid #334155;">
+                        <span style="color: #ef4444; font-weight: bold;">🔥 Fire</span> &rarr; <span style="color: #4ade80; font-weight: bold;">💨 Wind</span> <span style="color: #facc15; font-size: 11px;">(+50% DMG)</span><br>
+                        <span style="color: #4ade80; font-weight: bold;">💨 Wind</span> &rarr; <span style="color: #eab308; font-weight: bold;">🌿 Earth</span> <span style="color: #facc15; font-size: 11px;">(+50% DMG)</span><br>
+                        <span style="color: #eab308; font-weight: bold;">🌿 Earth</span> &rarr; <span style="color: #38bdf8; font-weight: bold;">💧 Water</span> <span style="color: #facc15; font-size: 11px;">(+50% DMG)</span><br>
+                        <span style="color: #38bdf8; font-weight: bold;">💧 Water</span> &rarr; <span style="color: #ef4444; font-weight: bold;">🔥 Fire</span> <span style="color: #facc15; font-size: 11px;">(+50% DMG)</span>
+                    </div>
+                    <div style="background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 6px; border: 1px solid #334155;">
+                        <span style="color: #fef08a; font-weight: bold;">☀️ Light</span> &harr; <span style="color: #c084fc; font-weight: bold;">🌑 Dark</span> <span style="color: #facc15; font-size: 11px;">(+50% Reciprocal)</span><br>
+                        <span style="color: #cbd5e1; font-weight: bold;">⚔️ Physical:</span> Deals neutral baseline damage against all affinities.<br>
+                        <span style="color: #94a3b8; font-size: 11.5px;">Resisted element strikes deal -25% reduced damage.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #38bdf8; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">⚡ Speed & Initiative Queue</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.5;">
+                    • Turn cadence is governed dynamically by combatant <b>Speed (SPD)</b>. Higher speed allows your hero to act before foes and cycle skill cooldowns faster.<br>
+                    • Haste buffs and Slow debuffs shift the initiative order in real time. Companions take their cadence action on the player's turn every 2 turns.
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #facc15; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #fde047; margin-bottom: 8px;">🧪 Tactical Status Ailments Glossary</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; font-size: 12px;">
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #ef4444; font-weight: bold;">🩸 Bleed:</span> Physical damage over time based on user ATK. Penetrates partial armor.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #22c55e; font-weight: bold;">🧪 Poison:</span> Nature damage ticking at turn start. Stacks multiple times ignoring armor.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #f97316; font-weight: bold;">🔥 Burn:</span> Scorching damage over time. Softens defenses, reducing target DEF by 15%.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #eab308; font-weight: bold;">💫 Stun:</span> Incapacitates target completely, skipping their next turn.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #38bdf8; font-weight: bold;">❄️ Freeze:</span> Freezes target solid; subsequent physical or shatter strikes deal +30% bonus damage.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #94a3b8; font-weight: bold;">👁️ Blind:</span> Impairs vision, causing 50% of incoming physical strikes to miss completely.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #facc15; font-weight: bold;">⚡ Shock:</span> Electrifies target; attacks against shocked foes deal 50% splash damage to nearby enemies.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #713f12; font-weight: bold;">💀 Decay:</span> Necrotic curse reducing all incoming healing by 50% while dealing damage over time.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #60a5fa; font-weight: bold;">🛡️ Divine Barrier:</span> Sacred protective shield absorbing incoming damage up to its total capacity.</div>
+                    <div style="background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 6px; border: 1px solid #27272a;"><span style="color: #c084fc; font-weight: bold;">🌫️ Mirage:</span> Evasive afterimage granting guaranteed 100% dodge on the next direct physical strike.</div>
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #a855f7; margin-bottom: 6px;">
+                <div style="font-size: 15px; font-weight: bold; color: #c084fc; margin-bottom: 6px;">👑 Gatekeeper Boss CC Immunities</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.5;">
+                    • Major Zone Bosses and Gatekeepers possess Crowd Control Resilience. Direct <b>Stun</b> and <b>Freeze</b> effects do not cause them to lose their turn; instead, they automatically convert into a <b>Slow</b> debuff (-25% SPD) for 2 turns, allowing tactical counterplay while keeping encounters fierce and dynamic!
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    if (currentCodexTab === 'blacksmith') {
+        container.innerHTML = `
+            <div class="codex-card" style="border-left: 4px solid #fb923c; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #fb923c; margin-bottom: 8px;">🔨 Salvage Station Yields</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    Turn surplus equipment into valuable crafting and upgrading components at the Town Blacksmith:<br>
+                    • <b>Common & Uncommon:</b> Yields <b>Iron Scraps</b> (used for pet bonding & basic upgrades) and <b>Elemental Dust</b>.<br>
+                    • <b>Rare & Epic:</b> Yields high amounts of <b>Elemental Dust</b> and <b>Refining Stones</b>.<br>
+                    • <b>Legendary & Mythic:</b> Yields prized <b>Void Shards</b> and <b>Astral Remnants</b> required for master forging.<br>
+                    <span style="color: #fbbf24; font-size: 11.5px;">💡 Tip: Click the 🔒 Lock icon on any gear piece in your inventory to safeguard it from batch junk selling or accidental salvage.</span>
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #38bdf8; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #38bdf8; margin-bottom: 8px;">⚡ Upgrade Forge Scaling (+1 to +5)</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    Reinforce any weapon, armor piece, or accessory up to +5 at the Blacksmith Forge:<br>
+                    • <b>Scaling Formula:</b> Each forge rank grants a cumulative <b>+15% base stat increase</b>:<br>
+                    &nbsp;&nbsp;&bull; <b>+1:</b> +15% base stats | <b>+2:</b> +30% base stats | <b>+3:</b> +45% base stats<br>
+                    &nbsp;&nbsp;&bull; <b>+4:</b> +60% base stats | <b>+5:</b> <b>+75% maximum base stat bonus!</b><br>
+                    • Upgrade costs require Gold and materials (Iron Scraps, Elemental Dust, Void Shards) scaling with item tier.
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #c084fc; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #c084fc; margin-bottom: 8px;">✨ Affix Reforging Rules</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    • Available exclusively for <b>Rare, Epic, Legendary, and Mythic</b> equipment.<br>
+                    • Pay Elemental Dust and Gold to re-roll all secondary affixes (Crit Chance, Speed, Elemental Resist, Lifesteal, MP Regen).<br>
+                    • Keep re-rolling until your gear has the ideal stat rolls tailored to your class and keystone build!
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #eab308; margin-bottom: 6px;">
+                <div style="font-size: 15px; font-weight: bold; color: #fde047; margin-bottom: 8px;">💎 Gear Rarity Tiers</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; font-size: 12px; text-align: center;">
+                    <div style="background: rgba(148, 163, 184, 0.1); border: 1px solid #94a3b8; border-radius: 6px; padding: 6px;"><b style="color: #94a3b8;">Common</b><br><span style="font-size: 11px; color: #cbd5e1;">0 Affixes (1.0x)</span></div>
+                    <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; border-radius: 6px; padding: 6px;"><b style="color: #4ade80;">Uncommon</b><br><span style="font-size: 11px; color: #cbd5e1;">1 Affix (1.25x)</span></div>
+                    <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid #38bdf8; border-radius: 6px; padding: 6px;"><b style="color: #38bdf8;">Rare</b><br><span style="font-size: 11px; color: #cbd5e1;">2 Affixes (1.6x)</span></div>
+                    <div style="background: rgba(192, 132, 252, 0.1); border: 1px solid #c084fc; border-radius: 6px; padding: 6px;"><b style="color: #c084fc;">Epic</b><br><span style="font-size: 11px; color: #cbd5e1;">3 Affixes (2.0x)</span></div>
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 6px; padding: 6px;"><b style="color: #f59e0b;">Legendary</b><br><span style="font-size: 11px; color: #cbd5e1;">4 Affixes (2.6x)</span></div>
+                    <div style="background: rgba(236, 72, 153, 0.1); border: 1px solid #ec4899; border-radius: 6px; padding: 6px;"><b style="color: #ec4899;">Mythic</b><br><span style="font-size: 11px; color: #cbd5e1;">4+ Affixes (3.5x)</span></div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    if (currentCodexTab === 'progression') {
+        container.innerHTML = `
+            <div class="codex-card" style="border-left: 4px solid #3b82f6; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #60a5fa; margin-bottom: 8px;">🌟 Skill Tree 2.0 & Level 50 Hard Cap</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    • <b>1 Skill Orb per Level:</b> Heroes gain 1 Skill Orb with each level up to the absolute <b>Level 50 Hard Cap</b> (50 points total).<br>
+                    • <b>4 Distinct Branches:</b> Specialize across <b>Damage</b> (Physical/Burst), <b>Sustain</b> (Shields/Healing), <b>Arcana</b> (Spells/Mana), and <b>General</b> (Loot/Fortune/Speed).<br>
+                    • <b>Milestone Unlock Prerequisites:</b><br>
+                    &nbsp;&nbsp;&bull; <b>Tier 1:</b> 0 points required (available immediately).<br>
+                    &nbsp;&nbsp;&bull; <b>Tier 2:</b> Requires 5 points invested in that branch.<br>
+                    &nbsp;&nbsp;&bull; <b>Tier 3 Keystones:</b> Requires 15 points invested in that branch to unlock supreme build-defining Keystones!<br>
+                    • <b>Instant Respec:</b> Click "Reset Tree" anytime in the Skill Tree modal to refund 100% of points for free.
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #c084fc; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: bold; color: #c084fc; margin-bottom: 8px;">👑 Class Advancement Milestones</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    Visit the <b>Class Sanctum</b> in Town to advance your hero at major level thresholds:<br>
+                    • <b>Level 10 (Tier 1 Specialization):</b> Choose your subclass path (Warrior &rarr; Paladin or Berserker; Mage &rarr; Archmage or Necromancer; Rogue &rarr; Assassin or Shadowblade).<br>
+                    • <b>Level 25 (Tier 2 Mastery):</b> Unlocks Master Class abilities and unlocks the <b>2nd Companion Pet Slot</b> in battle!<br>
+                    • <b>Level 50 (Tier 3 Apex):</b> Unlocks Apex Transcendence, empowering all Keystone and core abilities to maximum potency.
+                </div>
+            </div>
+
+            <div class="codex-card" style="border-left: 4px solid #f59e0b; margin-bottom: 6px;">
+                <div style="font-size: 15px; font-weight: bold; color: #fbbf24; margin-bottom: 8px;">🌀 The Infinite Spire & Astral Altar</div>
+                <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
+                    Test your endurance in the endless tower challenge:<br>
+                    • <b>Permanent Elevators:</b> Elevators are permanently unlocked every 10 floors (Floor 10, 20, 30, 40, 50...). Return directly to your highest checkpoint anytime!<br>
+                    • <b>Astral Shards:</b> Each cleared floor awards Astral Shards scaling with tower depth.<br>
+                    • <b>The Astral Altar:</b> Spend Astral Shards to purchase permanent Tomes of Might, Fortitude, and Wisdom that boost base stats across all runs.<br>
+                    • <b>Spire Milestone Familiars:</b><br>
+                    &nbsp;&nbsp;&bull; <b>Floor 20 Victory:</b> Guaranteed unlock of <b style="color: #fef08a;">Astral Sprite</b> (Epic Light Companion).<br>
+                    &nbsp;&nbsp;&bull; <b>Floor 35 Victory:</b> Guaranteed unlock of <b style="color: #f59e0b;">Ignis Phoenix</b> (Legendary Fire Companion).<br>
+                    &nbsp;&nbsp;&bull; <b>Floor 50 Victory:</b> Guaranteed unlock of <b style="color: #ec4899;">Void Leviathan</b> (Mythic Dark Companion).
+                </div>
+            </div>
+        `;
+        return;
+    }
+}
+window.renderCodexContent = renderCodexContent;
+

@@ -14,6 +14,7 @@
             <div class="header-brand">Elemental Realms</div>
             <div class="header-actions">
                 <button class="btn" id="btn-hdr-audio" style="padding: 2px 10px;" onclick="toggleAudio()" title="Sound Volume">🔊</button>
+                <button class="btn" id="btn-hdr-codex" style="padding: 2px 8px; color: #ffd700; border-color: #ffd700;" onclick="openCodexModal()" title="Adventurer's Codex">📖 Guide</button>
                 <button class="btn" id="btn-hdr-saves" style="padding: 2px 10px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-saves')">💾 Slots</button>
                 <button class="btn" id="btn-hdr-save" style="padding: 2px 10px;" onclick="saveGame()">Save</button>
                 <button class="btn" id="btn-hdr-load" style="padding: 2px 10px;" onclick="loadGame()">Load</button>
@@ -56,31 +57,70 @@
                 <button class="btn" id="btn-town-class" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-class-advancement')">Class Sanctum<br><span style="font-size: 12px; color: #a855f7;">Advancement</span></button>
                 <button class="btn" id="btn-town-spire" style="width: 150px; height: 100px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-spire')">The Infinite Spire<br><span style="font-size: 12px; color: #a855f7;" id="btn-town-spire-sub">🌀 Floor 0</span></button>
                 <button class="btn" id="btn-town-pets" style="width: 150px; height: 100px; color: #4ade80; border-color: #4ade80;" onclick="openModal('modal-pets')">🐾 Familiar Sanctuary<br><span style="font-size: 12px; color: #86efac;">Pets & Bonding</span></button>
+                <button class="btn" id="btn-town-codex" style="width: 150px; height: 100px; color: #ffd700; border-color: #ffd700;" onclick="openCodexModal()">📖 Adventurer's Codex<br><span style="font-size: 11px; color: #fde047;">Guide & Pet Lore</span></button>
             </div>
         </div>
     </div>
 
     <!-- BATTLE SCREEN -->
     <div id="screen-battle" class="screen">
-        <div id="battle-arena">
-            <button id="btn-combat-speed" class="btn" style="position: absolute; top: 12px; right: 12px; z-index: 60; padding: 5px 12px; font-size: 13px; background: rgba(0,0,0,0.65); border: 1px solid #ffaa00; color: #ffaa00;" onclick="toggleCombatSpeed()">⚡ Speed: 1x</button>
-            <div id="player-side">
-                <div class="entity-box" id="battle-player">
-                    <div class="entity-name">Hero</div>
-                    <div class="entity-element elem-Physical">Player</div>
-                    <div class="entity-sprite" id="player-sprite-visual">
-                        <svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#aaaaaa"/><rect x="45" y="10" width="10" height="80" fill="#dddddd"/><rect x="20" y="45" width="60" height="10" fill="#dddddd"/></svg>
+        <div id="battle-view" style="display: contents;">
+            <!-- Dynamic Turn Order Timeline Ribbon -->
+            <div id="turn-order-ribbon" class="turn-order-ribbon">
+                <span class="ribbon-label">TURN ORDER:</span>
+                <div id="turn-order-track" class="turn-order-track"></div>
+            </div>
+            <div id="battle-arena">
+                <button id="btn-combat-speed" class="btn" style="position: absolute; top: 12px; right: 12px; z-index: 60; padding: 5px 12px; font-size: 13px; background: rgba(0,0,0,0.65); border: 1px solid #ffaa00; color: #ffaa00;" onclick="toggleCombatSpeed()">⚡ Speed: 1x</button>
+                <div id="battlefield-inner" style="display: contents;">
+                    <!-- Dedicated Non-Destructive Floating Combat Text Layer -->
+                    <div id="combat-float-layer" class="combat-float-layer"></div>
+                    <div id="player-side">
+                        <div class="entity-box" id="battle-player">
+                            <div class="entity-name">Hero</div>
+                            <div class="entity-element elem-Physical">Player</div>
+                            <div class="entity-sprite" id="player-sprite-visual">
+                                <svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#aaaaaa"/><rect x="45" y="10" width="10" height="80" fill="#dddddd"/><rect x="20" y="45" width="60" height="10" fill="#dddddd"/></svg>
+                            </div>
+                            <div id="battle-player-bars" style="width: 100%;">
+                                <div class="bar-container"><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
+                                <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
+                                <div class="status-tray" id="statuses-player"></div>
+                            </div>
+                        </div>
+                        <div id="player-pets-container" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;"></div>
                     </div>
-                    <div id="battle-player-bars" style="width: 100%;">
-                        <div class="bar-container"><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
-                        <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
-                        <div class="status-tray" id="statuses-player"></div>
+                    <div id="enemies-side">
+                        <!-- Enemies injected here -->
                     </div>
                 </div>
-                <div id="player-pets-container" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;"></div>
             </div>
-            <div id="enemies-side">
-                <!-- Enemies injected here -->
+            <!-- Enemy Inspector & Elemental Vulnerability Card -->
+            <div id="enemy-inspector-card" class="enemy-inspector-card hidden">
+                <div class="inspector-header">
+                    <div class="inspector-title-group">
+                        <span id="inspector-name" class="inspector-name">Enemy Name</span>
+                        <span id="inspector-element-badge" class="inspector-element-badge">Element</span>
+                    </div>
+                    <button id="btn-close-inspector" class="btn-inspector-close" onclick="closeEnemyInspector()">✕</button>
+                </div>
+                <div class="inspector-body">
+                    <div class="inspector-stat-row">
+                        <div class="inspector-hp-wrap">
+                            <div class="inspector-hp-bar"><div id="inspector-hp-fill" class="inspector-hp-fill"></div></div>
+                            <div id="inspector-hp-text" class="inspector-hp-text">0 / 0 HP</div>
+                        </div>
+                        <div class="inspector-defense-ratings">
+                            <span>🛡️ DEF: <b id="inspector-def">0</b></span>
+                            <span>✨ MDEF: <b id="inspector-mdef">0</b></span>
+                            <span>⚡ SPD: <b id="inspector-spd">0</b></span>
+                        </div>
+                    </div>
+                    <div class="inspector-section-title">ELEMENTAL VULNERABILITIES</div>
+                    <div id="inspector-affinities" class="inspector-affinities"></div>
+                    <div class="inspector-section-title">ACTIVE STATUSES & DEBUFFS</div>
+                    <div id="inspector-statuses" class="inspector-statuses"></div>
+                </div>
             </div>
         </div>
         <div id="battle-ui">
@@ -275,6 +315,21 @@
             <button id="pets-tab-feed" class="shop-tab-btn" onclick="setPetsTab('feed')">🍖 Feed & Bond</button>
         </div>
         <div id="pets-content"></div>
+    </div>
+
+    <!-- ADVENTURER'S CODEX MODAL -->
+    <div id="modal-codex" class="modal">
+        <div class="modal-header">
+            <div>📖 Adventurer's Codex</div>
+            <span class="close-btn" onclick="closeModal('modal-codex')">&times;</span>
+        </div>
+        <div id="codex-nav-bar" style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-shrink: 0;">
+            <button class="btn codex-tab active" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('pets')">🐾 Familiars & Pets</button>
+            <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('combat')">⚔️ Combat & Elements</button>
+            <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('blacksmith')">🔨 Forge & Gear</button>
+            <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('progression')">🌟 Skills & Spire</button>
+        </div>
+        <div id="codex-content" style="max-height: 65vh; overflow-y: auto; padding-right: 4px;"></div>
     </div>
 
     <!-- Database Constants First -->

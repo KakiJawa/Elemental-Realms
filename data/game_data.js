@@ -62,7 +62,42 @@
         'Mystery Chest': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="15" y="45" width="70" height="45" rx="5" fill="#78350f" stroke="#d97706" stroke-width="3"/><path d="M15,45 Q50,15 85,45 Z" fill="#92400e" stroke="#d97706" stroke-width="3"/><rect x="25" y="45" width="8" height="45" fill="#d97706"/><rect x="67" y="45" width="8" height="45" fill="#d97706"/><path d="M25,45 Q50,22 33,45" stroke="#d97706" stroke-width="4" fill="none"/><path d="M67,45 Q50,22 75,45" stroke="#d97706" stroke-width="4" fill="none"/><circle cx="50" cy="52" r="8" fill="#fbbf24" stroke="#78350f" stroke-width="2"/><rect x="48" y="52" width="4" height="8" fill="#78350f"/></svg>`,
         'Celestial Chest': `<svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="celChestGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4c1d95"/><stop offset="50%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#db2777"/></linearGradient></defs><rect x="15" y="45" width="70" height="45" rx="5" fill="url(#celChestGrad)" stroke="#f59e0b" stroke-width="3"/><path d="M15,45 Q50,12 85,45 Z" fill="#6d28d9" stroke="#f59e0b" stroke-width="3"/><rect x="25" y="45" width="8" height="45" fill="#f59e0b"/><rect x="67" y="45" width="8" height="45" fill="#f59e0b"/><polygon points="50,20 54,30 65,30 56,37 59,48 50,42 41,48 44,37 35,30 46,30" fill="#fef08a"/><circle cx="50" cy="54" r="9" fill="#fef08a" stroke="#d97706" stroke-width="2"/><circle cx="50" cy="54" r="4" fill="#6d28d9"/><circle cx="20" cy="30" r="2" fill="#fff"/><circle cx="80" cy="25" r="2" fill="#fff"/><circle cx="85" cy="65" r="1.5" fill="#fef08a"/></svg>`,
         'chest_mystery': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="15" y="45" width="70" height="45" rx="5" fill="#78350f" stroke="#d97706" stroke-width="3"/><path d="M15,45 Q50,15 85,45 Z" fill="#92400e" stroke="#d97706" stroke-width="3"/><rect x="25" y="45" width="8" height="45" fill="#d97706"/><rect x="67" y="45" width="8" height="45" fill="#d97706"/><circle cx="50" cy="52" r="8" fill="#fbbf24" stroke="#78350f" stroke-width="2"/></svg>`,
-        'chest_celestial': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="15" y="45" width="70" height="45" rx="5" fill="#581c87" stroke="#f59e0b" stroke-width="3"/><path d="M15,45 Q50,12 85,45 Z" fill="#6d28d9" stroke="#f59e0b" stroke-width="3"/><rect x="25" y="45" width="8" height="45" fill="#f59e0b"/><rect x="67" y="45" width="8" height="45" fill="#f59e0b"/><polygon points="50,20 54,30 65,30 56,37 59,48 50,42 41,48 44,37 35,30 46,30" fill="#fef08a"/><circle cx="50" cy="54" r="9" fill="#fef08a"/></svg>`
+        'chest_celestial': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="15" y="45" width="70" height="45" rx="5" fill="#581c87" stroke="#f59e0b" stroke-width="3"/><path d="M15,45 Q50,12 85,45 Z" fill="#6d28d9" stroke="#f59e0b" stroke-width="3"/><rect x="25" y="45" width="8" height="45" fill="#f59e0b"/><rect x="67" y="45" width="8" height="45" fill="#f59e0b"/><polygon points="50,20 54,30 65,30 56,37 59,48 50,42 41,48 44,37 35,30 46,30" fill="#fef08a"/><circle cx="50" cy="54" r="9" fill="#fef08a"/></svg>`,
+        // Area 6 & 7 Monsters, Bosses & Pets
+        'Radiant Wisp': `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="35" fill="#fef08a" filter="drop-shadow(0 0 8px #fde047)"/><circle cx="50" cy="50" r="22" fill="#ffffff"/><circle cx="42" cy="46" r="3" fill="#854d0e"/><circle cx="58" cy="46" r="3" fill="#854d0e"/></svg>`,
+        'Sunforged Golem': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="25" y="20" width="50" height="60" rx="6" fill="#ca8a04" stroke="#fef08a" stroke-width="3"/><rect x="10" y="32" width="15" height="38" rx="4" fill="#a16207"/><rect x="75" y="32" width="15" height="38" rx="4" fill="#a16207"/><circle cx="38" cy="36" r="5" fill="#fef08a"/><circle cx="62" cy="36" r="5" fill="#fef08a"/><rect x="36" y="52" width="28" height="8" rx="2" fill="#713f12"/></svg>`,
+        'Dawn Seraph': `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,15 L35,55 L50,85 L65,55 Z" fill="#fef9c3"/><path d="M35,55 Q10,25 20,15 Q35,30 35,55" fill="#fde047"/><path d="M65,55 Q90,25 80,15 Q65,30 65,55" fill="#fde047"/><circle cx="50" cy="32" r="10" fill="#fef08a"/><circle cx="50" cy="20" r="14" fill="none" stroke="#eab308" stroke-width="2.5"/><circle cx="46" cy="32" r="2" fill="#713f12"/><circle cx="54" cy="32" r="2" fill="#713f12"/></svg>`,
+        'Solar Griffin': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="50,12 25,65 75,65" fill="#eab308"/><circle cx="50" cy="35" r="18" fill="#facc15"/><polygon points="50,35 44,48 56,48" fill="#ca8a04"/><circle cx="43" cy="30" r="3" fill="#111"/><circle cx="57" cy="30" r="3" fill="#111"/><path d="M25,65 Q5,40 15,25 Q30,45 35,65" fill="#ca8a04"/><path d="M75,65 Q95,40 85,25 Q70,45 65,65" fill="#ca8a04"/></svg>`,
+        'Archon of Radiance': `<svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="archonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#ca8a04"/></linearGradient></defs><circle cx="50" cy="50" r="42" fill="url(#archonGrad)" stroke="#fef08a" stroke-width="4"/><polygon points="50,8 55,24 72,24 58,34 63,50 50,40 37,50 42,34 28,24 45,24" fill="#ffffff"/><circle cx="50" cy="50" r="16" fill="#1e293b"/><circle cx="44" cy="48" r="3" fill="#fef08a"/><circle cx="56" cy="48" r="3" fill="#fef08a"/><path d="M42,58 Q50,65 58,58" stroke="#fef08a" stroke-width="2" fill="none"/></svg>`,
+        'Volt Stalker': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="15,85 45,30 55,45 80,20 90,85" fill="#0284c7"/><polyline points="40,25 50,45 42,52 60,75" stroke="#facc15" stroke-width="3" fill="none"/><circle cx="68" cy="45" r="4" fill="#fef08a"/><circle cx="32" cy="55" r="4" fill="#fef08a"/></svg>`,
+        'Thunder Ram': `<svg viewBox="0 0 100 100" width="100%" height="100%"><ellipse cx="50" cy="55" rx="32" ry="25" fill="#334155" stroke="#38bdf8" stroke-width="2.5"/><circle cx="50" cy="38" r="18" fill="#1e293b"/><path d="M35,35 Q15,20 25,45 Q32,48 35,40" fill="#facc15"/><path d="M65,35 Q85,20 75,45 Q68,48 65,40" fill="#facc15"/><circle cx="43" cy="36" r="3" fill="#38bdf8"/><circle cx="57" cy="36" r="3" fill="#38bdf8"/></svg>`,
+        'Lightning Drake': `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M15,85 L45,20 L55,38 L85,85 Z" fill="#0369a1"/><polygon points="45,20 40,8 55,18" fill="#38bdf8"/><circle cx="44" cy="40" r="5" fill="#fde047"/><circle cx="60" cy="40" r="5" fill="#fde047"/><polyline points="50,45 42,60 55,68 45,82" stroke="#fde047" stroke-width="2.5" fill="none"/></svg>`,
+        'Storm Elemental': `<svg viewBox="0 0 100 100" width="100%" height="100%"><ellipse cx="50" cy="30" rx="35" ry="16" fill="#0284c7" opacity="0.85"/><ellipse cx="50" cy="50" rx="26" ry="14" fill="#0ea5e9" opacity="0.9"/><ellipse cx="50" cy="72" rx="16" ry="10" fill="#38bdf8"/><polygon points="48,25 54,38 46,44 56,60" fill="#fef08a"/><circle cx="40" cy="32" r="3" fill="#fef08a"/><circle cx="60" cy="32" r="3" fill="#fef08a"/></svg>`,
+        'Fulgur Apex': `<svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="fulgurGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0284c7"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#facc15"/></linearGradient></defs><polygon points="50,5 20,45 40,48 10,95 65,52 45,48 80,25" fill="url(#fulgurGrad)" stroke="#facc15" stroke-width="3"/><circle cx="48" cy="38" r="6" fill="#ffffff"/><circle cx="50" cy="38" r="3" fill="#0369a1"/></svg>`,
+        'Lumina Sprite': `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="32" fill="#fef08a" filter="drop-shadow(0 0 6px #eab308)"/><circle cx="40" cy="45" r="4" fill="#854d0e"/><circle cx="60" cy="45" r="4" fill="#854d0e"/><path d="M44,56 Q50,62 56,56" stroke="#854d0e" stroke-width="3" fill="none"/></svg>`,
+        'Spark Hound': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="25,75 45,35 65,45 85,30 92,75" fill="#38bdf8"/><circle cx="72" cy="48" r="5" fill="#fff"/><circle cx="74" cy="48" r="2.5" fill="#0284c7"/><polygon points="40,48 48,60 40,64 52,75" fill="#facc15"/></svg>`,
+        // Area 8 Monsters & Boss
+        'Frostfang Wolf': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="20,80 35,42 48,52 68,32 88,80" fill="#0284c7"/><polygon points="28,78 40,48 50,56 68,40 82,78" fill="#38bdf8"/><circle cx="58" cy="52" r="3.5" fill="#f0f9ff"/><polygon points="45,68 50,60 55,68" fill="#e0f2fe"/><polygon points="35,72 40,65 43,72" fill="#fff"/><polygon points="57,72 60,65 65,72" fill="#fff"/></svg>`,
+        'Glacial Golem': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="25,25 50,12 75,25 80,75 50,88 20,75" fill="#0369a1"/><polygon points="30,30 50,20 70,30 75,70 50,80 25,70" fill="#38bdf8"/><circle cx="40" cy="38" r="4" fill="#e0f2fe"/><circle cx="60" cy="38" r="4" fill="#e0f2fe"/><line x1="35" y1="55" x2="65" y2="55" stroke="#082f49" stroke-width="3"/></svg>`,
+        'Blizzard Harpy': `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,15 Q35,40 10,45 Q35,60 40,85 Q50,65 60,85 Q65,60 90,45 Q65,40 50,15" fill="#0284c7"/><circle cx="50" cy="32" r="9" fill="#bae6fd"/><circle cx="47" cy="30" r="2.5" fill="#082f49"/><circle cx="53" cy="30" r="2.5" fill="#082f49"/><polygon points="48,34 52,34 50,40" fill="#facc15"/><path d="M20,50 Q50,75 80,50" stroke="#bae6fd" stroke-width="2" fill="none"/></svg>`,
+        'Icebound Revenant': `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,15 Q25,25 30,75 Q40,65 50,85 Q60,65 70,75 Q75,25 50,15" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/><circle cx="44" cy="36" r="3" fill="#38bdf8" filter="drop-shadow(0 0 4px #38bdf8)"/><circle cx="56" cy="36" r="3" fill="#38bdf8" filter="drop-shadow(0 0 4px #38bdf8)"/><ellipse cx="50" cy="50" rx="4" ry="7" fill="#082f49"/></svg>`,
+        'Frost Empress Glacia': `<svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="glaciaGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#bae6fd"/><stop offset="100%" stop-color="#0284c7"/></linearGradient></defs><circle cx="50" cy="50" r="44" fill="url(#glaciaGrad)" stroke="#e0f2fe" stroke-width="3"/><polygon points="50,10 56,26 74,22 62,35 70,50 50,42 30,50 38,35 26,22 44,26" fill="#f0f9ff"/><circle cx="50" cy="52" r="15" fill="#082f49"/><circle cx="45" cy="50" r="3" fill="#38bdf8"/><circle cx="55" cy="50" r="3" fill="#38bdf8"/><path d="M44,58 Q50,63 56,58" stroke="#38bdf8" stroke-width="2" fill="none"/></svg>`,
+        // Area 9 Monsters & Boss
+        'Magma Scuttler': `<svg viewBox="0 0 100 100" width="100%" height="100%"><ellipse cx="50" cy="52" rx="26" ry="18" fill="#7f1d1d" stroke="#f97316" stroke-width="3"/><circle cx="40" cy="46" r="3.5" fill="#facc15"/><circle cx="60" cy="46" r="3.5" fill="#facc15"/><path d="M26,52 L10,38 M24,56 L8,56 M26,60 L12,74" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/><path d="M74,52 L90,38 M76,56 L92,56 M74,60 L88,74" stroke="#ea580c" stroke-width="3" stroke-linecap="round"/><polygon points="45,55 55,55 50,65" fill="#f97316"/></svg>`,
+        'Cinder Drake': `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,18 Q20,30 15,65 Q35,55 45,78 Q50,60 55,78 Q65,55 85,65 Q80,30 50,18" fill="#991b1b" stroke="#f97316" stroke-width="2"/><circle cx="44" cy="35" r="3" fill="#fef08a"/><circle cx="56" cy="35" r="3" fill="#fef08a"/><polygon points="42,22 50,10 58,22" fill="#ea580c"/><path d="M42,50 Q50,60 58,50" stroke="#facc15" stroke-width="2" fill="none"/></svg>`,
+        'Lava Reaver': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="30,85 50,22 70,85 50,70" fill="#7c2d12" stroke="#ea580c" stroke-width="2"/><polygon points="35,80 50,30 65,80" fill="#dc2626"/><circle cx="45" cy="42" r="3" fill="#fef08a"/><circle cx="55" cy="42" r="3" fill="#fef08a"/><line x1="20" y1="35" x2="80" y2="75" stroke="#f97316" stroke-width="3"/></svg>`,
+        'Pyroclast Behemoth': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="20" y="30" width="60" height="45" rx="10" fill="#450a0a" stroke="#f97316" stroke-width="3"/><rect x="14" y="65" width="14" height="25" fill="#7f1d1d"/><rect x="72" y="65" width="14" height="25" fill="#7f1d1d"/><circle cx="36" cy="45" r="4" fill="#facc15"/><circle cx="64" cy="45" r="4" fill="#facc15"/><polygon points="40,30 50,15 60,30" fill="#ea580c"/></svg>`,
+        'Ignis Primordial': `<svg viewBox="0 0 100 100" width="100%" height="100%"><defs><radialGradient id="ignisPrimGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fef08a"/><stop offset="50%" stop-color="#f97316"/><stop offset="100%" stop-color="#7f1d1d"/></radialGradient></defs><circle cx="50" cy="50" r="44" fill="url(#ignisPrimGrad)" stroke="#fbbf24" stroke-width="4"/><polygon points="50,6 58,22 75,18 64,32 78,46 60,45 62,65 50,54 38,65 40,45 22,46 36,32 25,18 42,22" fill="#ef4444"/><circle cx="42" cy="46" r="4.5" fill="#fff"/><circle cx="58" cy="46" r="4.5" fill="#fff"/><circle cx="42" cy="46" r="2" fill="#7f1d1d"/><circle cx="58" cy="46" r="2" fill="#7f1d1d"/><path d="M40,62 Q50,72 60,62" stroke="#450a0a" stroke-width="3" fill="none"/></svg>`,
+        // Area 10 Monsters & Boss
+        'Chrono Phantom': `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,12 Q20,35 25,75 Q40,65 50,85 Q60,65 75,75 Q80,35 50,12" fill="#2e1065" stroke="#c084fc" stroke-width="2.5"/><circle cx="50" cy="40" r="16" fill="#090514" stroke="#a855f7" stroke-width="1.5"/><circle cx="45" cy="38" r="3" fill="#e879f9"/><circle cx="55" cy="38" r="3" fill="#e879f9"/><line x1="50" y1="40" x2="50" y2="30" stroke="#f0abfc" stroke-width="1.5"/><line x1="50" y1="40" x2="57" y2="40" stroke="#f0abfc" stroke-width="1.5"/></svg>`,
+        'Starfall Entity': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="50,10 60,35 85,35 65,52 72,78 50,62 28,78 35,52 15,35 40,35" fill="#7e22ce" stroke="#e879f9" stroke-width="2"/><circle cx="50" cy="48" r="12" fill="#fdf4ff"/><circle cx="50" cy="48" r="8" fill="#3b0764"/><circle cx="47" cy="46" r="2" fill="#e879f9"/><circle cx="53" cy="46" r="2" fill="#e879f9"/></svg>`,
+        'Dimensional Horror': `<svg viewBox="0 0 100 100" width="100%" height="100%"><ellipse cx="50" cy="50" rx="30" ry="24" fill="#090514" stroke="#a855f7" stroke-width="3"/><path d="M20,50 Q10,75 5,90 M35,70 Q25,88 20,98 M65,70 Q75,88 80,98 M80,50 Q90,75 95,90" stroke="#9333ea" stroke-width="3" fill="none"/><circle cx="40" cy="44" r="5" fill="#f0abfc"/><circle cx="60" cy="44" r="5" fill="#f0abfc"/><circle cx="50" cy="56" r="4" fill="#e879f9"/><circle cx="40" cy="44" r="2" fill="#000"/><circle cx="60" cy="44" r="2" fill="#000"/><circle cx="50" cy="56" r="1.5" fill="#000"/></svg>`,
+        'Singularity Titan': `<svg viewBox="0 0 100 100" width="100%" height="100%"><rect x="22" y="24" width="56" height="56" rx="8" fill="#1e1b4b" stroke="#7e22ce" stroke-width="3"/><ellipse cx="50" cy="52" rx="16" ry="16" fill="#090514" stroke="#c084fc" stroke-width="2.5"/><circle cx="50" cy="52" r="7" fill="#f5d0fe"/><circle cx="42" cy="36" r="3.5" fill="#c084fc"/><circle cx="58" cy="36" r="3.5" fill="#c084fc"/></svg>`,
+        'Chronos, The Void Sovereign': `<svg viewBox="0 0 100 100" width="100%" height="100%"><defs><linearGradient id="chronosGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fdf4ff"/><stop offset="50%" stop-color="#a855f7"/><stop offset="100%" stop-color="#090514"/></linearGradient></defs><circle cx="50" cy="50" r="46" fill="url(#chronosGrad)" stroke="#f0abfc" stroke-width="3.5"/><polygon points="50,4 54,18 68,10 62,24 76,22 66,34 80,40 68,48 80,56 66,62 76,74 62,72 68,86 54,78 50,92 46,78 32,86 38,72 24,74 34,62 20,56 32,48 20,40 34,34 24,22 38,24 32,10 46,18" fill="#581c87" stroke="#e879f9" stroke-width="1.5"/><circle cx="50" cy="50" r="20" fill="#090514" stroke="#fbbf24" stroke-width="2"/><circle cx="44" cy="46" r="3.5" fill="#fbbf24"/><circle cx="56" cy="46" r="3.5" fill="#fbbf24"/><line x1="50" y1="50" x2="50" y2="38" stroke="#fbbf24" stroke-width="2"/><line x1="50" y1="50" x2="60" y2="50" stroke="#fbbf24" stroke-width="2"/><circle cx="50" cy="50" r="2.5" fill="#fdf4ff"/></svg>`,
+        // Milestone 2 Pets
+        'Glacia Kitsune': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="30,70 50,30 70,70" fill="#bae6fd" stroke="#0284c7" stroke-width="2"/><polygon points="34,36 40,16 48,32" fill="#0284c7"/><polygon points="52,32 60,16 66,36" fill="#0284c7"/><circle cx="44" cy="45" r="3" fill="#082f49"/><circle cx="56" cy="45" r="3" fill="#082f49"/><circle cx="50" cy="56" r="2.5" fill="#0284c7"/><path d="M20,65 Q10,45 25,35" stroke="#38bdf8" stroke-width="3" fill="none"/><path d="M80,65 Q90,45 75,35" stroke="#38bdf8" stroke-width="3" fill="none"/></svg>`,
+        'Cinder Gargoyle': `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="30,75 50,25 70,75" fill="#450a0a" stroke="#ea580c" stroke-width="2.5"/><polygon points="32,32 38,15 44,28" fill="#ea580c"/><polygon points="56,28 62,15 68,32" fill="#ea580c"/><circle cx="43" cy="42" r="3" fill="#fef08a"/><circle cx="57" cy="42" r="3" fill="#fef08a"/><path d="M22,50 Q10,35 18,22 Q30,35 26,55" fill="#991b1b" stroke="#f97316" stroke-width="1.5"/><path d="M78,50 Q90,35 82,22 Q70,35 74,55" fill="#991b1b" stroke="#f97316" stroke-width="1.5"/></svg>`,
+        'Chronos Sprite': `<svg viewBox="0 0 100 100" width="100%" height="100%"><ellipse cx="50" cy="50" rx="30" ry="30" fill="#2e1065" stroke="#c084fc" stroke-width="3"/><ellipse cx="50" cy="50" rx="38" ry="14" fill="none" stroke="#fbbf24" stroke-width="2" transform="rotate(-25 50 50)"/><circle cx="44" cy="46" r="3.5" fill="#f5d0fe"/><circle cx="56" cy="46" r="3.5" fill="#f5d0fe"/><path d="M45,56 Q50,60 55,56" stroke="#f0abfc" stroke-width="2" fill="none"/></svg>`
     };
     /* =========================================================================
        5-ZONE PROGRESSION DATABASE (AREAS_DB)
@@ -240,6 +275,188 @@
             lootQuality: ['Magic Staff', 'Amulet of Mana', 'Iron Armor', 'Speed Boots']
         }
     };
+
+    const EXTENDED_AREAS = {
+        area_6: {
+            id: 'area_6',
+            name: 'Luminous Sanctuary',
+            bracket: 'Lv 26-30',
+            minLevel: 26,
+            maxLevel: 30,
+            element: 'Light',
+            themeColor: '#fde047',
+            bgGradient: 'linear-gradient(135deg, #1c1917 0%, #3a3215 100%)',
+            desc: 'An ancient celestial sanctuary floating above the clouds, guarded by holy constructs and radiant seraphs.',
+            regularEnemies: [
+                { name: 'Radiant Wisp', level: 26, element: 'Light', hp: 950, atk: 92, def: 58, matk: 110, mdef: 65, spd: 28, exp: 300, gold: 150, ai: 'fast', loot: [{ item: 'Hi-Potion', chance: 0.5 }, { item: 'Solar Greaves', chance: 0.15 }] },
+                { name: 'Sunforged Golem', level: 27, element: 'Light', hp: 1300, atk: 98, def: 76, matk: 90, mdef: 68, spd: 18, exp: 340, gold: 170, ai: 'tank', loot: [{ item: 'Luminous Plate', chance: 0.2 }, { item: 'Radiant Vambraces', chance: 0.18 }] },
+                { name: 'Dawn Seraph', level: 28, element: 'Light', hp: 1100, atk: 104, def: 62, matk: 130, mdef: 78, spd: 24, exp: 390, gold: 200, ai: 'magic', loot: [{ item: 'Crown of the Sun', chance: 0.2 }, { item: 'Seraphic Heart', chance: 0.12 }] },
+                { name: 'Solar Griffin', level: 29, element: 'Light', hp: 1250, atk: 116, def: 68, matk: 115, mdef: 70, spd: 27, exp: 440, gold: 230, ai: 'balanced', loot: [{ item: 'Dawn Greatsword', chance: 0.22 }, { item: 'Solar Greaves', chance: 0.18 }] }
+            ],
+            boss: {
+                name: 'Archon of Radiance',
+                level: 30,
+                element: 'Light',
+                hp: 4800,
+                atk: 155,
+                def: 82,
+                matk: 170,
+                mdef: 85,
+                spd: 26,
+                exp: 2200,
+                gold: 1200,
+                ai: 'boss',
+                isBoss: true,
+                loot: [{ item: 'Dawn Greatsword', chance: 1.0 }, { item: 'Luminous Plate', chance: 1.0 }, { item: 'Seraphic Heart', chance: 0.5 }]
+            },
+            lootQuality: ['Dawn Greatsword', 'Luminous Plate', 'Crown of the Sun', 'Radiant Vambraces', 'Solar Greaves', 'Seraphic Heart']
+        },
+        area_7: {
+            id: 'area_7',
+            name: 'Thunderous Steppes',
+            bracket: 'Lv 31-35',
+            minLevel: 31,
+            maxLevel: 35,
+            element: 'Wind',
+            themeColor: '#38bdf8',
+            bgGradient: 'linear-gradient(135deg, #0c1a2e 0%, #1e3a5f 100%)',
+            desc: 'Vast electrified plains scourged by perpetual lightning storms and volatile thunder beasts.',
+            regularEnemies: [
+                { name: 'Volt Stalker', level: 31, element: 'Wind', hp: 1400, atk: 128, def: 70, matk: 120, mdef: 72, spd: 34, exp: 520, gold: 270, ai: 'fast', loot: [{ item: 'Hi-Potion', chance: 0.5 }, { item: 'Zephyr Boots', chance: 0.18 }] },
+                { name: 'Thunder Ram', level: 32, element: 'Wind', hp: 1900, atk: 135, def: 90, matk: 100, mdef: 80, spd: 22, exp: 580, gold: 300, ai: 'tank', loot: [{ item: 'Tempest Mail', chance: 0.2 }, { item: 'Volt Grips', chance: 0.18 }] },
+                { name: 'Lightning Drake', level: 33, element: 'Wind', hp: 1650, atk: 148, def: 76, matk: 145, mdef: 78, spd: 30, exp: 650, gold: 340, ai: 'balanced', loot: [{ item: 'Thunderclap Edge', chance: 0.22 }, { item: 'Thunderstone Relic', chance: 0.15 }] },
+                { name: 'Storm Elemental', level: 34, element: 'Wind', hp: 1550, atk: 130, def: 74, matk: 175, mdef: 92, spd: 28, exp: 730, gold: 390, ai: 'magic', loot: [{ item: 'Stormcaller Helm', chance: 0.2 }, { item: 'Tempest Mail', chance: 0.18 }] }
+            ],
+            boss: {
+                name: 'Fulgur Apex',
+                level: 35,
+                element: 'Wind',
+                hp: 6800,
+                atk: 190,
+                def: 98,
+                matk: 210,
+                mdef: 105,
+                spd: 32,
+                exp: 3500,
+                gold: 2000,
+                ai: 'boss',
+                isBoss: true,
+                loot: [{ item: 'Thunderclap Edge', chance: 1.0 }, { item: 'Tempest Mail', chance: 1.0 }, { item: 'Thunderstone Relic', chance: 0.5 }]
+            },
+            lootQuality: ['Thunderclap Edge', 'Tempest Mail', 'Stormcaller Helm', 'Volt Grips', 'Zephyr Boots', 'Thunderstone Relic']
+        },
+        area_8: {
+            id: 'area_8',
+            name: 'Glacial Frostpeaks',
+            bracket: 'Lv 36-40',
+            minLevel: 36,
+            maxLevel: 40,
+            element: 'Water',
+            themeColor: '#38bdf8',
+            bgGradient: 'linear-gradient(135deg, #082f49 0%, #164e63 100%)',
+            desc: 'Perpetual blizzards rage across treacherous frozen pinnacles where ancient frost entities slumber beneath eternal ice.',
+            regularEnemies: [
+                { name: 'Frostfang Wolf', level: 36, element: 'Water', hp: 1650, atk: 145, def: 82, matk: 120, mdef: 78, spd: 36, exp: 850, gold: 440, ai: 'fast', loot: [{ item: 'Hi-Potion', chance: 0.5 }, { item: 'Glacier Striders', chance: 0.18 }] },
+                { name: 'Glacial Golem', level: 37, element: 'Water', hp: 2300, atk: 152, def: 105, matk: 110, mdef: 95, spd: 20, exp: 920, gold: 480, ai: 'tank', loot: [{ item: 'Icebound Hauberk', chance: 0.2 }, { item: 'Permafrost Grips', chance: 0.18 }] },
+                { name: 'Blizzard Harpy', level: 38, element: 'Water', hp: 1850, atk: 160, def: 85, matk: 175, mdef: 98, spd: 30, exp: 1000, gold: 520, ai: 'magic', loot: [{ item: 'Frostcrown Circlet', chance: 0.2 }, { item: 'Heart of Winter', chance: 0.15 }] },
+                { name: 'Icebound Revenant', level: 39, element: 'Water', hp: 2100, atk: 172, def: 92, matk: 165, mdef: 90, spd: 28, exp: 1100, gold: 560, ai: 'balanced', loot: [{ item: 'Glacial Claymore', chance: 0.22 }, { item: 'Glacier Striders', chance: 0.18 }] }
+            ],
+            boss: {
+                name: 'Frost Empress Glacia',
+                level: 40,
+                element: 'Water',
+                hp: 6400,
+                atk: 195,
+                def: 110,
+                matk: 220,
+                mdef: 115,
+                spd: 32,
+                exp: 5000,
+                gold: 2800,
+                ai: 'boss',
+                isBoss: true,
+                loot: [{ item: 'Glacial Claymore', chance: 1.0 }, { item: 'Icebound Hauberk', chance: 1.0 }, { item: 'Heart of Winter', chance: 0.6 }]
+            },
+            lootQuality: ['Glacial Claymore', 'Frostcrown Circlet', 'Icebound Hauberk', 'Permafrost Grips', 'Glacier Striders', 'Heart of Winter']
+        },
+        area_9: {
+            id: 'area_9',
+            name: 'Molten Abyss',
+            bracket: 'Lv 41-45',
+            minLevel: 41,
+            maxLevel: 45,
+            element: 'Fire',
+            themeColor: '#f97316',
+            bgGradient: 'linear-gradient(135deg, #450a0a 0%, #7c2d12 100%)',
+            desc: 'A subterranean chasm of molten magma and searing volcanic fissures, home to primordial fire titans.',
+            regularEnemies: [
+                { name: 'Magma Scuttler', level: 41, element: 'Fire', hp: 2200, atk: 185, def: 98, matk: 150, mdef: 90, spd: 38, exp: 1250, gold: 640, ai: 'fast', loot: [{ item: 'Elixir', chance: 0.4 }, { item: 'Lava Treads', chance: 0.18 }] },
+                { name: 'Cinder Drake', level: 42, element: 'Fire', hp: 2650, atk: 205, def: 104, matk: 190, mdef: 100, spd: 32, exp: 1350, gold: 700, ai: 'balanced', loot: [{ item: 'Hellfire Reaver', chance: 0.2 }, { item: 'Cinder Fists', chance: 0.18 }] },
+                { name: 'Lava Reaver', level: 43, element: 'Fire', hp: 2500, atk: 215, def: 100, matk: 225, mdef: 108, spd: 34, exp: 1480, gold: 760, ai: 'magic', loot: [{ item: 'Pyroclast Visor', chance: 0.2 }, { item: 'Infernal Core', chance: 0.15 }] },
+                { name: 'Pyroclast Behemoth', level: 44, element: 'Fire', hp: 3400, atk: 225, def: 128, matk: 160, mdef: 115, spd: 22, exp: 1620, gold: 830, ai: 'tank', loot: [{ item: 'Molten Carapace', chance: 0.22 }, { item: 'Lava Treads', chance: 0.18 }] }
+            ],
+            boss: {
+                name: 'Ignis Primordial',
+                level: 45,
+                element: 'Fire',
+                hp: 8800,
+                atk: 255,
+                def: 125,
+                matk: 275,
+                mdef: 130,
+                spd: 35,
+                exp: 7500,
+                gold: 4200,
+                ai: 'boss',
+                isBoss: true,
+                loot: [{ item: 'Hellfire Reaver', chance: 1.0 }, { item: 'Molten Carapace', chance: 1.0 }, { item: 'Infernal Core', chance: 0.6 }]
+            },
+            lootQuality: ['Hellfire Reaver', 'Pyroclast Visor', 'Molten Carapace', 'Cinder Fists', 'Lava Treads', 'Infernal Core']
+        },
+        area_10: {
+            id: 'area_10',
+            name: 'The Celestial Void Rift',
+            bracket: 'Lv 46-50',
+            minLevel: 46,
+            maxLevel: 50,
+            element: 'Dark',
+            themeColor: '#c084fc',
+            bgGradient: 'linear-gradient(135deg, #090514 0%, #2e1065 100%)',
+            desc: 'A shattering dimensional tear at the edge of the cosmos where reality unravels, ruled by the timeless sovereign of the void.',
+            regularEnemies: [
+                { name: 'Chrono Phantom', level: 46, element: 'Dark', hp: 2800, atk: 235, def: 112, matk: 240, mdef: 115, spd: 44, exp: 1850, gold: 950, ai: 'fast', loot: [{ item: 'Elixir', chance: 0.5 }, { item: 'Cosmic Striders', chance: 0.18 }] },
+                { name: 'Starfall Entity', level: 47, element: 'Dark', hp: 3100, atk: 245, def: 118, matk: 285, mdef: 128, spd: 36, exp: 2000, gold: 1050, ai: 'magic', loot: [{ item: 'Crown of the Singularity', chance: 0.2 }, { item: 'Eye of Eternity', chance: 0.15 }] },
+                { name: 'Dimensional Horror', level: 48, element: 'Dark', hp: 3600, atk: 265, def: 126, matk: 260, mdef: 122, spd: 38, exp: 2200, gold: 1150, ai: 'balanced', loot: [{ item: 'Infinity Edge of Chronos', chance: 0.2 }, { item: 'Dimension Gauntlets', chance: 0.18 }] },
+                { name: 'Singularity Titan', level: 49, element: 'Dark', hp: 4600, atk: 275, def: 148, matk: 220, mdef: 138, spd: 26, exp: 2450, gold: 1280, ai: 'tank', loot: [{ item: 'Aegis of the Void God', chance: 0.22 }, { item: 'Cosmic Striders', chance: 0.18 }] }
+            ],
+            boss: {
+                name: 'Chronos, The Void Sovereign',
+                level: 50,
+                element: 'Dark',
+                hp: 13500,
+                atk: 320,
+                def: 155,
+                matk: 345,
+                mdef: 160,
+                spd: 42,
+                exp: 15000,
+                gold: 8000,
+                ai: 'boss',
+                isBoss: true,
+                loot: [{ item: 'Infinity Edge of Chronos', chance: 1.0 }, { item: 'Aegis of the Void God', chance: 1.0 }, { item: 'Eye of Eternity', chance: 0.8 }]
+            },
+            lootQuality: ['Infinity Edge of Chronos', 'Crown of the Singularity', 'Aegis of the Void God', 'Dimension Gauntlets', 'Cosmic Striders', 'Eye of Eternity']
+        }
+    };
+
+    for (let k in EXTENDED_AREAS) {
+        Object.defineProperty(AREAS_DB, k, {
+            value: EXTENDED_AREAS[k],
+            enumerable: false,
+            writable: true,
+            configurable: true
+        });
+    }
 
     const ENEMIES_DB = [
         { name: 'Ember Slime', element: ELEMENTS.Fire, hp: 30, atk: 12, def: 5, matk: 15, mdef: 8, spd: 8, exp: 8, gold: 3, ai: 'magic', loot: [{item: 'Potion', chance: 0.25}] },
@@ -455,7 +672,42 @@
         'Astral Hood': { type: 'helmet', def: 14, mdef: 18, price: 650, desc: '+14 DEF, +18 MDEF' },
         'Voidtouch Grips': { type: 'gloves', def: 8, matk: 10, price: 600, desc: '+8 DEF, +10 MATK' },
         'Phase Treads': { type: 'boots', def: 7, spd: 18, price: 700, desc: '+7 DEF, +18 SPD' },
-        'Eye of the Cosmos': { type: 'accessory', maxHp: 100, maxMp: 50, price: 950, desc: '+100 Max HP, +50 Max MP' }
+        'Eye of the Cosmos': { type: 'accessory', maxHp: 100, maxMp: 50, price: 950, desc: '+100 Max HP, +50 Max MP' },
+        // Area 6 (Luminous Sanctuary) Equipment
+        'Dawn Greatsword': { type: 'weapon', atk: 52, matk: 28, price: 1500, desc: '+52 ATK, +28 MATK' },
+        'Luminous Plate': { type: 'armor', def: 44, mdef: 28, price: 1600, desc: '+44 DEF, +28 MDEF' },
+        'Crown of the Sun': { type: 'helmet', def: 20, mdef: 24, price: 1100, desc: '+20 DEF, +24 MDEF' },
+        'Radiant Vambraces': { type: 'gloves', def: 12, atk: 14, matk: 14, price: 1000, desc: '+12 DEF, +14 ATK, +14 MATK' },
+        'Solar Greaves': { type: 'boots', def: 10, spd: 24, price: 1200, desc: '+10 DEF, +24 SPD' },
+        'Seraphic Heart': { type: 'accessory', maxHp: 160, maxMp: 80, price: 1800, desc: '+160 Max HP, +80 Max MP' },
+        // Area 7 (Thunderous Steppes) Equipment
+        'Thunderclap Edge': { type: 'weapon', atk: 68, spd: 12, price: 2400, desc: '+68 ATK, +12 SPD' },
+        'Tempest Mail': { type: 'armor', def: 58, mdef: 38, price: 2600, desc: '+58 DEF, +38 MDEF' },
+        'Stormcaller Helm': { type: 'helmet', def: 26, mdef: 30, price: 1800, desc: '+26 DEF, +30 MDEF' },
+        'Volt Grips': { type: 'gloves', def: 16, crit: 8, price: 1600, desc: '+16 DEF, +8% Crit' },
+        'Zephyr Boots': { type: 'boots', def: 14, spd: 32, price: 2000, desc: '+14 DEF, +32 SPD' },
+        'Thunderstone Relic': { type: 'accessory', maxHp: 220, atk: 12, spd: 8, price: 2800, desc: '+220 Max HP, +12 ATK, +8 SPD' },
+        // Tier 5 Glacial Gear (Area 8)
+        'Glacial Claymore': { type: 'weapon', atk: 75, matk: 20, maxHp: 18, crit: 6, price: 2600, desc: '+75 ATK, +20 MATK, +18 Max HP, +6% Crit' },
+        'Frostcrown Circlet': { type: 'helmet', def: 42, mdef: 30, maxHp: 45, spd: 10, price: 2100, desc: '+42 DEF, +30 MDEF, +45 Max HP, +10 SPD' },
+        'Icebound Hauberk': { type: 'armor', def: 58, mdef: 38, maxHp: 70, price: 2500, desc: '+58 DEF, +38 MDEF, +70 Max HP' },
+        'Permafrost Grips': { type: 'gloves', atk: 30, def: 22, spd: 8, crit: 6, price: 2000, desc: '+30 ATK, +22 DEF, +8 SPD, +6% Crit' },
+        'Glacier Striders': { type: 'boots', def: 26, spd: 24, maxHp: 40, crit: 5, price: 2200, desc: '+26 DEF, +24 SPD, +40 Max HP, +5% Crit' },
+        'Heart of Winter': { type: 'accessory', maxHp: 50, maxMp: 35, matk: 22, mdef: 14, price: 2800, desc: '+50 Max HP, +35 Max MP, +22 MATK, +14 MDEF' },
+        // Tier 5 Magma Gear (Area 9)
+        'Hellfire Reaver': { type: 'weapon', atk: 95, matk: 25, maxHp: 25, crit: 8, price: 3800, desc: '+95 ATK, +25 MATK, +25 Max HP, +8% Crit' },
+        'Pyroclast Visor': { type: 'helmet', def: 52, mdef: 38, maxHp: 60, spd: 12, price: 3200, desc: '+52 DEF, +38 MDEF, +60 Max HP, +12 SPD' },
+        'Molten Carapace': { type: 'armor', def: 72, mdef: 46, maxHp: 90, price: 3600, desc: '+72 DEF, +46 MDEF, +90 Max HP' },
+        'Cinder Fists': { type: 'gloves', atk: 38, def: 28, spd: 10, crit: 7, price: 3000, desc: '+38 ATK, +28 DEF, +10 SPD, +7% Crit' },
+        'Lava Treads': { type: 'boots', def: 32, spd: 28, maxHp: 50, crit: 6, price: 3200, desc: '+32 DEF, +28 SPD, +50 Max HP, +6% Crit' },
+        'Infernal Core': { type: 'accessory', maxHp: 65, maxMp: 45, matk: 28, mdef: 18, price: 4000, desc: '+65 Max HP, +45 Max MP, +28 MATK, +18 MDEF' },
+        // Tier 6 Apex Mythic Gear (Area 10)
+        'Infinity Edge of Chronos': { type: 'weapon', atk: 125, matk: 45, maxHp: 40, spd: 15, crit: 12, price: 6500, desc: '+125 ATK, +45 MATK, +40 Max HP, +15 SPD, +12% Crit' },
+        'Crown of the Singularity': { type: 'helmet', def: 68, mdef: 52, maxHp: 80, maxMp: 35, spd: 16, price: 5500, desc: '+68 DEF, +52 MDEF, +80 Max HP, +35 Max MP, +16 SPD' },
+        'Aegis of the Void God': { type: 'armor', def: 92, mdef: 64, maxHp: 125, price: 6200, desc: '+92 DEF, +64 MDEF, +125 Max HP' },
+        'Dimension Gauntlets': { type: 'gloves', atk: 48, def: 38, spd: 14, crit: 10, price: 5200, desc: '+48 ATK, +38 DEF, +14 SPD, +10% Crit' },
+        'Cosmic Striders': { type: 'boots', def: 42, spd: 36, maxHp: 70, crit: 8, price: 5400, desc: '+42 DEF, +36 SPD, +70 Max HP, +8% Crit' },
+        'Eye of Eternity': { type: 'accessory', maxHp: 90, maxMp: 65, matk: 40, mdef: 25, crit: 10, price: 7000, desc: '+90 Max HP, +65 Max MP, +40 MATK, +25 MDEF, +10% Crit' }
     };
     const SKILL_TREE_DB = {
         // ==================== BRANCH 1: DAMAGE ====================
@@ -1131,6 +1383,26 @@
         area_5: {
             name: 'Abyssal Void (Tier 5)',
             items: ['Voidcleaver', 'Celestial Plate', 'Astral Hood', 'Voidtouch Grips', 'Phase Treads', 'Eye of the Cosmos']
+        },
+        area_6: {
+            name: 'Luminous Sanctuary (Tier 6)',
+            items: ['Dawn Greatsword', 'Luminous Plate', 'Crown of the Sun', 'Radiant Vambraces', 'Solar Greaves', 'Seraphic Heart']
+        },
+        area_7: {
+            name: 'Thunderous Steppes (Tier 7)',
+            items: ['Thunderclap Edge', 'Tempest Mail', 'Stormcaller Helm', 'Volt Grips', 'Zephyr Boots', 'Thunderstone Relic']
+        },
+        area_8: {
+            name: 'Glacial Frostpeaks (Tier 8)',
+            items: ['Glacial Claymore', 'Frostcrown Circlet', 'Icebound Hauberk', 'Permafrost Grips', 'Glacier Striders', 'Heart of Winter']
+        },
+        area_9: {
+            name: 'Molten Abyss (Tier 9)',
+            items: ['Hellfire Reaver', 'Pyroclast Visor', 'Molten Carapace', 'Cinder Fists', 'Lava Treads', 'Infernal Core']
+        },
+        area_10: {
+            name: 'The Celestial Void Rift (Tier 10)',
+            items: ['Infinity Edge of Chronos', 'Crown of the Singularity', 'Aegis of the Void God', 'Dimension Gauntlets', 'Cosmic Striders', 'Eye of Eternity']
         }
     };
 
@@ -1187,7 +1459,8 @@
             passive: { defPct: 4, maxHpPct: 4 },
             action: { name: 'Pebble Guard', type: 'shield', valPct: 8 },
             apexPerk: 'Petrified Shell: Increases all shield absorption amounts by +15%.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="30" r="16" fill="#4ade80"/><circle cx="20" cy="26" r="3" fill="#111"/><circle cx="30" cy="26" r="3" fill="#111"/><path d="M25,14 Q28,8 33,10 Q28,15 25,14" fill="#16a34a"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="30" r="16" fill="#4ade80"/><circle cx="20" cy="26" r="3" fill="#111"/><circle cx="30" cy="26" r="3" fill="#111"/><path d="M25,14 Q28,8 33,10 Q28,15 25,14" fill="#16a34a"/></svg>`,
+            obtainHint: "Starter Companion (Unlocked automatically at start of journey)."
         },
         cinder_pup: {
             id: 'cinder_pup',
@@ -1198,7 +1471,8 @@
             passive: { atkPct: 5 },
             action: { name: 'Ember Bite', type: 'damage_dot', power: 25, dot: 'burn', dotChance: 0.6 },
             apexPerk: 'Wildfire Sparks: Ember Bite applies 2 stacks of Burn instead of 1.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="12,18 25,38 38,18" fill="#fb923c"/><polygon points="8,10 16,18 10,22" fill="#ea580c"/><polygon points="42,10 34,18 40,22" fill="#ea580c"/><circle cx="20" cy="22" r="2.5" fill="#fff"/><circle cx="30" cy="22" r="2.5" fill="#fff"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="12,18 25,38 38,18" fill="#fb923c"/><polygon points="8,10 16,18 10,22" fill="#ea580c"/><polygon points="42,10 34,18 40,22" fill="#ea580c"/><circle cx="20" cy="22" r="2.5" fill="#fff"/><circle cx="30" cy="22" r="2.5" fill="#fff"/></svg>`,
+            obtainHint: "Whispering Woods & Sunken Caverns (5% drop from zone battle victories)."
         },
         // UNCOMMON (Tier 2 - Mid Early)
         breeze_finch: {
@@ -1210,7 +1484,8 @@
             passive: { spd: 8, crit: 3 },
             action: { name: 'Tailwind Gust', type: 'buff', buff: 'haste', turns: 2 },
             apexPerk: 'Gale Velocity: While Haste is active, gain an additional +10% Crit Chance.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="14" fill="#38bdf8"/><polygon points="35,25 45,23 35,29" fill="#facc15"/><circle cx="28" cy="21" r="2.5" fill="#111"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="14" fill="#38bdf8"/><polygon points="35,25 45,23 35,29" fill="#facc15"/><circle cx="28" cy="21" r="2.5" fill="#111"/></svg>`,
+            obtainHint: "Howling Peaks (10% drop from zone battle victories)."
         },
         shadow_wisp: {
             id: 'shadow_wisp',
@@ -1221,7 +1496,8 @@
             passive: { crit: 6, matkPct: 5 },
             action: { name: 'Abyssal Gaze', type: 'debuff_leech', power: 25, debuff: 'blind', chance: 0.7, leechPct: 0.3 },
             apexPerk: 'Soul Siphon: Triples HP leeched by Abyssal Gaze.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="15" fill="#7e22ce"/><circle cx="20" cy="22" r="3" fill="#f43f5e"/><circle cx="30" cy="22" r="3" fill="#f43f5e"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="15" fill="#7e22ce"/><circle cx="20" cy="22" r="3" fill="#f43f5e"/><circle cx="30" cy="22" r="3" fill="#f43f5e"/></svg>`,
+            obtainHint: "Sunken Caverns & Catacombs (8% drop from shade victories)."
         },
         // RARE (Tier 3 - Advanced)
         glacia_fox: {
@@ -1233,7 +1509,8 @@
             passive: { maxHpPct: 8, maxMpPct: 10 },
             action: { name: 'Glacial Soothe', type: 'heal_cc', healHpPct: 10, healMp: 15, cc: 'freeze', ccChance: 0.5 },
             apexPerk: 'Permafrost Aura: Enemies frozen by Glacia Fox take +30% shatter damage.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="15,15 25,35 35,15" fill="#93c5fd"/><polygon points="10,8 18,16 12,20" fill="#3b82f6"/><polygon points="40,8 32,16 38,20" fill="#3b82f6"/><circle cx="21" cy="20" r="2.5" fill="#1e3a8a"/><circle cx="29" cy="20" r="2.5" fill="#1e3a8a"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="15,15 25,35 35,15" fill="#93c5fd"/><polygon points="10,8 18,16 12,20" fill="#3b82f6"/><polygon points="40,8 32,16 38,20" fill="#3b82f6"/><circle cx="21" cy="20" r="2.5" fill="#1e3a8a"/><circle cx="29" cy="20" r="2.5" fill="#1e3a8a"/></svg>`,
+            obtainHint: "Sunken Caverns Gatekeeper Boss (Guaranteed on 1st victory, 15% drop thereafter)."
         },
         thunder_gryphon: {
             id: 'thunder_gryphon',
@@ -1244,7 +1521,8 @@
             passive: { spd: 12, atkPct: 8 },
             action: { name: 'Chain Surge', type: 'lightning_splash', power: 45, splashPct: 0.5, shockChance: 0.8 },
             apexPerk: 'Conduit Overcharge: Basic attacks trigger an immediate lightning splash 100% of the time.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="25,10 12,35 38,35" fill="#facc15"/><circle cx="25" cy="22" r="10" fill="#ca8a04"/><circle cx="22" cy="20" r="2" fill="#000"/><circle cx="28" cy="20" r="2" fill="#000"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="25,10 12,35 38,35" fill="#facc15"/><circle cx="25" cy="22" r="10" fill="#ca8a04"/><circle cx="22" cy="20" r="2" fill="#000"/><circle cx="28" cy="20" r="2" fill="#000"/></svg>`,
+            obtainHint: "Howling Peaks (10% drop from zone battle victories)."
         },
         // EPIC (Tier 4 - Endgame)
         void_stalker: {
@@ -1256,7 +1534,8 @@
             passive: { atkPct: 12, crit: 10 },
             action: { name: 'Void Strike', type: 'execute_damage', power: 70, executeThreshold: 0.20 },
             apexPerk: 'Reaper Instinct: Instantly resets player skill cooldowns whenever Void Strike executes a target.',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="17" fill="#1e1b4b" stroke="#a855f7" stroke-width="2"/><circle cx="19" cy="22" r="3" fill="#c084fc"/><circle cx="31" cy="22" r="3" fill="#c084fc"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="17" fill="#1e1b4b" stroke="#a855f7" stroke-width="2"/><circle cx="19" cy="22" r="3" fill="#c084fc"/><circle cx="31" cy="22" r="3" fill="#c084fc"/></svg>`,
+            obtainHint: "Abyssal Void Gatekeeper Boss (1% Mythic drop) or Spire Floor 50."
         },
         // LEGENDARY (Tier 5 - God Tier)
         ignis_phoenix: {
@@ -1268,6 +1547,159 @@
             passive: { atkPct: 15, matkPct: 15, maxHpPct: 10 },
             action: { name: 'Inferno Nova', type: 'aoe_fire', power: 60, burnAll: true },
             apexPerk: 'Rebirth Flame: Once per combat encounter, if the hero takes a fatal blow, revive immediately with 30% Max HP!',
-            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="25,5 15,25 25,45 35,25" fill="#ef4444"/><circle cx="25" cy="20" r="8" fill="#f59e0b"/><polygon points="25,5 30,15 20,15" fill="#ffd700"/></svg>`
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="25,5 15,25 25,45 35,25" fill="#ef4444"/><circle cx="25" cy="20" r="8" fill="#f59e0b"/><polygon points="25,5 30,15 20,15" fill="#ffd700"/></svg>`,
+            obtainHint: "Infernal Caldera Gatekeeper Boss (3% Legendary drop) or Spire Floor 35."
         }
     };
+
+    // Extended / Codex Companions
+    const ADDITIONAL_PETS = {
+        aqua_drake: {
+            id: 'aqua_drake',
+            name: 'Aqua Drake',
+            element: 'Water',
+            rarity: 'Rare',
+            desc: 'A majestic aquatic drake with tidal breath that restores energy and freezes foes.',
+            passive: { maxHpPct: 8, maxMpPct: 10 },
+            action: { name: 'Tidal Surge', type: 'heal_cc', healHpPct: 10, healMp: 15, cc: 'freeze', ccChance: 0.5 },
+            apexPerk: 'Tidal Resonance: Restores +20% more MP and increases freeze duration by 1 turn.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="10,25 25,10 40,25 25,40" fill="#38bdf8"/><polygon points="25,12 35,25 25,38 15,25" fill="#0284c7"/><circle cx="21" cy="22" r="2.5" fill="#e0f2fe"/><circle cx="29" cy="22" r="2.5" fill="#e0f2fe"/><path d="M18,30 Q25,36 32,30" stroke="#0369a1" stroke-width="2" fill="none"/></svg>`,
+            obtainHint: "Sunken Caverns Gatekeeper Boss (Guaranteed on 1st victory, 15% drop thereafter)."
+        },
+        storm_gryphon: {
+            id: 'storm_gryphon',
+            name: 'Storm Gryphon',
+            element: 'Wind',
+            rarity: 'Rare',
+            desc: 'A crackling apex beast unleashing chain lightning detonations.',
+            passive: { spd: 12, atkPct: 8 },
+            action: { name: 'Chain Surge', type: 'lightning_splash', power: 45, splashPct: 0.5, shockChance: 0.8 },
+            apexPerk: 'Conduit Overcharge: Basic attacks trigger an immediate lightning splash 100% of the time.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="25,10 12,35 38,35" fill="#facc15"/><circle cx="25" cy="22" r="10" fill="#ca8a04"/><circle cx="22" cy="20" r="2" fill="#000"/><circle cx="28" cy="20" r="2" fill="#000"/></svg>`,
+            obtainHint: "Howling Peaks (10% drop from zone battle victories)."
+        },
+        obsidian_tortoise: {
+            id: 'obsidian_tortoise',
+            name: 'Obsidian Tortoise',
+            element: 'Earth',
+            rarity: 'Epic',
+            desc: 'An ancient volcanic reptile encased in impenetrable volcanic armor.',
+            passive: { defPct: 12, maxHpPct: 12 },
+            action: { name: 'Magma Bastion', type: 'shield', valPct: 15, reflectPct: 0.25 },
+            apexPerk: 'Volcanic Carapace: Reflects 50% of melee damage absorbed by shields back at attacker.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><ellipse cx="25" cy="27" rx="18" ry="14" fill="#1e293b" stroke="#f97316" stroke-width="2"/><ellipse cx="25" cy="27" rx="12" ry="9" fill="#0f172a"/><circle cx="25" cy="12" r="6" fill="#334155"/><circle cx="23" cy="11" r="1.5" fill="#ea580c"/><circle cx="27" cy="11" r="1.5" fill="#ea580c"/></svg>`,
+            obtainHint: "Infernal Caldera (8% drop from magma monsters or 20% from Gatekeeper Boss)."
+        },
+        astral_sprite: {
+            id: 'astral_sprite',
+            name: 'Astral Sprite',
+            element: 'Light',
+            rarity: 'Epic',
+            desc: 'A celestial entity summoned from the zenith of the Infinite Spire.',
+            passive: { matkPct: 12, crit: 8 },
+            action: { name: 'Astral Radiance', type: 'buff', buff: 'divine_shield', turns: 2, healHpPct: 15 },
+            apexPerk: 'Cosmic Harmony: Increases all elemental damage dealt by the hero by +20%.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="25,5 31,18 45,19 34,29 37,43 25,35 13,43 16,29 5,19 19,18" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/><circle cx="25" cy="24" r="7" fill="#ffffff"/><circle cx="23" cy="23" r="2" fill="#854d0e"/><circle cx="27" cy="23" r="2" fill="#854d0e"/></svg>`,
+            obtainHint: "The Infinite Spire (Guaranteed milestone reward for clearing Floor 20)."
+        },
+        void_leviathan: {
+            id: 'void_leviathan',
+            name: 'Void Leviathan',
+            element: 'Dark',
+            rarity: 'Mythic',
+            desc: 'A terrifying cosmic titan that tears the fabric of reality itself.',
+            passive: { atkPct: 18, matkPct: 18, crit: 12 },
+            action: { name: 'Reality Tear', type: 'execute_damage', power: 90, executeThreshold: 0.30 },
+            apexPerk: 'Abyssal Singularity: Defeating an enemy restores 25% Max MP and triggers an immediate free turn.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><ellipse cx="25" cy="25" rx="19" ry="12" fill="#090514" stroke="#d946ef" stroke-width="2.5"/><circle cx="18" cy="22" r="3" fill="#fae8ff"/><circle cx="32" cy="22" r="3" fill="#fae8ff"/><circle cx="18" cy="22" r="1.5" fill="#a21caf"/><circle cx="32" cy="22" r="1.5" fill="#a21caf"/><path d="M17,29 Q25,35 33,29" stroke="#c026d3" stroke-width="2" fill="none"/></svg>`,
+            obtainHint: "Abyssal Void Gatekeeper Boss (1% Mythic drop) or Spire Floor 50."
+        },
+        lumina_sprite: {
+            id: 'lumina_sprite',
+            name: 'Lumina Sprite',
+            element: 'Light',
+            rarity: 'Rare',
+            desc: 'A radiant wisp born of celestial light, restoring vitality and shielding allies.',
+            obtainHint: 'Luminous Sanctuary (8% drop from zone battles or 25% from Archon of Radiance).',
+            passive: { matkPct: 8, maxMpPct: 8 },
+            action: { name: 'Solar Blessing', type: 'heal_cleanse', valPct: 10 },
+            apexPerk: 'Radiant Aura: Increases all healing received by +20% and grants 1 stack of Mirage on combat start.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><circle cx="25" cy="25" r="16" fill="#fef08a" filter="drop-shadow(0 0 4px #eab308)"/><circle cx="20" cy="22" r="2.5" fill="#854d0e"/><circle cx="30" cy="22" r="2.5" fill="#854d0e"/><path d="M22,28 Q25,31 28,28" stroke="#854d0e" stroke-width="2" fill="none"/></svg>`
+        },
+        spark_hound: {
+            id: 'spark_hound',
+            name: 'Spark Hound',
+            element: 'Wind',
+            rarity: 'Epic',
+            desc: 'An agile canine wreathed in crackling storm lightning, accelerating its master.',
+            obtainHint: 'Thunderous Steppes (6% drop from zone battles or 20% from Fulgur Apex).',
+            passive: { spd: 14, crit: 5 },
+            action: { name: 'Overcharge Bite', type: 'damage_dot', power: 45, dot: 'shock', dotChance: 0.8 },
+            apexPerk: 'Lightning Reflexes: 15% chance when attacked to completely evade and retaliate for 50% damage.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="12,38 22,18 32,22 42,16 46,38" fill="#38bdf8"/><circle cx="36" cy="24" r="2.5" fill="#fff"/><polygon points="20,24 24,30 20,32 26,38" fill="#facc15"/></svg>`
+        },
+        glacia_kitsune: {
+            id: 'glacia_kitsune',
+            name: 'Glacia Kitsune',
+            element: 'Water',
+            rarity: 'Epic',
+            desc: 'A mystical nine-tailed frost fox that weaves impenetrable barriers and freezes attackers.',
+            obtainHint: 'Glacial Frostpeaks (6% drop from zone battles or 20% from Frost Empress Glacia).',
+            passive: { defPct: 10, maxHpPct: 10 },
+            action: { name: 'Permafrost Shield', type: 'shield_freeze', valPct: 12, freezeChance: 0.5 },
+            apexPerk: 'Absolute Zero: Shields absorb 25% more damage and frozen enemies take 30% bonus damage from all sources.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="15,35 25,15 35,35" fill="#bae6fd" stroke="#0284c7" stroke-width="1.5"/><polygon points="17,18 20,8 24,16" fill="#0284c7"/><polygon points="26,16 30,8 33,18" fill="#0284c7"/><circle cx="22" cy="22" r="1.5" fill="#082f49"/><circle cx="28" cy="22" r="1.5" fill="#082f49"/><path d="M10,32 Q5,22 12,18" stroke="#38bdf8" stroke-width="1.5" fill="none"/><path d="M40,32 Q45,22 38,18" stroke="#38bdf8" stroke-width="1.5" fill="none"/></svg>`
+        },
+        cinder_gargoyle: {
+            id: 'cinder_gargoyle',
+            name: 'Cinder Gargoyle',
+            element: 'Fire',
+            rarity: 'Epic',
+            desc: 'A ferocious stone fiend infused with volcanic magma that unleashes scorching flames.',
+            obtainHint: 'Molten Abyss (5% drop from zone battles or 20% from Ignis Primordial).',
+            passive: { atkPct: 12, crit: 6 },
+            action: { name: 'Magma Cleave', type: 'damage_dot', power: 55, dot: 'burn', dotChance: 0.85 },
+            apexPerk: 'Molten Retaliation: Gain +15% ATK when below 50% HP, and all burns inflicted deal double tick damage.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><polygon points="15,38 25,12 35,38" fill="#450a0a" stroke="#ea580c" stroke-width="1.5"/><polygon points="16,16 19,8 22,14" fill="#ea580c"/><polygon points="28,14 31,8 34,16" fill="#ea580c"/><circle cx="21" cy="21" r="1.5" fill="#fef08a"/><circle cx="29" cy="21" r="1.5" fill="#fef08a"/><path d="M12,25 Q6,17 10,11 Q16,17 14,27" fill="#991b1b"/><path d="M38,25 Q44,17 40,11 Q34,17 36,27" fill="#991b1b"/></svg>`
+        },
+        chronos_sprite: {
+            id: 'chronos_sprite',
+            name: 'Chronos Sprite',
+            element: 'Dark',
+            rarity: 'Mythic',
+            desc: 'An ethereal cosmic temporal anomaly that bends the flow of battle time.',
+            obtainHint: 'Celestial Void Rift (3% drop from rift battles or 15% from Chronos, The Void Sovereign).',
+            passive: { atkPct: 15, matkPct: 15, spd: 18, crit: 8 },
+            action: { name: 'Temporal Warp', type: 'buff_time', turns: 2, spdBuff: 20, healMpPct: 20 },
+            apexPerk: 'Temporal Mastery: 20% chance at the end of every hero turn to immediately take another free turn.',
+            sprite: `<svg viewBox="0 0 50 50" width="100%" height="100%"><ellipse cx="25" cy="25" rx="15" ry="15" fill="#2e1065" stroke="#c084fc" stroke-width="1.5"/><ellipse cx="25" cy="25" rx="19" ry="7" fill="none" stroke="#fbbf24" stroke-width="1.2" transform="rotate(-25 25 25)"/><circle cx="22" cy="23" r="1.8" fill="#f5d0fe"/><circle cx="28" cy="23" r="1.8" fill="#f5d0fe"/></svg>`
+        }
+    };
+
+    for (let k in ADDITIONAL_PETS) {
+        Object.defineProperty(PETS_DB, k, {
+            value: ADDITIONAL_PETS[k],
+            enumerable: false,
+            writable: true,
+            configurable: true
+        });
+    }
+
+    const CODEX_PET_KEYS = [
+        'sprout_slimelet',
+        'cinder_pup',
+        'aqua_drake',
+        'storm_gryphon',
+        'obsidian_tortoise',
+        'astral_sprite',
+        'ignis_phoenix',
+        'void_leviathan',
+        'lumina_sprite',
+        'spark_hound',
+        'glacia_kitsune',
+        'cinder_gargoyle',
+        'chronos_sprite'
+    ];
+    window.CODEX_PET_KEYS = CODEX_PET_KEYS;
+    window.PETS_DB = PETS_DB;
+
