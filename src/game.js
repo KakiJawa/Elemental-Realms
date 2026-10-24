@@ -674,6 +674,7 @@ if (typeof window !== 'undefined') {
         if (baseItem.crit) baseStats.crit = baseItem.crit;
         if (baseItem.maxHp) baseStats.maxHp = baseItem.maxHp;
         if (baseItem.maxMp) baseStats.maxMp = baseItem.maxMp;
+        if (baseItem.goldBonus) baseStats.goldBonus = baseItem.goldBonus;
 
         let basePrice = baseItem.price || 20;
         let sellPrice = Math.max(5, Math.floor(basePrice * tierInfo.priceMult * 0.6));
@@ -802,7 +803,9 @@ if (typeof window !== 'undefined') {
                     if (item.baseStats.mdef) pStats.mdef += getUpgradedStat(item.baseStats.mdef, upLevel);
                     if (item.baseStats.spd) pStats.spd += getUpgradedStat(item.baseStats.spd, upLevel);
                     if (item.baseStats.crit) pStats.crit += getUpgradedStat(item.baseStats.crit, upLevel);
+                    if (item.baseStats.goldBonus) pStats.goldBonus = (pStats.goldBonus || 0) + item.baseStats.goldBonus;
                 }
+                if (item.goldBonus) pStats.goldBonus = (pStats.goldBonus || 0) + item.goldBonus;
                 if (item.affixes && Array.isArray(item.affixes)) {
                     for (let affix of item.affixes) {
                         if (affix.stat && affix.value) {
@@ -828,6 +831,7 @@ if (typeof window !== 'undefined') {
                 if (eq.mdef) pStats.mdef += eq.mdef;
                 if (eq.spd) pStats.spd += eq.spd;
                 if (eq.crit) pStats.crit += eq.crit;
+                if (eq.goldBonus) pStats.goldBonus = (pStats.goldBonus || 0) + eq.goldBonus;
             }
         }
         // Add Skill Tree Stats
@@ -857,6 +861,21 @@ if (typeof window !== 'undefined') {
                     if(st.crit) pStats.crit += st.crit;
                 }
             }
+        }
+
+        // Boss Gold Mastery Elemental Resistance (+1% per Gold Mastered Boss: 25+ kills)
+        pStats.elementalResistances = pStats.elementalResistances || {};
+        if (player.bestiary && typeof AREAS_DB !== 'undefined') {
+            const aKeys = (typeof getAllAreaKeys === 'function') ? getAllAreaKeys() : Object.keys(AREAS_DB);
+            aKeys.forEach(aKey => {
+                const area = AREAS_DB[aKey];
+                if (area && area.boss && area.boss.name) {
+                    const bossKills = player.bestiary[area.boss.name] || 0;
+                    if (bossKills >= 25 && area.boss.element) {
+                        pStats.elementalResistances[area.boss.element] = (pStats.elementalResistances[area.boss.element] || 0) + 1;
+                    }
+                }
+            });
         }
 
         // Apply Class Stat Multipliers
@@ -2036,6 +2055,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         if(id === 'modal-astral-altar') renderAstralAltarModal();
         if(id === 'modal-saves') renderSaveManager();
         if(id === 'modal-pets') renderPetsModal();
+        if(id === 'modal-tavern') { if (!player.bounties || !player.bounties.available || player.bounties.available.length === 0) refreshBountyBoard(true); renderTavernContent(); }
     }
     function closeAllModals() {
         document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.remove('active'));
@@ -2092,7 +2112,10 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 levels: {
                     sprout_slimelet: { level: 1, exp: 0 }
                 }
-            }
+            },
+            bestiary: {},
+            bountyMarks: 0,
+            bounties: { available: [], active: [], completedCount: 0 }
         };
         init();
         switchScreen('town');
@@ -2214,6 +2237,37 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             if(!player.selectedArea || !player.unlockedAreas.includes(player.selectedArea)) {
                 player.selectedArea = player.unlockedAreas[player.unlockedAreas.length - 1] || 'area_1';
             }
+
+            // Bestiary Initialization & Retroactive Discovery for Unlocked Areas
+            if (!player.bestiary || typeof player.bestiary !== 'object') {
+                player.bestiary = {};
+            }
+            if (player.unlockedAreas && Array.isArray(player.unlockedAreas)) {
+                player.unlockedAreas.forEach(aKey => {
+                    const area = (typeof AREAS_DB !== 'undefined') && AREAS_DB[aKey];
+                    if (area) {
+                        if (area.regularEnemies) {
+                            area.regularEnemies.forEach(e => {
+                                if (e && e.name && (player.bestiary[e.name] === undefined || player.bestiary[e.name] === null)) {
+                                    player.bestiary[e.name] = 1;
+                                }
+                            });
+                        }
+                        if (area.boss && area.boss.name) {
+                            if (player.bestiary[area.boss.name] === undefined || player.bestiary[area.boss.name] === null) {
+                                player.bestiary[area.boss.name] = 1;
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Tavern & Bounty Board Initialization
+            player.bountyMarks = player.bountyMarks || 0;
+            player.bounties = player.bounties || { available: [], active: [], completedCount: 0 };
+            if (!Array.isArray(player.bounties.available)) player.bounties.available = [];
+            if (!Array.isArray(player.bounties.active)) player.bounties.active = [];
+            if (typeof player.bounties.completedCount !== 'number') player.bounties.completedCount = 0;
             
             // Class Advancement Initialization & Retroactive Qualification
             if(!player.currentClass) {
@@ -5604,6 +5658,22 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         if(multi > 1.0) logMsg("It's super effective!", "#ffff55");
         if(multi < 1.0) logMsg("It's not very effective...", "#888888");
 
+        // Monster Mastery Combat Bonus (+5% Damage at Silver Mastery: 50 kills, 10 for bosses)
+        if (isAttackerPlayer && !target.isPlayer) {
+            let kills = (player.bestiary && player.bestiary[target.name]) || 0;
+            let reqSilver = target.isBoss ? 10 : 50;
+            if (kills >= reqSilver) {
+                amount = Math.floor(amount * 1.05);
+            }
+        }
+        // Boss Gold Mastery Elemental Resistance Mitigation
+        if (isTargetPlayer && pStats && pStats.elementalResistances && pStats.elementalResistances[element]) {
+            let resPct = pStats.elementalResistances[element] || 0;
+            if (resPct > 0) {
+                amount = Math.max(1, Math.floor(amount * (1 - resPct / 100)));
+            }
+        }
+
         // Executioner Keystone (+35% damage to targets <= 30% HP)
         if (isAttackerPlayer && !target.isPlayer && player.skillTree && player.skillTree.executioner > 0 && target.hp <= target.maxHp * 0.30) {
             amount = Math.floor(amount * 1.35);
@@ -5775,10 +5845,26 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         
         if(target.hp <= 0 && wasAlive) {
             if (!target.isPlayer) {
+                if (!player.bestiary) player.bestiary = {};
+                player.bestiary[target.name] = (player.bestiary[target.name] || 0) + 1;
                 if (battleState && (battleState.inspectedEnemyIndex === target.index || (battleState.enemies && battleState.enemies[battleState.inspectedEnemyIndex] === target))) {
                     if (typeof closeEnemyInspector === 'function') closeEnemyInspector();
                 }
                 playSFX('enemy_death');
+
+                // Tavern Bounty Progress Hook
+                if (player.bounties && Array.isArray(player.bounties.active)) {
+                    player.bounties.active.forEach(b => {
+                        if (b.targetName === target.name && b.currentCount < b.targetCount) {
+                            b.currentCount++;
+                            if (b.currentCount >= b.targetCount && !b.completed) {
+                                b.completed = true;
+                                showToast(`📜 Bounty Complete: ${b.title}! Return to Tavern to claim rewards.`, 'quest');
+                                playSFX('quest_claim');
+                            }
+                        }
+                    });
+                }
 
                 // Midas Touch Keystone: Defeating an enemy with a basic attack or critical hit grants bonus Gold equal to 10% of their Max HP
                 if (isAttackerPlayer && player.skillTree && player.skillTree.midasTouch > 0 && (element === ELEMENTS.Physical || isCrit)) {
@@ -6504,8 +6590,11 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             baseGold += e.gold;
             
             if(e.loot) {
+                let kills = (player.bestiary && player.bestiary[e.name]) || 0;
+                let reqGold = e.isBoss ? 25 : 100;
+                let goldLootMult = (kills >= reqGold) ? 1.10 : 1.0;
                 e.loot.forEach(l => {
-                    if(Math.random() <= (l.chance * treasureSenseMod)) {
+                    if(Math.random() <= (l.chance * treasureSenseMod * goldLootMult)) {
                         let baseItem = ITEMS_DB[l.item];
                         if(baseItem && baseItem.type !== 'consumable') {
                             let rarity = 'Common';
@@ -8149,6 +8238,847 @@ function renderCodexContent() {
         `;
         return;
     }
+
+    if (currentCodexTab === 'bestiary') {
+        const allMonsters = getAllBestiaryMonsters();
+        const totalMonsters = allMonsters.length;
+        let discoveredCount = 0;
+        let silverCount = 0;
+        let goldCount = 0;
+
+        allMonsters.forEach(m => {
+            const kills = (player && player.bestiary && player.bestiary[m.name]) || 0;
+            const reqSilver = m.isBoss ? 10 : 50;
+            const reqGold = m.isBoss ? 25 : 100;
+            if (kills >= 1) discoveredCount++;
+            if (kills >= reqSilver) silverCount++;
+            if (kills >= reqGold) goldCount++;
+        });
+
+        const progressPct = totalMonsters > 0 ? Math.round((discoveredCount / totalMonsters) * 100) : 0;
+
+        container.innerHTML = `
+            <div class="bestiary-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <span style="font-size: 15px; font-weight: bold; color: #fde047;">📖 Bestiary & Monster Lore Compendium</span>
+                        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">
+                            Cataloging all ${totalMonsters} species across Areas 1–10. Defeat monsters in combat to reveal stats, drop tables, and unlock mastery perks.
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px; font-size: 11px;">
+                        <span style="color: #38bdf8; font-weight: bold;">👁️ Discovered: ${discoveredCount}/${totalMonsters}</span>
+                        <span style="color: #cbd5e1; font-weight: bold;">⚔️ Silver: ${silverCount}/${totalMonsters}</span>
+                        <span style="color: #f59e0b; font-weight: bold;">👑 Gold: ${goldCount}/${totalMonsters}</span>
+                    </div>
+                </div>
+                <div class="bestiary-progress-bar">
+                    <div class="bestiary-progress-fill" style="width: ${progressPct}%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
+                    <span>Fog-of-War Discovery: ${progressPct}%</span>
+                    <span>Silver: +5% DMG (50 / 10 Boss) &bull; Gold: +10% Drops (100 / 25 Boss)</span>
+                </div>
+            </div>
+
+            <div class="bestiary-controls">
+                <select id="bestiary-zone-filter" class="bestiary-select" onchange="filterBestiary()">
+                    <option value="all" ${window.bestiaryFilterZone === 'all' ? 'selected' : ''}>All Areas (10 Zones)</option>
+                    <option value="area_1" ${window.bestiaryFilterZone === 'area_1' ? 'selected' : ''}>Area 1: Whispering Woods</option>
+                    <option value="area_2" ${window.bestiaryFilterZone === 'area_2' ? 'selected' : ''}>Area 2: Sunken Caverns</option>
+                    <option value="area_3" ${window.bestiaryFilterZone === 'area_3' ? 'selected' : ''}>Area 3: Howling Peaks</option>
+                    <option value="area_4" ${window.bestiaryFilterZone === 'area_4' ? 'selected' : ''}>Area 4: Infernal Caldera</option>
+                    <option value="area_5" ${window.bestiaryFilterZone === 'area_5' ? 'selected' : ''}>Area 5: Abyssal Void</option>
+                    <option value="area_6" ${window.bestiaryFilterZone === 'area_6' ? 'selected' : ''}>Area 6: Luminous Sanctuary</option>
+                    <option value="area_7" ${window.bestiaryFilterZone === 'area_7' ? 'selected' : ''}>Area 7: Thunderous Steppes</option>
+                    <option value="area_8" ${window.bestiaryFilterZone === 'area_8' ? 'selected' : ''}>Area 8: Glacial Frostpeaks</option>
+                    <option value="area_9" ${window.bestiaryFilterZone === 'area_9' ? 'selected' : ''}>Area 9: Molten Abyss</option>
+                    <option value="area_10" ${window.bestiaryFilterZone === 'area_10' ? 'selected' : ''}>Area 10: The Celestial Void Rift</option>
+                    <option value="bosses" ${window.bestiaryFilterZone === 'bosses' ? 'selected' : ''}>👑 Gatekeeper Bosses Only</option>
+                </select>
+                <input type="text" id="bestiary-search" class="bestiary-search" placeholder="🔍 Search monster by name..." value="${window.bestiarySearchText || ''}" oninput="filterBestiary()" style="flex: 1; min-width: 180px;">
+            </div>
+
+            <div id="bestiary-grid" class="bestiary-grid"></div>
+        `;
+
+        renderBestiaryGrid(window.bestiaryFilterZone || 'all', window.bestiarySearchText || '');
+        return;
+    }
+
 }
 window.renderCodexContent = renderCodexContent;
+
+/* =========================================================================
+   CHAPTER 5: BESTIARY COMPENDIUM ENGINE
+   ========================================================================= */
+
+function getAllBestiaryMonsters() {
+    const list = [];
+    const areaKeys = (typeof getAllAreaKeys === 'function') ? getAllAreaKeys() : [
+        'area_1', 'area_2', 'area_3', 'area_4', 'area_5',
+        'area_6', 'area_7', 'area_8', 'area_9', 'area_10'
+    ];
+    areaKeys.forEach(aKey => {
+        const area = (typeof AREAS_DB !== 'undefined') && AREAS_DB[aKey];
+        if (!area) return;
+        if (area.regularEnemies && Array.isArray(area.regularEnemies)) {
+            area.regularEnemies.forEach(e => {
+                list.push({ ...e, areaId: aKey, areaName: area.name, isBoss: false });
+            });
+        }
+        if (area.boss && area.boss.name) {
+            list.push({ ...area.boss, areaId: aKey, areaName: area.name, isBoss: true });
+        }
+    });
+    return list;
+}
+window.getAllBestiaryMonsters = getAllBestiaryMonsters;
+
+function filterBestiary() {
+    const zoneSelect = document.getElementById('bestiary-zone-filter');
+    const searchInput = document.getElementById('bestiary-search');
+    const selectedZone = zoneSelect ? zoneSelect.value : 'all';
+    const searchQuery = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    window.bestiaryFilterZone = selectedZone;
+    window.bestiarySearchText = searchQuery;
+    renderBestiaryGrid(selectedZone, searchQuery);
+}
+window.filterBestiary = filterBestiary;
+
+function renderBestiaryGrid(zoneFilter = 'all', searchText = '') {
+    const grid = document.getElementById('bestiary-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    let monsters = getAllBestiaryMonsters();
+
+    // Zone filter
+    if (zoneFilter === 'bosses') {
+        monsters = monsters.filter(m => m.isBoss);
+    } else if (zoneFilter !== 'all') {
+        monsters = monsters.filter(m => m.areaId === zoneFilter);
+    }
+
+    // Search filter by monster name
+    if (searchText) {
+        const query = searchText.toLowerCase();
+        monsters = monsters.filter(m => m.name.toLowerCase().includes(query));
+    }
+
+    if (monsters.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 24px; font-style: italic;">No monsters found matching current filters.</div>';
+        return;
+    }
+
+    monsters.forEach(m => {
+        const kills = (player && player.bestiary && player.bestiary[m.name]) || 0;
+        const isBoss = m.isBoss;
+        const reqSilver = isBoss ? 10 : 50;
+        const reqGold = isBoss ? 25 : 100;
+        const isSilver = kills >= reqSilver;
+        const isGold = kills >= reqGold;
+        const isDiscovered = kills >= 1;
+
+        let cardClass = 'monster-card';
+        if (isGold) cardClass += ' mastery-gold';
+        else if (isSilver) cardClass += ' mastery-silver';
+
+        let spriteSvg = (typeof SVG_SPRITES !== 'undefined' && (SVG_SPRITES[m.name] || SVG_SPRITES['Stone Golem'])) || '';
+
+        const card = document.createElement('div');
+        card.className = cardClass;
+        card.dataset.monsterName = m.name;
+        card.dataset.areaId = m.areaId;
+
+        if (!isDiscovered) {
+            // Tier 0: Undiscovered (Fog-of-War Silhouette)
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 13px; font-weight: bold; color: #94a3b8;">???</span>
+                    <span style="font-size: 10px; color: #64748b;">${m.areaName}</span>
+                </div>
+                <div class="entity-sprite monster-silhouette" style="width: 60px; height: 60px; margin: 4px auto;">
+                    ${spriteSvg}
+                </div>
+                <div style="display: flex; justify-content: space-around; font-size: 11px; color: #64748b; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 4px;">
+                    <span>Lv. ???</span>
+                    <span>Element: ???</span>
+                    <span>AI: ???</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align: center; font-size: 10px; background: rgba(15,23,42,0.4); padding: 4px; border-radius: 4px; color: #475569;">
+                    <div>HP: ???</div>
+                    <div>ATK: ???</div>
+                    <div>DEF: ???</div>
+                    <div>MDEF: ???</div>
+                    <div>SPD: ???</div>
+                </div>
+                <div style="font-size: 11px; color: #475569; text-align: center; font-style: italic; padding: 6px 0;">
+                    🔒 Undiscovered (Defeat in combat to reveal stats and weaknesses)
+                </div>
+            `;
+        } else {
+            // Tier 1+: Encountered
+            let badgeHtml = '';
+            if (isGold) {
+                badgeHtml = `<span class="mastery-badge mastery-badge-gold">👑 Apex Master (+5% DMG, +10% Drops${isBoss ? ', +1% ' + m.element + ' Res' : ''})</span>`;
+            } else if (isSilver) {
+                badgeHtml = `<span class="mastery-badge mastery-badge-silver">⚔️ Silver Hunter (+5% DMG)</span>`;
+            } else {
+                badgeHtml = `<span style="font-size: 10px; color: #94a3b8;">Kills: <b style="color: #38bdf8;">${kills}</b> / ${reqSilver} to Silver</span>`;
+            }
+
+            // Elemental Affinities
+            let affinitiesHtml = '';
+            const allElements = ['Fire', 'Water', 'Wind', 'Earth', 'Light', 'Dark'];
+            const elemIcons = { Fire: '🔥', Water: '💧', Wind: '💨', Earth: '🌿', Light: '✨', Dark: '🌑' };
+            allElements.forEach(el => {
+                let mult = 1.0;
+                if (typeof getElementalMultiplier === 'function') mult = getElementalMultiplier(el, m.element);
+                if (mult > 1.0) {
+                    affinitiesHtml += `<span class="affinity-pill affinity-weak" style="font-size: 9px; padding: 1px 5px;">${elemIcons[el]} Weak</span>`;
+                } else if (mult < 1.0) {
+                    affinitiesHtml += `<span class="affinity-pill affinity-resist" style="font-size: 9px; padding: 1px 5px;">${elemIcons[el]} Resist</span>`;
+                }
+            });
+
+            // Drops section
+            let dropsHtml = '';
+            if (isSilver || isGold) {
+                if (m.loot && m.loot.length > 0) {
+                    dropsHtml = `
+                        <div style="font-size: 10px; font-weight: bold; color: #94a3b8; margin-top: 4px;">DROP TABLE:</div>
+                        <div class="bestiary-drop-table">
+                            ${m.loot.map(l => {
+                                const pct = Math.round(l.chance * 100);
+                                return `<span class="bestiary-drop-chip"><span style="color: #f1f5f9;">${l.item}</span> <b style="color: #4ade80;">${pct}%</b></span>`;
+                            }).join('')}
+                        </div>
+                    `;
+                } else {
+                    dropsHtml = `<div style="font-size: 10px; color: #64748b; font-style: italic;">No rare item drops.</div>`;
+                }
+            } else {
+                dropsHtml = `<div style="font-size: 10px; color: #64748b; font-style: italic; margin-top: 2px;">🔒 Drop table locked (Unlocks at Silver Mastery: ${reqSilver} kills)</div>`;
+            }
+
+            // Lore section
+            let loreHtml = '';
+            if (isGold) {
+                const lore = (typeof BESTIARY_LORE_DB !== 'undefined' && BESTIARY_LORE_DB[m.name]) || 'A formidable entity dwelling within the realms.';
+                loreHtml = `<div class="bestiary-lore-box">📜 "${lore}"</div>`;
+            }
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="font-size: 14px; font-weight: bold; color: ${isBoss ? '#f472b6' : '#e2e8f0'};">
+                            ${isBoss ? '👑 ' : ''}${m.name}
+                        </div>
+                        <div style="font-size: 10px; color: #64748b;">${m.areaName}</div>
+                    </div>
+                    <div>${badgeHtml}</div>
+                </div>
+
+                <div class="entity-sprite ${isBoss ? 'boss-sprite' : ''}" style="width: 60px; height: 60px; margin: 2px auto;">
+                    ${spriteSvg}
+                </div>
+
+                <div style="display: flex; justify-content: space-around; font-size: 11px; background: rgba(0,0,0,0.35); padding: 4px 6px; border-radius: 4px; border: 1px solid #334155;">
+                    <span style="color: #cbd5e1; font-weight: bold;">Lv. ${m.level}</span>
+                    <span class="elem-${m.element}" style="font-weight: bold;">${m.element}</span>
+                    <span style="color: #94a3b8;">AI: ${m.ai || 'balanced'}</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; text-align: center; font-size: 10px; background: rgba(15,23,42,0.6); padding: 4px; border-radius: 4px;">
+                    <div><span style="color: #64748b;">HP</span><br><b style="color: #4ade80;">${m.hp}</b></div>
+                    <div><span style="color: #64748b;">ATK</span><br><b style="color: #f87171;">${m.atk}</b></div>
+                    <div><span style="color: #64748b;">DEF</span><br><b style="color: #60a5fa;">${m.def}</b></div>
+                    <div><span style="color: #64748b;">MDEF</span><br><b style="color: #c084fc;">${m.mdef || 0}</b></div>
+                    <div><span style="color: #64748b;">SPD</span><br><b style="color: #facc15;">${m.spd}</b></div>
+                </div>
+
+                ${affinitiesHtml ? `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px;">${affinitiesHtml}</div>` : ''}
+
+                ${dropsHtml}
+
+                ${loreHtml}
+            `;
+        }
+
+        grid.appendChild(card);
+    });
+}
+window.renderBestiaryGrid = renderBestiaryGrid;
+
+/* =========================================================================
+   OPTION F: THE DRUNKEN DRAKE TAVERN & MERCENARY GUILD
+   ========================================================================= */
+
+let tavernActiveTab = 'bounties';
+
+function generateBountyContract(p = player) {
+    const pl = p || player;
+    // 1. Pick unlocked area strictly from player.unlockedAreas
+    const unlocked = (pl && pl.unlockedAreas && Array.isArray(pl.unlockedAreas) && pl.unlockedAreas.length > 0)
+        ? pl.unlockedAreas
+        : ['area_1'];
+    
+    const validAreas = unlocked.filter(a => typeof AREAS_DB !== 'undefined' && AREAS_DB[a]);
+    const chosenAreaKey = validAreas.length > 0
+        ? validAreas[Math.floor(Math.random() * validAreas.length)]
+        : 'area_1';
+    const area = (typeof AREAS_DB !== 'undefined') ? AREAS_DB[chosenAreaKey] : null;
+
+    // 2. Roll rarity based on weights: Common 40%, Uncommon 30%, Rare 18%, Epic 9%, Legendary 3%
+    const rand = Math.random() * 100;
+    let rarity = 'Common';
+    if (rand < 40) {
+        rarity = 'Common';
+    } else if (rand < 70) {
+        rarity = 'Uncommon';
+    } else if (rand < 88) {
+        rarity = 'Rare';
+    } else if (rand < 97) {
+        rarity = 'Epic';
+    } else {
+        rarity = 'Legendary';
+    }
+
+    // 3. Determine if targeting Boss or Regular Mob
+    let isBoss = false;
+    let target = null;
+    const hasBoss = area && area.boss && area.boss.name;
+    const regList = (area && area.regularEnemies && area.regularEnemies.length > 0) ? area.regularEnemies : [];
+
+    if ((rarity === 'Epic' || rarity === 'Legendary') && hasBoss) {
+        // 50% chance to target boss if available
+        if (Math.random() < 0.5 || regList.length === 0) {
+            isBoss = true;
+            target = area.boss;
+        }
+    }
+
+    if (!target) {
+        if (regList.length > 0) {
+            target = regList[Math.floor(Math.random() * regList.length)];
+        } else if (hasBoss) {
+            isBoss = true;
+            target = area.boss;
+        } else {
+            target = { name: 'Ember Slime', level: 1 };
+        }
+    }
+
+    const targetLevel = (target && target.level) ? target.level : 1;
+
+    // 4. Calculate required kills and rewards based on rarity
+    let targetCount = 3;
+    let baseGold = 100;
+    let baseExp = 80;
+    let marks = 1;
+    let bonusMaterials = null;
+
+    if (rarity === 'Common') {
+        // 3 – 5 kills, 100 – 250 Gold, 80 – 180 EXP, 1 Mark, None
+        targetCount = Math.floor(Math.random() * 3) + 3;
+        baseGold = Math.floor(Math.random() * 151) + 100;
+        baseExp = Math.floor(Math.random() * 101) + 80;
+        marks = 1;
+        bonusMaterials = null;
+    } else if (rarity === 'Uncommon') {
+        // 8 – 12 kills, 300 – 600 Gold, 250 – 500 EXP, 2 Marks, 3 Iron Scraps
+        targetCount = Math.floor(Math.random() * 5) + 8;
+        baseGold = Math.floor(Math.random() * 301) + 300;
+        baseExp = Math.floor(Math.random() * 251) + 250;
+        marks = 2;
+        bonusMaterials = { scrap: 3 };
+    } else if (rarity === 'Rare') {
+        // 15 – 22 kills, 800 – 1500 Gold, 700 – 1200 EXP, 3 Marks, 6 Iron Scraps
+        targetCount = Math.floor(Math.random() * 8) + 15;
+        baseGold = Math.floor(Math.random() * 701) + 800;
+        baseExp = Math.floor(Math.random() * 501) + 700;
+        marks = 3;
+        bonusMaterials = { scrap: 6 };
+    } else if (rarity === 'Epic') {
+        // 25 – 35 kills OR 1 Boss, 2000 – 3500 Gold, 1800 – 3000 EXP, 5 Marks, 12 Scraps + 1 Reforge Rune
+        targetCount = isBoss ? 1 : Math.floor(Math.random() * 11) + 25;
+        baseGold = Math.floor(Math.random() * 1501) + 2000;
+        baseExp = Math.floor(Math.random() * 1201) + 1800;
+        marks = 5;
+        bonusMaterials = { scrap: 12, reforgeRune: 1 };
+    } else if (rarity === 'Legendary') {
+        // 40 – 50 kills OR 2 Bosses, 5000 – 8000 Gold, 4500 – 7500 EXP, 10 Marks, 25 Scraps + 2 Mythic Reforge Runes
+        targetCount = isBoss ? 2 : Math.floor(Math.random() * 11) + 40;
+        baseGold = Math.floor(Math.random() * 3001) + 5000;
+        baseExp = Math.floor(Math.random() * 3001) + 4500;
+        marks = 10;
+        bonusMaterials = { scrap: 25, mythicReforgeRune: 2 };
+    }
+
+    // Dynamic level scaling: BaseReward * (1 + (targetLevel * 0.12))
+    const scaleMult = 1 + (targetLevel * 0.12);
+    const finalGold = Math.round(baseGold * scaleMult);
+    const finalExp = Math.round(baseExp * scaleMult);
+
+    return {
+        id: 'bounty_' + Date.now() + '_' + Math.floor(Math.random() * 1000000),
+        title: isBoss ? `Boss Hunt: ${target.name}` : `Hunt: ${target.name}`,
+        rarity: rarity,
+        areaId: chosenAreaKey,
+        areaName: area ? area.name : 'Unknown Zone',
+        targetName: target.name,
+        targetLevel: targetLevel,
+        isBoss: !!isBoss,
+        targetCount: targetCount,
+        currentCount: 0,
+        completed: false,
+        marks: marks,
+        gold: finalGold,
+        exp: finalExp,
+        bonusMaterials: bonusMaterials,
+        desc: isBoss
+            ? `Slay ${targetCount} ${target.name} (Gatekeeper Boss) in ${area ? area.name : 'the zone'}.`
+            : `Defeat ${targetCount} ${target.name} in ${area ? area.name : 'the zone'}.`
+    };
+}
+
+function refreshBountyBoard(forceFree = false) {
+    if (!player) return;
+    if (!player.bounties) {
+        player.bounties = { available: [], active: [], completedCount: 0 };
+    }
+    if (!Array.isArray(player.bounties.available)) player.bounties.available = [];
+    if (!Array.isArray(player.bounties.active)) player.bounties.active = [];
+
+    if (!forceFree && player.bounties.available.length > 0) {
+        if ((player.gold || 0) < 50) {
+            showToast('Insufficient Gold', 'Refreshing the Bounty Board costs 50 Gold.', 'info');
+            return;
+        }
+        player.gold -= 50;
+        updateHeader();
+    }
+
+    const newContracts = [];
+    for (let i = 0; i < 4; i++) {
+        newContracts.push(generateBountyContract(player));
+    }
+    player.bounties.available = newContracts;
+
+    if (!forceFree) {
+        showToast('Bounty Board Refreshed', '4 new mercenary contracts posted!', 'info');
+    }
+
+    renderTavernContent();
+}
+
+function acceptBounty(bountyId) {
+    if (!player) return;
+    if (!player.bounties) player.bounties = { available: [], active: [], completedCount: 0 };
+    if (!Array.isArray(player.bounties.active)) player.bounties.active = [];
+    if (!Array.isArray(player.bounties.available)) player.bounties.available = [];
+
+    if (player.bounties.active.length >= 2) {
+        showToast('⚠️ Maximum Contracts', 'You can only take 2 active contracts at a time!', 'info');
+        return;
+    }
+
+    const idx = player.bounties.available.findIndex(b => b.id === bountyId);
+    if (idx === -1) return;
+
+    const bounty = player.bounties.available.splice(idx, 1)[0];
+    bounty.currentCount = 0;
+    bounty.completed = false;
+    player.bounties.active.push(bounty);
+
+    showToast('Contract Accepted!', `Accepted: ${bounty.title} (${player.bounties.active.length}/2)`, 'quest');
+    renderTavernContent();
+}
+
+function abandonBounty(bountyId) {
+    if (!player || !player.bounties || !Array.isArray(player.bounties.active)) return;
+    const idx = player.bounties.active.findIndex(b => b.id === bountyId);
+    if (idx === -1) return;
+
+    const b = player.bounties.active[idx];
+    player.bounties.active.splice(idx, 1);
+    showToast('Contract Abandoned', `Abandoned contract: ${b.title}`, 'info');
+    renderTavernContent();
+}
+
+function claimBountyReward(bountyId) {
+    if (!player || !player.bounties || !Array.isArray(player.bounties.active)) return;
+    const idx = player.bounties.active.findIndex(b => b.id === bountyId);
+    if (idx === -1) return;
+
+    const b = player.bounties.active[idx];
+    if (b.currentCount < b.targetCount) {
+        showToast('Contract Incomplete', `Defeat ${b.targetCount - b.currentCount} more ${b.targetName}!`, 'info');
+        return;
+    }
+
+    // Remove from active & increment completed count
+    player.bounties.active.splice(idx, 1);
+    player.bounties.completedCount = (player.bounties.completedCount || 0) + 1;
+
+    // Disburse rewards
+    player.gold = (player.gold || 0) + (b.gold || 0);
+    player.bountyMarks = (player.bountyMarks || 0) + (b.marks || 0);
+
+    let expTxt = '';
+    if (b.exp) {
+        player.exp = (player.exp || 0) + b.exp;
+        checkLevelUp();
+        expTxt = ` +${b.exp} EXP`;
+    }
+
+    // Bonus materials
+    if (b.bonusMaterials) {
+        if (!player.materials) player.materials = { scrap: 0, dust: 0, shard: 0 };
+        if (b.bonusMaterials.scrap) {
+            player.materials.scrap = (player.materials.scrap || 0) + b.bonusMaterials.scrap;
+        }
+        if (b.bonusMaterials.reforgeRune) {
+            if (!player.inventory.consumables) player.inventory.consumables = {};
+            player.inventory.consumables['Reforge Rune'] = (player.inventory.consumables['Reforge Rune'] || 0) + b.bonusMaterials.reforgeRune;
+            if (player.inventory !== player.inventory.consumables) {
+                try { player.inventory['Reforge Rune'] = player.inventory.consumables['Reforge Rune']; } catch(e) {}
+            }
+        }
+        if (b.bonusMaterials.mythicReforgeRune) {
+            if (!player.inventory.consumables) player.inventory.consumables = {};
+            player.inventory.consumables['Mythic Reforge Rune'] = (player.inventory.consumables['Mythic Reforge Rune'] || 0) + b.bonusMaterials.mythicReforgeRune;
+            if (player.inventory !== player.inventory.consumables) {
+                try { player.inventory['Mythic Reforge Rune'] = player.inventory.consumables['Mythic Reforge Rune']; } catch(e) {}
+            }
+        }
+    }
+
+    playSFX('quest_claim');
+    showToast('Bounty Claimed!', `+${b.gold} Gold${expTxt}, +${b.marks} Bounty Marks!`, 'quest', 5000);
+    updateHeader();
+    renderTavernContent();
+    if (typeof checkAchievements === 'function') checkAchievements();
+}
+
+function buyQuartermasterItem(itemId) {
+    if (!player) return;
+    if (typeof TAVERN_EXCHANGE_DB === 'undefined') return;
+    const item = TAVERN_EXCHANGE_DB.find(i => i.id === itemId);
+    if (!item) return;
+
+    player.bountyMarks = player.bountyMarks || 0;
+    if (player.bountyMarks < item.cost) {
+        showToast('Insufficient Marks', `You need 🎖️ ${item.cost} Bounty Marks to purchase this.`, 'info');
+        return;
+    }
+
+    if (item.type === 'title') {
+        if (player.activeTitle === item.title) {
+            showToast('Already Equipped', `You already have the title [${item.title}] equipped!`, 'info');
+            return;
+        }
+        player.bountyMarks -= item.cost;
+        player.activeTitle = item.title;
+        updateHeader();
+        if (typeof renderStats === 'function') renderStats();
+        showToast('Prestige Title Unlocked!', `Equipped title [${item.title}]!`, 'quest', 5000);
+    } else if (item.type === 'material') {
+        player.bountyMarks -= item.cost;
+        if (!player.materials) player.materials = { scrap: 0, dust: 0, shard: 0 };
+        const key = (item.matKey === 'scraps' || item.matKey === 'scrap') ? 'scrap' : item.matKey;
+        player.materials[key] = (player.materials[key] || 0) + item.amount;
+        showToast('Materials Received!', `Received ${item.amount} Iron Scraps!`, 'info');
+    } else if (item.effect === 'pet_exp') {
+        player.bountyMarks -= item.cost;
+        if (player.pets) {
+            let given = 0;
+            if (Array.isArray(player.pets.active)) {
+                player.pets.active.forEach(pId => {
+                    if (pId) {
+                        if (typeof addPetExp === 'function') addPetExp(pId, item.value || 50);
+                        given++;
+                    }
+                });
+            }
+            if (given === 0) {
+                const first = (player.pets.unlocked && player.pets.unlocked[0]) || 'sprout_slimelet';
+                if (typeof addPetExp === 'function') addPetExp(first, item.value || 50);
+            }
+        }
+        showToast('Gourmet Treat Served!', `Active companion pets gained +${item.value || 50} Bond EXP!`, 'level');
+    } else if (item.effect === 'mythic_rune') {
+        player.bountyMarks -= item.cost;
+        if (!player.inventory.consumables) player.inventory.consumables = {};
+        player.inventory.consumables['Mythic Reforge Rune'] = (player.inventory.consumables['Mythic Reforge Rune'] || 0) + 1;
+        if (player.inventory !== player.inventory.consumables) {
+            try { player.inventory['Mythic Reforge Rune'] = player.inventory.consumables['Mythic Reforge Rune']; } catch(e) {}
+        }
+        showToast('Mythic Reforge Rune', 'Added 1 Mythic Reforge Rune to your inventory!', 'quest');
+    } else if (item.type === 'accessory') {
+        player.bountyMarks -= item.cost;
+        if (!player.inventory.equipment) player.inventory.equipment = [];
+        const accessory = {
+            id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+            baseName: item.name || "Mercenary's Signet",
+            name: item.name || "Mercenary's Signet",
+            type: 'accessory',
+            slot: 'accessory',
+            rarity: 'Epic',
+            baseStats: {
+                maxHp: item.maxHp || 40,
+                crit: item.crit || 5,
+                goldBonus: item.goldBonus || 15
+            },
+            maxHp: item.maxHp || 40,
+            crit: item.crit || 5,
+            goldBonus: item.goldBonus || 15,
+            affixes: [],
+            price: 1200,
+            sellPrice: 300,
+            desc: item.desc
+        };
+        player.inventory.equipment.push(accessory);
+        showToast("Mercenary's Signet", "Received Mercenary's Signet! Check your inventory to equip.", 'quest');
+    }
+
+    updateHeader();
+    renderTavernContent();
+    if (typeof renderInventory === 'function') renderInventory();
+}
+
+function openTavernModal() {
+    if (!player) return;
+    if (player.bountyMarks === undefined) player.bountyMarks = 0;
+    if (!player.bounties) player.bounties = { available: [], active: [], completedCount: 0 };
+    if (!Array.isArray(player.bounties.available)) player.bounties.available = [];
+    if (!Array.isArray(player.bounties.active)) player.bounties.active = [];
+
+    if (player.bounties.available.length === 0) {
+        refreshBountyBoard(true);
+    }
+    renderTavernContent();
+    openModal('modal-tavern');
+}
+
+function closeTavernModal() {
+    closeModal('modal-tavern');
+}
+
+function switchTavernTab(tab) {
+    tavernActiveTab = tab;
+    const tabBtns = document.querySelectorAll('.tavern-tab');
+    tabBtns.forEach(btn => {
+        if ((tab === 'bounties' && btn.textContent.includes('Bounty Board')) ||
+            (tab === 'quartermaster' && btn.textContent.includes('Quartermaster'))) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    renderTavernContent();
+}
+
+function renderTavernContent() {
+    const marksEl = document.getElementById('tavern-marks-display');
+    if (marksEl) marksEl.textContent = (player && player.bountyMarks) || 0;
+
+    const contentEl = document.getElementById('tavern-content');
+    if (!contentEl) return;
+
+    if (!player.bounties) player.bounties = { available: [], active: [], completedCount: 0 };
+    if (!Array.isArray(player.bounties.active)) player.bounties.active = [];
+    if (!Array.isArray(player.bounties.available)) player.bounties.available = [];
+
+    const rarityColors = {
+        'Common': '#94a3b8',
+        'Uncommon': '#22c55e',
+        'Rare': '#38bdf8',
+        'Epic': '#c084fc',
+        'Legendary': '#f59e0b'
+    };
+
+    if (tavernActiveTab === 'bounties') {
+        let html = '';
+
+        // 1. Active Contracts Section
+        const activeCount = player.bounties.active.length;
+        html += `
+            <div class="bounty-section-header">
+                <div class="bounty-section-title">⚔️ Active Contracts (${activeCount}/2)</div>
+            </div>
+        `;
+
+        if (activeCount === 0) {
+            html += `
+                <div style="background: rgba(15,23,42,0.6); border: 1px dashed #334155; border-radius: 8px; padding: 14px; text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 16px;">
+                    No active contracts. Select up to 2 contracts from the board below to hunt monsters in your unlocked areas!
+                </div>
+            `;
+        } else {
+            html += `<div class="bounty-grid">`;
+            player.bounties.active.forEach((b, idx) => {
+                const color = rarityColors[b.rarity] || '#94a3b8';
+                const pct = Math.min(100, Math.floor(((b.currentCount || 0) / (b.targetCount || 1)) * 100));
+                const isReady = (b.currentCount || 0) >= (b.targetCount || 1);
+
+                let matStr = '';
+                if (b.bonusMaterials) {
+                    if (b.bonusMaterials.scrap) matStr += ` +${b.bonusMaterials.scrap} Scraps`;
+                    if (b.bonusMaterials.reforgeRune) matStr += ` +${b.bonusMaterials.reforgeRune} Reforge Rune`;
+                    if (b.bonusMaterials.mythicReforgeRune) matStr += ` +${b.bonusMaterials.mythicReforgeRune} Mythic Rune`;
+                }
+
+                html += `
+                    <div class="bounty-card rarity-${b.rarity.toLowerCase()}">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span class="bounty-badge-active">[Active Slot ${idx+1}/2]</span>
+                                <span style="font-size: 11px; font-weight: bold; color: ${color}; text-transform: uppercase;">${b.rarity}</span>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px; color: ${color}; margin-bottom: 4px;">${b.title}</div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                                📍 Zone: <b style="color: #cbd5e1;">${b.areaName}</b><br>
+                                🎯 Target: <b style="color: #f1f5f9;">${b.targetName}</b> (Lv.${b.targetLevel}${b.isBoss ? ' Boss' : ''})
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px;">${b.desc}</div>
+                        </div>
+
+                        <div>
+                            <div class="bounty-progress-bar" style="margin-bottom: 8px;">
+                                <div class="bounty-progress-fill" style="width: ${pct}%; background: ${isReady ? '#16a34a' : 'linear-gradient(90deg, #3b82f6, #60a5fa)'};"></div>
+                                <div class="bounty-progress-text">${b.currentCount || 0} / ${b.targetCount} (${pct}%)</div>
+                            </div>
+
+                            <div style="font-size: 11px; color: #fde047; margin-bottom: 8px;">
+                                💰 ${b.gold} Gold | ✨ ${b.exp} EXP | 🎖️ ${b.marks} Marks${matStr ? `<br><span style="color: #a78bfa;">📦${matStr}</span>` : ''}
+                            </div>
+
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                ${isReady
+                                    ? `<button class="bounty-btn-claim" onclick="claimBountyReward('${b.id}')">🎁 Claim Reward</button>`
+                                    : `<button class="bounty-btn-abandon" onclick="abandonBounty('${b.id}')">Abandon</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        // 2. Available Contracts Section
+        html += `
+            <div class="bounty-section-header">
+                <div class="bounty-section-title">📜 Guild Contract Board</div>
+                <button class="btn" style="padding: 4px 10px; font-size: 12px; border-color: #f59e0b; color: #f59e0b;" onclick="refreshBountyBoard(false)">🔄 Refresh Board (50 Gold)</button>
+            </div>
+        `;
+
+        if (player.bounties.available.length === 0) {
+            html += `
+                <div style="background: rgba(15,23,42,0.6); border: 1px dashed #334155; border-radius: 8px; padding: 14px; text-align: center; color: #94a3b8; font-size: 13px;">
+                    All contracts accepted! Refresh the board for 50 Gold to post new guild contracts.
+                </div>
+            `;
+        } else {
+            html += `<div class="bounty-grid">`;
+            player.bounties.available.forEach(b => {
+                const color = rarityColors[b.rarity] || '#94a3b8';
+                let matStr = '';
+                if (b.bonusMaterials) {
+                    if (b.bonusMaterials.scrap) matStr += ` +${b.bonusMaterials.scrap} Scraps`;
+                    if (b.bonusMaterials.reforgeRune) matStr += ` +${b.bonusMaterials.reforgeRune} Reforge Rune`;
+                    if (b.bonusMaterials.mythicReforgeRune) matStr += ` +${b.bonusMaterials.mythicReforgeRune} Mythic Rune`;
+                }
+                const canAccept = activeCount < 2;
+
+                html += `
+                    <div class="bounty-card rarity-${b.rarity.toLowerCase()}">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 11px; font-weight: bold; color: ${color}; text-transform: uppercase;">${b.rarity} CONTRACT</span>
+                                <span style="font-size: 11px; color: #94a3b8;">Lv.${b.targetLevel}</span>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px; color: ${color}; margin-bottom: 4px;">${b.title}</div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                                📍 Zone: <b style="color: #cbd5e1;">${b.areaName}</b><br>
+                                🎯 Requirement: Defeat <b style="color: #f1f5f9;">${b.targetCount}x ${b.targetName}</b>${b.isBoss ? ' (Gatekeeper Boss)' : ''}
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 8px;">${b.desc}</div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 11px; color: #fde047; margin-bottom: 8px; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 4px;">
+                                💰 ${b.gold} Gold | ✨ ${b.exp} EXP | 🎖️ ${b.marks} Marks${matStr ? `<br><span style="color: #a78bfa;">📦${matStr}</span>` : ''}
+                            </div>
+                            <button class="bounty-btn-accept" ${canAccept ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'} onclick="acceptBounty('${b.id}')">
+                                ${canAccept ? 'Accept Contract' : 'Slots Full (2/2)'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        contentEl.innerHTML = html;
+    } else if (tavernActiveTab === 'quartermaster') {
+        let html = `
+            <div style="margin-bottom: 12px; font-size: 13px; color: #94a3b8;">
+                Exchange hard-earned <b>Bounty Marks</b> for rare crafting supplies, gourmet companion treats, and prestigious mercenary titles.
+            </div>
+            <div class="quartermaster-grid">
+        `;
+
+        if (typeof TAVERN_EXCHANGE_DB !== 'undefined') {
+            const marks = (player && player.bountyMarks) || 0;
+            TAVERN_EXCHANGE_DB.forEach(item => {
+                const canAfford = marks >= item.cost;
+                const isEquippedTitle = (item.type === 'title' && player.activeTitle === item.title);
+
+                html += `
+                    <div class="quartermaster-card">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-weight: bold; font-size: 14px; color: #fbbf24;">${item.name}</span>
+                                <span style="font-size: 12px; font-weight: bold; color: #f59e0b; background: rgba(245,158,11,0.15); padding: 2px 8px; border-radius: 12px; border: 1px solid #f59e0b;">
+                                    🎖️ ${item.cost}
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; color: #94a3b8; margin-bottom: 8px;">
+                                Type: <span style="color: #cbd5e1; text-transform: capitalize;">${item.type}</span>
+                            </div>
+                            <div style="font-size: 12px; color: #cbd5e1; line-height: 1.4;">${item.desc}</div>
+                        </div>
+
+                        <div style="margin-top: 10px;">
+                            ${isEquippedTitle
+                                ? `<button class="btn" disabled style="width: 100%; opacity: 0.7; background: #059669; border-color: #10b981; color: white;">Equipped</button>`
+                                : `<button class="btn" ${canAfford ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;"'} style="width: 100%; background: #d97706; border-color: #f59e0b; color: white;" onclick="buyQuartermasterItem('${item.id}')">
+                                    Exchange (${item.cost} Marks)
+                                   </button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        html += `</div>`;
+        contentEl.innerHTML = html;
+    }
+}
+
+// Global window attachments
+window.generateBountyContract = generateBountyContract;
+window.refreshBountyBoard = refreshBountyBoard;
+window.acceptBounty = acceptBounty;
+window.abandonBounty = abandonBounty;
+window.claimBountyReward = claimBountyReward;
+window.buyQuartermasterItem = buyQuartermasterItem;
+window.openTavernModal = openTavernModal;
+window.closeTavernModal = closeTavernModal;
+window.switchTavernTab = switchTavernTab;
+window.renderTavernContent = renderTavernContent;
 

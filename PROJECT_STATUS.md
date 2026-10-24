@@ -7,15 +7,69 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 25 test suites totaling 2,303 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, and `verify_combat_visual_qol.py`) located in `.gemini/antigravity` scratch directory.
+  - Scratch test tools: 27 test suites totaling 2,462 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, and `verify_tavern_bounties.py`) located in `.gemini/antigravity` scratch directory.
 - **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Combat Visual Overhaul, Turn Order Ribbon & Enemy Inspector Complete.
-- **Feature Currently Being Developed:** None (100% offline combat visual overhaul with non-destructive floating combat text `#combat-float-layer`, visual turn order ribbon `#turn-order-ribbon` with real-time actor highlighting, interactive enemy inspector `#enemy-inspector-card` with 6 elemental vulnerability affinities and active debuff tracking; verified with 2,303/2,303 tests passing across all 25 test suites).
-- **Immediate Next Development Task:** Option E: Bestiary & Monster Lore Compendium or Option F: Town Expansion & Tavern Bounties.
+- **Current Phase:** Option F: The Drunken Drake Tavern & Mercenary Guild Complete.
+- **Feature Currently Being Developed:** None (100% offline Tavern & Mercenary Guild expansion featuring procedural rarity-scaled bounty contracts from Common to Legendary, strict unlocked-area gating, 2-contract concurrent limit, board refresh fees, combat kill tracking in `applyDamage()`, completion toasts, claimable rewards with dynamic level scaling, dedicated Bounty Mark currency, Guild Quartermaster shop with gourmet companion treats, Iron Scraps crates, Mythic Reforge Runes, Mercenary's Signet accessory, and prestige cosmetic hero titles; verified with 2,462/2,462 tests passing across all 27 test suites with 0 regressions).
+- **Immediate Next Development Task:** Option G: Hardcore Boss Rush & Endless Arena (Consecutive boss survival trials, scaling score multipliers, and celestial trophies).
 
 ## Completed Features
+- **Option F: The Drunken Drake Tavern & Mercenary Guild:**
+  - *Dynamic Rarity-Scaled Procedural Bounty Board:*
+    - Procedural contract generator (`generateBountyContract(player)`) creating varied hunting missions scaled across 5 rarity tiers:
+      - **Common (40%):** 3–5 regular monster kills, 1 Bounty Mark, 100–250 Base Gold, 80–180 Base EXP.
+      - **Uncommon (30%):** 8–12 regular monster kills, 2 Bounty Marks, 3 Iron Scraps, 300–600 Base Gold, 250–500 Base EXP.
+      - **Rare (18%):** 15–22 regular monster kills, 3 Bounty Marks, 6 Iron Scraps, 800–1,500 Base Gold, 700–1,200 Base EXP.
+      - **Epic (9%):** 25–35 regular monster kills OR 1 Gatekeeper Boss kill (50% boss chance), 5 Bounty Marks, 12 Iron Scraps, 1 Reforge Rune, 2,000–3,500 Base Gold, 1,800–3,000 Base EXP.
+      - **Legendary (3%):** 40–50 regular monster kills OR 2 Gatekeeper Boss kills (50% boss chance), 10 Bounty Marks, 25 Iron Scraps, 2 Mythic Reforge Runes, 5,000–8,000 Base Gold, 4,500–7,500 Base EXP.
+    - Dynamic level scaling: Gold and EXP reward payouts scale with the target monster's level via `BaseReward * (1 + (targetLevel * 0.12))`.
+  - *Strict Area-Gating & Invariant Protection:*
+    - Contracts are drawn strictly from zones unlocked in `player.unlockedAreas`. Early-game players fight early-game monsters while still benefiting from high-tier rarity rolls.
+    - Active contract capacity limit strictly capped at 2 simultaneous contracts (`player.bounties.active.length <= 2`) with warning toasts preventing overflow.
+    - Board refresh mechanic (`refreshBountyBoard`): maintains 4 available contracts on the board; refreshable for 50 Gold (free on empty or first visit), preserving active contracts without overwriting.
+    - Flexible contract abandonment (`abandonBounty`): allows abandoning unwanted contracts at any time to free active slots.
+  - *Combat Kill Tracking Hook & Celebration Feedback:*
+    - Embedded in `applyDamage()` on enemy defeat: increments `currentCount` for matching active bounties (`b.targetName === target.name`).
+    - Flags contract `completed = true`, plays audio SFX, and triggers instant celebratory notification toast directing player back to Tavern.
+    - Reward claim system (`claimBountyReward`): awards Gold, EXP with automatic `checkLevelUp()` integration, Bounty Marks, and bonus crafting materials (Iron Scraps, Reforge Runes, Mythic Runes), advancing `player.bounties.completedCount`.
+  - *Guild Quartermaster & Dedicated Guild Currency (`TAVERN_EXCHANGE_DB`):*
+    - Dedicated guild currency `player.bountyMarks` persisted across saves.
+    - **Gourmet Pet Treat (3 Marks):** Grants +50 Bond EXP to active companion pets in Sanctuary.
+    - **Iron Scraps Crate (4 Marks):** Directly disburses 15 Iron Scraps to `player.materials.scrap` for Forge upgrades.
+    - **Mythic Reforge Rune (8 Marks):** Adds guaranteed max-tier reforge runes to inventory.
+    - **Mercenary's Signet (15 Marks):** Elite accessory granting +40 Max HP, +5% Crit Rate, and +15% bonus Gold from all victories.
+    - **Prestige Titles (10 & 25 Marks):** Unlocks and equips cosmetic hero titles *"Bounty Hunter"* and *"Apex Mercenary"*.
+  - *Atmospheric Town Hub & Modal UI:*
+    - Town Hub button (`🍺 Tavern & Bounties`) in `#view-town .town-grid`.
+    - `#modal-tavern` featuring Barkeep quote, live Bounty Marks balance pill (`#tavern-marks-display`), and 2 tab navigation bars (`📜 Bounty Board` and `🎖️ Guild Quartermaster`).
+    - Thematic CSS styling: Card rarity borders (Common `#64748b`, Uncommon `#22c55e`, Rare `#38bdf8`, Epic `#c084fc`, and Legendary `#f59e0b` with animated golden pulsing glow), live percentage progress bars, and mobile portrait responsiveness.
+  - *Save System Backward Compatibility:*
+    - Safely initializes `player.bountyMarks = 0` and `player.bounties = { available: [], active: [], completedCount: 0 }` in both `newGame()` and `loadGame()`.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_tavern_bounties.py`: 95 / 95 passed (100%).
+    - Full project regression: 2,462 / 2,462 tests passed across all 27 test suites on live `index.html` with zero regressions.
+- **Chapter 5: Bestiary & Monster Lore Compendium:**
+  - *Full-Realm Monster Catalog (50 Species across Areas 1–10):*
+    - Automatically collects all 4 regular enemies and 1 Gatekeeper Boss from all 10 exploration zones via `getAllBestiaryMonsters()`.
+    - Integrated with `BESTIARY_LORE_DB` in `data/game_data.js` containing rich ecological and mythical flavor text for all 50 species.
+  - *4-Tier Fog-of-War Silhouette Progression:*
+    - **Tier 0: Undiscovered (0 Kills):** Shadowy silhouette sprite (`filter: brightness(0)` with drop-shadow), name displayed as `???`, stats, element, archetype, and drop tables concealed.
+    - **Tier 1: Encountered (1 Kill / 1 Boss Kill):** Reveals full-color SVG sprite, monster name, level, element badge, AI archetype, base stats (HP, ATK, DEF, MDEF, SPD), and 6-element vulnerability matrix (`.affinity-weak`, `.affinity-resist`).
+    - **Tier 2: Silver Mastery (50 Kills / 10 Boss Kills):** Silver border (`.mastery-silver`), `⚔️ Silver Hunter` badge, permanent **+5% Combat Damage** dealt by Hero against this species in `applyDamage()`, and full Drop Table revealed with exact percentage chances.
+    - **Tier 3: Gold Mastery (100 Kills / 25 Boss Kills):** Golden glowing border (`.mastery-gold`), `👑 Apex Master` badge, permanent **+10% Drop Chance** for all loot dropped by this monster in `winBattle()`, unlocked ecological Lore description, and permanent **+1% Elemental Resistance** matching boss element in `computeStats()`.
+  - *Interactive Navigation, Filters & Live Search:*
+    - 5th tab button added to `#codex-nav-bar` in `index.html` (`switchCodexTab('bestiary')`).
+    - Dynamic header displaying overall realm discovery, Silver Mastery, and Gold Mastery counts with a multi-colored progress bar.
+    - Zone Filter dropdown allowing inspection by individual area (`area_1` through `area_10`), all areas, or Gatekeeper Bosses only.
+    - Real-time search input filtering species dynamically by name.
+  - *Save State Backward Compatibility:*
+    - Initializes `player.bestiary = {}` in `newGame()`.
+    - In `loadGame()`, retroactively discovers (Tier 1) all monsters belonging to zones already recorded in `player.unlockedAreas`.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_bestiary_system.py`: 63 / 63 passed (100%).
+    - Full project regression: 2,366 / 2,366 tests passed across all 26 test suites on live `index.html` with zero regressions.
 - **Combat Visual Overhaul, Turn Order Ribbon & Enemy Inspector:**
   - *Persistent Floating Combat Text Overlay Layer (`#combat-float-layer`):*
     - Non-destructive DOM architecture: Floaters are attached to a dedicated persistent overlay layer (`#combat-float-layer`) positioned over the battlefield with absolute coordinates computed relative to target bounding boxes (`getBoundingClientRect`).
@@ -606,8 +660,11 @@
 
 ## Planned Features
 - **Confirmed Priorities:**
-  - **Option E: Bestiary & Monster Lore Compendium:** Monster weaknesses, drop tables, kill counts, elemental resistances, and combat lore unlocks.
-  - **Option F: Town Expansion & Tavern Bounties:** Procedural daily bounty board and NPC mini-quests for gold and rare materials.
+  - **Option G: Hardcore Boss Rush & Endless Arena:** Consecutive boss survival trials, scaling score multipliers, and celestial trophies.
+  - **Option H: Equipment Loadout Presets:** 1-click swapping between physical, magic, and tank armor configurations.
+- **Future Explorations:**
+  - **Option I: Auto-Battle AI & Loot Filter Rules:** Smart hero auto-combat and automatic salvage filter for dropped junk gear.
+  - **Option J: Desktop Hotkey System:** Full keyboard accessibility (1-5 skills, A attack, Q potion, Space next).
 
 ## Important Constraints
 - **Preserve Existing Gameplay:** Do not alter established combat formulas, elemental modifiers, or screen flows without explicit instruction.
@@ -618,6 +675,6 @@
 - **Incremental Changes:** Changes should be isolated and test-verified before advancing to subsequent phases; avoid wholesale rewrites.
 
 ## Last Updated
-- **Date:** 2026-10-24
-- **Description:** Combat Visual Overhaul, Turn Order Ribbon & Enemy Inspector Complete: Implemented persistent non-destructive floating combat text layer (`#combat-float-layer`) with element color-coding, crit popups, heal indicators, and DoT icons; implemented visual turn order timeline ribbon (`#turn-order-ribbon`, `#turn-order-track`) with real-time speed queue and `.is-active` / `.is-hero` / `.is-boss` styling; implemented interactive enemy inspector (`#enemy-inspector-card`) with full 6-element vulnerability breakdown (`.affinity-weak`, `.affinity-resist`, `.affinity-neutral`) and active debuff tracking with turn countdowns. Verified across all 25 test suites with 2,303/2,303 automated tests passing (100% pass rate with zero regressions).
+- **Date:** 2026-10-25
+- **Description:** Option F: The Drunken Drake Tavern & Mercenary Guild Complete: Implemented interactive Town Tavern and Bounty Board with procedural rarity-scaled contracts (Common to Legendary), strict unlocked-area gating, 2-contract concurrent limit, board refresh, combat kill tracking in applyDamage(), completion toasts, dynamic level scaling, dedicated Bounty Mark currency, Guild Quartermaster shop with gourmet pet treats, Iron Scraps crates, Mythic Reforge Runes, Mercenary's Signet accessory, and prestige cosmetic hero titles. Verified across all 27 test suites with 2,462/2,462 automated tests passing (100% pass rate with zero regressions).
 

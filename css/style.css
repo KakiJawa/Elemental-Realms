@@ -2055,3 +2055,378 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
     color: #0f172a;
     border-color: #38bdf8;
 }
+
+/* =========================================================================
+   ADVENTURER'S CODEX: CHAPTER 5 (BESTIARY)
+   ========================================================================= */
+.bestiary-header {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+}
+.bestiary-progress-bar {
+    height: 8px;
+    background: #0f172a;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 6px 0;
+    border: 1px solid #334155;
+}
+.bestiary-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #38bdf8, #818cf8, #f59e0b);
+    transition: width 0.3s ease;
+}
+.bestiary-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.bestiary-select, .bestiary-search {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+.bestiary-select:focus, .bestiary-search:focus {
+    outline: none;
+    border-color: #38bdf8;
+}
+.bestiary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+}
+.monster-card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    transition: transform 0.2s, border-color 0.2s;
+}
+.monster-card:hover {
+    border-color: #475569;
+}
+.monster-card.mastery-silver {
+    border-color: #94a3b8;
+    box-shadow: 0 0 10px rgba(148, 163, 184, 0.25);
+}
+.monster-card.mastery-gold {
+    border-color: #f59e0b;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+}
+.monster-silhouette {
+    filter: brightness(0) drop-shadow(0 0 2px rgba(255, 255, 255, 0.3)) !important;
+    opacity: 0.55;
+}
+.mastery-badge {
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.mastery-badge-silver {
+    background: rgba(148, 163, 184, 0.15);
+    border: 1px solid #94a3b8;
+    color: #e2e8f0;
+}
+.mastery-badge-gold {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    color: #fef08a;
+}
+.bestiary-lore-box {
+    background: rgba(15, 23, 42, 0.7);
+    border-left: 3px solid #f59e0b;
+    padding: 6px 10px;
+    border-radius: 0 6px 6px 0;
+    font-size: 11px;
+    font-style: italic;
+    color: #fde68a;
+    line-height: 1.4;
+    margin-top: 4px;
+}
+.bestiary-drop-table {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+}
+.bestiary-drop-chip {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid #475569;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+@media (max-width: 768px) {
+    .bestiary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================================
+   OPTION F: THE DRUNKEN DRAKE TAVERN & MERCENARY GUILD
+   ========================================================================= */
+#modal-tavern {
+    max-width: 860px;
+    width: 95%;
+    max-height: 90vh;
+}
+
+.town-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+.town-btn-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+}
+.town-btn-label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.tavern-status-bar {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.tavern-barkeep-quote {
+    font-style: italic;
+    color: #cbd5e1;
+    font-size: 13px;
+    flex: 1;
+    min-width: 200px;
+}
+.tavern-currency-badge {
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid #f59e0b;
+    border-radius: 20px;
+    padding: 5px 12px;
+    color: #fbbf24;
+    font-weight: 600;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.tavern-nav-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    flex-shrink: 0;
+}
+.tavern-tab {
+    background: #1e293b;
+    border: 1px solid #475569;
+    color: #94a3b8;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+.tavern-tab:hover {
+    background: #334155;
+    color: #f8fafc;
+}
+.tavern-tab.active {
+    background: #d97706 !important;
+    border-color: #f59e0b !important;
+    color: #ffffff !important;
+}
+.tavern-content {
+    max-height: 65vh;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.bounty-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 14px 0 10px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #334155;
+}
+.bounty-section-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.bounty-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.bounty-card {
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    position: relative;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.bounty-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.4);
+}
+.bounty-card.rarity-common {
+    border: 2px solid #64748b;
+}
+.bounty-card.rarity-uncommon {
+    border: 2px solid #22c55e;
+}
+.bounty-card.rarity-rare {
+    border: 2px solid #38bdf8;
+}
+.bounty-card.rarity-epic {
+    border: 2px solid #c084fc;
+    box-shadow: 0 0 10px rgba(192, 132, 252, 0.25);
+}
+.bounty-card.rarity-legendary {
+    border: 2px solid #f59e0b;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.4);
+    animation: legendaryGlow 2.5s infinite alternate ease-in-out;
+}
+@keyframes legendaryGlow {
+    0% {
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+        border-color: #d97706;
+    }
+    100% {
+        box-shadow: 0 0 18px rgba(245, 158, 11, 0.7);
+        border-color: #fbbf24;
+    }
+}
+.bounty-badge-active {
+    display: inline-block;
+    background: #0284c7;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+.bounty-progress-bar {
+    width: 100%;
+    height: 18px;
+    background: #1e293b;
+    border-radius: 9px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #475569;
+}
+.bounty-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    transition: width 0.3s ease;
+}
+.bounty-progress-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    text-shadow: 0 1px 2px #000;
+}
+.bounty-btn-accept {
+    background: #2563eb;
+    color: white;
+    border: 1px solid #3b82f6;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.15s ease;
+}
+.bounty-btn-accept:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+.bounty-btn-claim {
+    background: #16a34a;
+    color: white;
+    border: 1px solid #22c55e;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 600;
+    animation: claimPulse 1.5s infinite;
+}
+@keyframes claimPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}
+.bounty-btn-abandon {
+    background: #dc2626;
+    color: white;
+    border: 1px solid #ef4444;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.15s ease;
+}
+.bounty-btn-abandon:hover {
+    background: #b91c1c;
+}
+.quartermaster-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+.quartermaster-card {
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 768px) {
+    .bounty-grid, .quartermaster-grid {
+        grid-template-columns: 1fr;
+    }
+}
+

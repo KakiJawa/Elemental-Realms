@@ -707,7 +707,9 @@
         'Aegis of the Void God': { type: 'armor', def: 92, mdef: 64, maxHp: 125, price: 6200, desc: '+92 DEF, +64 MDEF, +125 Max HP' },
         'Dimension Gauntlets': { type: 'gloves', atk: 48, def: 38, spd: 14, crit: 10, price: 5200, desc: '+48 ATK, +38 DEF, +14 SPD, +10% Crit' },
         'Cosmic Striders': { type: 'boots', def: 42, spd: 36, maxHp: 70, crit: 8, price: 5400, desc: '+42 DEF, +36 SPD, +70 Max HP, +8% Crit' },
-        'Eye of Eternity': { type: 'accessory', maxHp: 90, maxMp: 65, matk: 40, mdef: 25, crit: 10, price: 7000, desc: '+90 Max HP, +65 Max MP, +40 MATK, +25 MDEF, +10% Crit' }
+        'Eye of Eternity': { type: 'accessory', maxHp: 90, maxMp: 65, matk: 40, mdef: 25, crit: 10, price: 7000, desc: '+90 Max HP, +65 Max MP, +40 MATK, +25 MDEF, +10% Crit' },
+        "Mercenary's Signet": { type: 'accessory', maxHp: 40, crit: 5, goldBonus: 15, price: 1200, desc: 'A battle-worn signet ring awarded to elite guild hunters. Grants +15% bonus Gold from victories and +5% Crit Rate.' },
+        'mercenary_signet': { type: 'accessory', maxHp: 40, crit: 5, goldBonus: 15, price: 1200, desc: 'A battle-worn signet ring awarded to elite guild hunters. Grants +15% bonus Gold from victories and +5% Crit Rate.' }
     };
     const SKILL_TREE_DB = {
         // ==================== BRANCH 1: DAMAGE ====================
@@ -1702,4 +1704,157 @@
     ];
     window.CODEX_PET_KEYS = CODEX_PET_KEYS;
     window.PETS_DB = PETS_DB;
+
+    /* =========================================================================
+       CHAPTER 5: BESTIARY & MONSTER LORE COMPENDIUM DATABASE
+       ========================================================================= */
+    const BESTIARY_LORE_DB = {
+        // Area 1: Whispering Woods
+        'Ember Slime': 'A volatile gelatinous glob infused with dormant embers, bouncing aggressively when disturbed.',
+        'Gale Wolf': 'Swift woodland predators that harness forest breezes to ambush unsuspecting travelers.',
+        'Stone Golem': 'Ancient granite guardians animated by subterranean earth ley-lines.',
+        'Venom Spider': 'Arachnids dwelling in mossy hollows, injecting debilitating neurotoxins.',
+        'Ancient Treant': 'A thousand-year-old arboreal colossus guarding the sacred heart of the Whispering Woods.',
+        'Elder Treant': 'A thousand-year-old arboreal colossus guarding the sacred heart of the Whispering Woods.',
+
+        // Area 2: Sunken Caverns
+        'Tide Slime': 'Semi-transparent amoebas filled with pressurized brine that dissolve armor plates.',
+        'Coral Crab': 'Armored crustaceans bearing razor-sharp crystalline coral claws.',
+        'Deep Horror': 'Tentacled aberrations that lurk within sunless subterranean sea trenches.',
+        'Abyssal Siren': 'Deceptive aquatic spirits that entrance prey with siren songs before striking.',
+        'Tidal Leviathan': 'An ancient oceanic behemoth whose awakening causes cavernous tidal surges.',
+        'Cave Bat': 'Subterranean winged pests that echolocate in absolute darkness and swarm unwary explorers.',
+        'Frost Knight': 'The animated glacial plate armor of a fallen paladin, chilled by freezing ocean depth currents.',
+        'Abyssal Lurker': 'A predatory amphibian lurking beneath murky underground waterways waiting to ambush prey.',
+        'Leviathan Drake': 'A colossal aquatic sea serpent ruling the sunken flooded caverns with devastating tidal surges.',
+
+        // Area 3: Howling Peaks
+        'Gale Falcon': 'Apex raptors that dive from blizzard clouds at blinding supersonic speeds.',
+        'Thunder Lynx': 'Felines crackling with static electricity that stalk storm-swept ridges.',
+        'Peak Wyrm': 'Draconic serpents coiling around freezing mountaintops, exhaling gale-force blasts.',
+        'Storm Elemental': 'Living vortices of lightning and howling atmospheric turbulence.',
+        'Tempest Roc': 'A mythical storm titan whose massive wings summon perpetual gale storms.',
+        'Thunder Harpy': 'Feathered fiends that ride updrafts on jagged cliffs, hurling crackling lightning bolts.',
+        'Storm Wisp': 'Erratic motes of supercharged electrical plasma drifting along howling mountain ridges.',
+        'Gale Stalker': 'Predators cloaked in howling mountain winds that strike without warning.',
+        'Mountain Golem': 'Hulking monoliths formed of jagged peak slate and hardened glacier ice.',
+        'Tempest Wyvern': 'A tempestuous dragon lord roosting atop the highest precipice, commanding thunderbolts.',
+
+        // Area 4: Infernal Caldera
+        'Magma Hound': 'Canines sculpted from porous igneous rock, breathing searing sulfuric smoke.',
+        'Ash Golem': 'Crude animated hulks forged from compressed volcanic ash and obsidian.',
+        'Flame Wyrm': 'Subterranean fire serpents swimming freely through rivers of liquid magma.',
+        'Fire Imp': 'Mischievous lesser demons delighting in arson and fiery chaos.',
+        'Magma Colossus': 'A primordial volcanic titan towering over the heart of the volcanic caldera.',
+        'Magma Slime': 'Blistering blobs of molten rock that incinerate weapons and boil nearby water sources.',
+        'Flame Hound': 'Ferocious fiery canines that hunt in packs across scalding sulfur plains.',
+        'Infernal Knight': 'Demonic sentinels clad in blackened brimstone plate, wielding scorching hellfire blades.',
+        'Fire Drake': 'Winged drakes that dive through smoke plumes to engulf targets in torrents of liquid flame.',
+        'Infernal Dragon': 'The supreme primordial terror slumbering within the caldera, whose breath melts bedrock.',
+
+        // Area 5: Abyssal Void
+        'Void Crawler': 'Multi-legged chitinous parasites skittering through interdimensional cracks.',
+        'Shadow Fiend': 'Incorporeal specters that feed upon fear and siphon lifeforce into the void.',
+        'Void Stalker': 'Ruthless ethereal predators capable of phasing through solid reality to execute prey.',
+        'Dark Behemoth': 'Monolithic horrors composed of condensed void matter and dark cosmic energy.',
+        'Void Guardian': 'The ancient sentry bound to seal the abyssal tear between realities.',
+        'Shadow Bat': 'Nocturnal horrors composed of pure darkness that feast upon raw magical energy.',
+        'Abyssal Wraith': 'Tormented spirits floating through null-space that freeze the soul of anyone they touch.',
+        'Void Horror': 'Shapeless eldritch abominations that warp the fabric of reality around them.',
+        'Nether Knight': 'Corrupted dark warriors wielding blades infused with cosmic entropy.',
+
+        // Area 6: Luminous Sanctuary
+        'Radiant Wisp': 'Orbs of concentrated solar energy that emit blinding celestial warmth.',
+        'Sunforged Golem': 'Impenetrable brass automatons powered by eternal radiant cores.',
+        'Dawn Seraph': 'Holy celestial messengers wielding cleansing light that scorches darkness.',
+        'Solar Griffin': 'Majestic winged predators roosting on sunlit temple spires.',
+        'Archon of Radiance': 'The supreme celestial entity safeguarding the sacred Luminous Sanctuary.',
+
+        // Area 7: Thunderous Steppes
+        'Volt Stalker': 'Electrified beasts that leave trails of scorched earth as they dash.',
+        'Thunder Ram': 'Stout horned ungulates whose headbutts release thunderous shockwaves.',
+        'Lightning Drake': 'Sleek drakes capable of discharging focused arcs of high-voltage lightning.',
+        'Fulgur Apex': 'The apex predator of the steppes, wreathed in roaring thunderstorm tempests.',
+
+        // Area 8: Glacial Frostpeaks
+        'Frostfang Wolf': 'Pack hunters roaming sub-zero glacial peaks, their fangs hardened into razor permafrost.',
+        'Glacial Golem': 'Massive constructs formed from unbreakable blue glacial ice.',
+        'Blizzard Harpy': 'Avian hunters that channel freezing gales to blind and freeze their targets.',
+        'Icebound Revenant': 'Undead spirits trapped within glacial rifts, radiating freezing despair.',
+        'Frost Empress Glacia': 'The sovereign of the eternal frost, commanding absolute zero temperatures.',
+
+        // Area 9: Molten Abyss
+        'Magma Scuttler': 'Armored burrowers that carve tunnels through superheated subterranean rock.',
+        'Cinder Drake': 'Heavily scaled drakes that hoard fiery coals within deep lava caverns.',
+        'Lava Reaver': 'Berserker humanoids brandishing blades forged directly from molten magma.',
+        'Pyroclast Behemoth': 'A four-legged obsidian titan that erupts with volcanic debris when struck.',
+        'Ignis Primordial': 'The living incarnation of the earth\'s molten core, consuming all in flame.',
+
+        // Area 10: The Celestial Void Rift
+        'Chrono Phantom': 'Time-displaced apparitions that flicker in and out of the timeline.',
+        'Starfall Entity': 'Cosmic beings composed of crushed starlight and stellar dust.',
+        'Dimensional Horror': 'A grotesque aberration with shifting eyes and limbs from fractured dimensions.',
+        'Singularity Titan': 'A gravitational dreadnought that pulls reality itself into its core.',
+        'Chronos, The Void Sovereign': 'The timeless master of cosmic entropy, reigning over the edge of reality.'
+    };
+    window.BESTIARY_LORE_DB = BESTIARY_LORE_DB;
+
+    /* =========================================================================
+       GUILD QUARTERMASTER DATABASE (TAVERN_EXCHANGE_DB)
+       ========================================================================= */
+    const TAVERN_EXCHANGE_DB = [
+        {
+            id: 'pet_treat_gourmet',
+            name: 'Gourmet Pet Treat',
+            cost: 3,
+            type: 'consumable',
+            desc: 'A savory delicacy loved by familiars. Instantly grants +50 Bond EXP to your active companions.',
+            effect: 'pet_exp',
+            value: 50
+        },
+        {
+            id: 'scraps_pack_large',
+            name: 'Iron Scraps Crate (x15)',
+            cost: 4,
+            type: 'material',
+            desc: 'A heavy crate containing 15 salvaged Iron Scraps for Blacksmith weapon and armor upgrades.',
+            matKey: 'scraps',
+            amount: 15
+        },
+        {
+            id: 'mythic_reforge_rune',
+            name: 'Mythic Reforge Rune',
+            cost: 8,
+            type: 'consumable',
+            desc: 'A glowing celestial glyph that guarantees maximum-tier stat rolls when reforging equipment affixes at the Forge.',
+            effect: 'mythic_rune'
+        },
+        {
+            id: 'mercenary_signet',
+            name: "Mercenary's Signet",
+            cost: 15,
+            type: 'accessory',
+            desc: 'A battle-worn signet ring awarded to elite guild hunters. Grants +15% bonus Gold from victories and +5% Crit Rate.',
+            maxHp: 40,
+            crit: 5,
+            goldBonus: 15
+        },
+        {
+            id: 'title_bounty_hunter',
+            name: 'Title: Bounty Hunter',
+            cost: 10,
+            type: 'title',
+            title: 'Bounty Hunter',
+            desc: 'Unlocks and equips the cosmetic hero title "Bounty Hunter".'
+        },
+        {
+            id: 'title_apex_mercenary',
+            name: 'Title: Apex Mercenary',
+            cost: 25,
+            type: 'title',
+            title: 'Apex Mercenary',
+            desc: 'Unlocks and equips the prestigious hero title "Apex Mercenary".'
+        }
+    ];
+    window.TAVERN_EXCHANGE_DB = TAVERN_EXCHANGE_DB;
 

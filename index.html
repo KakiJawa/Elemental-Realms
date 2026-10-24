@@ -58,6 +58,10 @@
                 <button class="btn" id="btn-town-spire" style="width: 150px; height: 100px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-spire')">The Infinite Spire<br><span style="font-size: 12px; color: #a855f7;" id="btn-town-spire-sub">🌀 Floor 0</span></button>
                 <button class="btn" id="btn-town-pets" style="width: 150px; height: 100px; color: #4ade80; border-color: #4ade80;" onclick="openModal('modal-pets')">🐾 Familiar Sanctuary<br><span style="font-size: 12px; color: #86efac;">Pets & Bonding</span></button>
                 <button class="btn" id="btn-town-codex" style="width: 150px; height: 100px; color: #ffd700; border-color: #ffd700;" onclick="openCodexModal()">📖 Adventurer's Codex<br><span style="font-size: 11px; color: #fde047;">Guide & Pet Lore</span></button>
+                <button class="btn town-btn" id="btn-town-tavern" style="width: 150px; height: 100px; color: #f59e0b; border-color: #f59e0b; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="openTavernModal()">
+                    <div class="town-btn-icon" style="font-size: 24px; margin-bottom: 4px;">🍺</div>
+                    <div class="town-btn-label" style="font-weight: 600;">Tavern & Bounties</div>
+                </button>
             </div>
         </div>
     </div>
@@ -328,8 +332,26 @@
             <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('combat')">⚔️ Combat & Elements</button>
             <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('blacksmith')">🔨 Forge & Gear</button>
             <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('progression')">🌟 Skills & Spire</button>
+            <button class="btn codex-tab" style="flex: 1; padding: 8px 10px; font-size: 12px; margin: 0;" onclick="switchCodexTab('bestiary')">📖 Bestiary</button>
         </div>
         <div id="codex-content" style="max-height: 65vh; overflow-y: auto; padding-right: 4px;"></div>
+    </div>
+
+    <!-- TAVERN & BOUNTY BOARD MODAL -->
+    <div id="modal-tavern" class="modal">
+        <div class="modal-header">
+            <div>🍺 The Drunken Drake Tavern</div>
+            <span class="close-btn" onclick="closeModal('modal-tavern')">&times;</span>
+        </div>
+        <div class="tavern-status-bar">
+            <div class="tavern-barkeep-quote">"Contracts on the left, guild wares on the right. What's your pleasure, hunter?"</div>
+            <div class="tavern-currency-badge">🎖️ Bounty Marks: <b id="tavern-marks-display">0</b></div>
+        </div>
+        <div id="tavern-nav-bar" class="tavern-nav-bar">
+            <button class="btn tavern-tab active" onclick="switchTavernTab('bounties')">📜 Bounty Board</button>
+            <button class="btn tavern-tab" onclick="switchTavernTab('quartermaster')">🎖️ Guild Quartermaster</button>
+        </div>
+        <div id="tavern-content" class="tavern-content"></div>
     </div>
 
     <!-- Database Constants First -->
