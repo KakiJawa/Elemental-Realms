@@ -7,15 +7,117 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 31 test suites totaling 2,747 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, and `verify_party_phase2.py`) located in `.gemini/antigravity` scratch directory.
+  - Scratch test tools: 34 test suites totaling 2,950+ test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, and `verify_party_qol.py`, `verify_calamity_raids.py`) located in scratch directory.
 - **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Phase 3 Complete & Combat Party Action/Health Isolation Verified: The Tactical Party, Recruitment & Formation System.
-- **Feature Currently Being Developed:** None (Phase 3 Complete & Party Combat HP Isolation Hardened: Multi-Hero Combat Turn Queue, Action Execution & Squad Victory Engine. Speed-based multi-hero turn queue sorted strictly by SPD, dynamic Turn Order Ribbon with individual hero/enemy chips and active actor highlight, Frontline/Backline combat battlefield trays with compact cards, SVGs, mini HP/MP bars, and active turn glows, command deck and acting hero banner binding, isolated attack/skill execution from acting hero with zero cross-hero health or stat corruption, 75/25 enemy aggro with frontline collapse mechanics, party resilience with group defeat condition, shared victory EXP dynamically leveling up recruited mercenaries, and complete health/action isolation; verified with 2,746/2,747 tests passing across all 31 test suites on live index.html with 0 regressions).
-- **Immediate Next Development Task:** Phase 4: Polish, Audio VFX, Bestiary & Codex Integration & Master Balance.
+- **Current Phase:** Endgame Raids — "The Abyssal Calamities" & Mythic Set Equipment System Complete & Verified.
+- **Feature Currently Being Developed:** None (Calamity Rift Gate Access & Keystone Resolution Bugfix Complete; Endgame 5-man Calamity Raids: Ignis, Leviathan, Chronos; Stagger/Break mechanics with 1.5x elemental weakness damage; 3-Phase dynamic boss mechanics; Calamity Key economy with zero-loss retry safety; 4 Mythic 4-piece equipment sets [Titan, Archon, Shadowstalker, Seraphim] with 2pc and 4pc combat passives; Blacksmith Mythic Forge deterministic crafting; verified with 80/80 dedicated tests and 0 regressions).
+- **Immediate Next Development Task:** Corrupted Void Rifts (Procedurally Generated Void Incursions with Mutators & Seasonal Affixes).
 
 ## Completed Features
+- **Endgame Raids — "The Abyssal Calamities" & Mythic Set Equipment System:**
+  - *Calamity Key Economy & Portal Access:*
+    - Unlocked upon completing Area 10 (*The Celestial Void Rift*); dynamic town button `🌋 Calamity Rift Gate` (`#btn-town-calamity`) reveals in Town Hub.
+    - Weekly allowance of 3 Calamity Keystones (`player.calamityKeys`); Tavern Guild Quartermaster keystone exchange (10 Bounty Marks per keystone).
+    - Zero-loss retry safety invariant: keystone is only deducted upon raid victory (`winBattle()`); 0 keystones lost on wipe, defeat, or fleeing.
+  - *Raid Combat Engine & Stagger/Break Mechanics:*
+    - Boss ultimate channel (`startBossChannel`): warning banner (`.channel-warning-banner`), screen shake, and dynamic stagger gauge beneath boss HP bar (`.stagger-bar-container`).
+    - Dealing damage depletes the stagger gauge; elemental weakness deals 1.5x damage to the stagger gauge.
+    - Stagger Break: depleting the gauge shatters the channel, aborts the ultimate, and inflicts `staggered` status (+50% amplified damage taken, full turn skip/stun, DEF & MDEF halved).
+    - Failed stagger check: channel timer expiration triggers catastrophic raid-wide ultimate (Singularity Event = 99,999 party wipe; Supernova Cataclysm = 800 Fire damage + Burn).
+  - *3 Calamity Raid Bosses (`RAIDS_DB`):*
+    - **Ignis, The Living Supernova (Lv 50 Fire, weak Water):**
+      - Phase 2: summons 2 Magma Totems granting Ignis 90% damage mitigation while active.
+      - Phase 3: soft enrage (+25% ATK, +20% SPD), channels Supernova Cataclysm (15,000 stagger check), and inflicts 10% max HP arena burn to all heroes each turn. Drops 1–3x Ignis Heart.
+    - **Leviathan, The Abyssal Sovereign (Lv 52 Water, weak Wind):**
+      - Phase 2: summons 2 Abyssal Sirens that silence 2 party members for 2 turns.
+      - Phase 3: soft enrage (+25% ATK, +20% SPD) and encases a party member in a Glacial Prison (freeze disable + 200 frost damage/turn). Drops 1–3x Abyssal Pearl.
+    - **Chronos, Cosmic Void-Incarnate (Lv 55 Dark, weak Light):**
+      - Phase 1: Temporal Anomaly inverts turn queue speed (slowest combatant acts first).
+      - Phase 2: brands 2 party members with Doom Brand (detonates for 40% Max HP dark damage upon expiration).
+      - Phase 3: soft enrage (+25% ATK, +20% SPD) and channels Singularity Event (30,000 stagger check in 2 turns). Drops 1–3x Chronos Riftcore.
+  - *Mythic Set Equipment System (`MYTHIC_SETS_DB`):*
+    - 4 supreme Tier 6 sets (16 pieces across weapon/offhand/armor/helmet/gloves/boots/accessory) with Mythic styling (`#f43f5e`, 6 affixes):
+    - **Titan's Bulwark:** 2pc (+25% Max HP, +20% DEF/MDEF); 4pc (*Living Bastion*: wearer absorbs 35% of all damage dealt to Backline allies, and gains a 50% Max HP Divine Barrier when dropping below 25% HP).
+    - **Archon's Voidweave:** 2pc (-30% MP skill cost, +25% MATK); 4pc (*Echo Cast*: 35% chance to recast damaging spells free at 75% power, basic attacks restore 5% Max MP).
+    - **Shadowstalker Regalia:** 2pc (+25% Crit Chance, +15 SPD); 4pc (*Exposing Strikes*: critical strikes apply Armor Shatter [-30% DEF/MDEF, stacks twice], basic attacks strike twice against debuffed targets).
+    - **Hallowed Seraphim:** 2pc (+35% healing/shielding potency); 4pc (*Grace of the Dawn*: overhealing converts into Divine Barrier up to 30% Max HP, support skills grant party Haste [+15 SPD] for 2 turns).
+  - *Blacksmith Mythic Forge (Deterministic Crafting):*
+    - 4th tab in `#blacksmith-modal` (`blacksmithActiveTab === 'mythic'`).
+    - Real-time display of player's Calamity Essences (Ignis Heart, Abyssal Pearl, Chronos Riftcore) and Gold.
+    - Deterministic forging: consumes exactly 5 Calamity Essences + 10,000 Gold per piece, guaranteeing 6 affixes and Mythic rarity.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_calamity_raids.py`: 80 / 80 assertions passed (100%).
+    - Full project regression: 34 test suites passing with zero regressions on live `index.html`.
+
+- **Party System Quality of Life (QoL) & Visual Distinction Update:**
+  - *Active Battle Squad Tray (Pinned Top View):*
+    - Segregated deployed heroes into a pinned top container (`<div class="active-squad-tray">`).
+    - Styled deployed cards with golden tactical borders (`.squad-card-leader`) for the Main Hero and emerald/cyan borders (`.squad-card-merc`) for recruited squad members.
+    - Badges: `👑 Squad Leader`, `⚔️ Deployed`, and formation badges `🛡️ Frontline` / `🏹 Backline`.
+    - Key quick stat readouts: Level, Rank, GS, HP (cur/max), ATK, DEF, and SPD.
+    - Controls: Formation swap (`toggleHeroRow`), bench (`removeHeroFromParty`), gear & stats (`openHeroInspector`), evolve (`openClassSanctumForHero`), and rename (`openRenameHeroModal`).
+    - Empty squad slot indicators: dashed cards (`.squad-slot-empty`) rendered for unfilled party capacity with 1-click smooth scrolling to reserves.
+    - Global squad action: `⚡ Optimize Squad Gear` button running `autoEquipHeroBestGear()` sequentially across all active squad heroes.
+  - *Dynamic Filter Bar & Session Memory:*
+    - Filter tabs: `All Heroes`, `⚔️ Active Squad`, `💤 Reserves`, and `✨ Evolution Ready!`.
+    - Multi-criteria dropdowns: Class, Rank (`S` through `F`), and Position (`Frontline` / `Backline`).
+    - Reset button (`resetBarracksFilters()`).
+    - Session persistence in `window.barracksFilter = { status, classId, rank, row }`.
+  - *Multi-Factor Sorting Engine:*
+    - Dropdown `<select id="barracks-sort-select">` supporting Rank (Potential: S → F), Level (Highest → Lowest), Gear Score (Highest → Lowest), Speed (Fastest Initiative), and Name (Alphabetical).
+    - Direction toggle button (`[🔼 Asc / 🔽 Desc]`).
+    - Session persistence in `window.barracksSort = { field, direction }`.
+  - *Hero Renaming System (Nicknames & Epithets):*
+    - Triggered via `✏️` button on squad cards, reserve cards, and Hero Inspector header.
+    - Modal dialog `#modal-rename-hero` with pre-filled input, length validation (2 to 20 characters), whitespace trimming, and HTML tag sanitization (`<>&"'`).
+    - Synchronizes `player.name` and top header when renaming Main Hero; updates `hero.name` for mercenaries.
+  - *Hero Lock / Favorite Protection System:*
+    - `hero.locked = true/false` model property.
+    - 1-click `[🔒 Lock]` / `[🔓 Unlock]` toggle on reserve cards and Hero Inspector (`toggleHeroLock()`).
+    - Dismissal protection: `dismissHero(heroId)` rejects dismissal on locked heroes with warning toast.
+    - Visual disabled state on locked hero dismiss buttons (`Dismiss (Locked)`).
+  - *Class Sanctum Active vs. Reserve Distinction:*
+    - Hero selector ribbon chips visually distinguish active squad members (`.sanctum-chip-active-squad`, `<span class="chip-squad-tag">⚔️ Squad</span>`, emerald accent glow) from reserve members (`.sanctum-chip-reserve`, `<span class="chip-reserve-tag">💤 Reserve</span>`).
+    - Main sanctum status panel renders prominent deployment status tag (`⚔️ Active Combat Squad (Row)` vs `💤 Barracks Reserve`).
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_party_qol.py`: 68 / 68 assertions passed (100%).
+    - Full project regression: 2,846 / 2,858 assertions passed across all 32 test suites on live `index.html` with zero regressions.
+- **Party Member Class Advancement & 5,000 Gold Path Respec System:**
+  - *Universal Class Progression Engine (`heroHasPassive`, `CLASSES_DB`):*
+    - Implemented universal passive evaluator `heroHasPassive(heroOrEntity, passiveId)` supporting both Main Hero (delegates to `playerHasPassive`) and recruited mercenaries (inspects `hero.classId` and `cls.parent` in `CLASSES_DB`).
+    - Full inheritance: Tier 3 classes automatically inherit their Tier 2 parent class's passive (e.g. Warlord of Carnage gains `undying_wrath` and retains Berserker's `blood_frenzy`).
+    - Attached to `window.heroHasPassive` for external script and test access.
+  - *Specialization Stat Multipliers & Level Gating:*
+    - Updated `computeHeroStats(hero)`: Evaluates `cls.statMods` (`atk`, `def`, `matk`, `mdef`, `spd`, `maxHp`, `maxMp`) and adds `cls.statMods.crit` for any hero evolved to `cls.tier >= 2`.
+    - Preserves pristine base rolls for unevolved recruits (`cls.tier === 1`).
+    - Strictly enforces level progression gating: Level 25 required for Tier 2 advancement and Level 50 for Tier 3 advancement.
+  - *Free Class Promotion Engine (`advanceHeroClass`):*
+    - Promotes recruited mercenaries into specialized branches completely FREE of charge (0 Gold).
+    - Unlocks signature class skills via `getClassSkills(classId)` without duplicates while safely retaining base starter skills (e.g. Heavy Slam).
+    - Recalculates hero stats, plays `quest_claim` retro SFX, displays celebratory toast notification, and updates DOM views. Attached to `window.advanceHeroClass`.
+  - *5,000 Gold Specialization Respec Engine (`respecHeroClass`):*
+    - Available to any hero at `cls.tier >= 2`.
+    - Validates player gold (`player.gold >= 5000`) and displays warning toast if funds are insufficient.
+    - Confirms choice with player dialog, deducts exactly 5,000 Gold, cleanses specialized skills (`tier >= 2`) from `hero.skills` (and `player.skills` if `isMain`), safely preserving base starter skills.
+    - Reverts hero to Tier 1 root parent class (`cls.parent` / root class in `CLASSES_DB`).
+    - Reverts stat multipliers back to pristine Tier 1 base rolls and refreshes UI to allow immediate selection of alternative specialization branches. Attached to `window.respecHeroClass`.
+  - *Combat Passives Integration:*
+    - `aegis_ward`: Start-of-combat permanent 15% Max HP Divine Barrier granted to all living party members possessing the passive.
+    - `phantom_mirage`: 2 stacks of Mirage evasion granted at start of combat to all party members with the passive.
+    - `blood_frenzy`: Outgoing physical and skill damage scales up to +40% based on the acting hero's missing HP ratio.
+    - `lethal_exploit`: Grants +40% critical damage multiplier against debuffed/afflicted targets.
+    - `soul_siphon`: Leeches 20% of magical skill damage dealt back to heal the acting hero's HP.
+    - `undying_wrath`: Allows surviving fatal hits with 1 HP + Berserk.
+  - *Dual Access UI Integration:*
+    - Responsive Hero Selector Ribbon (`#sanctum-hero-selector`) inside the Class Sanctum Modal (`#modal-class-advancement`) displaying chips with rank, name, level, and active hero highlight (`.active-hero-tab`).
+    - 1-click `🔄 Respec Path (5,000 Gold)` button rendered in Class Sanctum when viewing specialized heroes.
+    - Hero Inspector Modal (`openHeroInspector`): dynamic `👑 Evolve Class (Ready!)` and `🔄 Respec Path (5,000G)` action buttons.
+    - Barracks Roster Cards (`renderBarracksUI`): glowing `✨ Evolution Ready!` badge and `👑 Evolve` shortcut button on eligible heroes.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_party_advancement.py`: 55 / 55 assertions passed (100%).
+    - Full project regression: 2,790 / 2,791 assertions passed across all 31 test suites on live `index.html` with zero regressions.
 - **Combat Party Action Isolation & Health Integrity Engine (Bugfix & Hardening):**
   - *Main Hero Health Invariant Protection in Combat:*
     - Resolved critical regression where recruited party members landing physical critical strikes or executing attacks with `vampiricFervor` unlocked would inadvertently overwrite the Main Hero's HP (`pStats.hp = playerEnt.hp; player.baseStats.hp = playerEnt.hp;`), drastically reducing a 1,300+ HP character down to the recruit's ~100 HP.
@@ -770,6 +872,7 @@
 
 ## Planned Features
 - **Confirmed Priorities:**
+  - **Corrupted Void Rifts:** Procedurally generated void incursion dungeons featuring scaling affixes/mutators (e.g. Volcanic, Vampiric, Reflective), Calamity Key rewards, and exclusive Voidforged item augments.
   - **Option G: Hardcore Boss Rush & Endless Arena:** Consecutive boss survival trials, scaling score multipliers, and celestial trophies.
   - **Option H: Equipment Loadout Presets:** 1-click swapping between physical, magic, and tank armor configurations.
 - **Future Explorations:**
@@ -786,5 +889,4 @@
 
 ## Last Updated
 - **Date:** 2026-10-25
-- **Description:** The Tactical Party System & Combat Action/Health Isolation Complete: Implemented 5-Hero Squad Formation, 3-tier recruitment gacha (Standard, Advanced, Royal), Barracks capacity expansion (5 to 25), 6-slot individual equipment per hero, interactive Hero Inspector, speed-sorted multi-hero turn queue, dynamic timeline ribbon, and resolved combat health overwrite regression (isolating Vampiric Fervor, healing skills, action animations, and fatal blow rewinds to acting combatants). Verified across all 31 test suites with 2,746/2,747 automated tests passing (100% pass rate with zero regressions).
-
+- **Description:** Endgame Raids — "The Abyssal Calamities" & Mythic Set Equipment System Complete & Calamity Gate Fix: Resolved Calamity Rift Gate access bug where acquiring a Calamity Keystone failed to unlock the gate and threw a TypeError on undefined mythicSets array. Fixed isCalamityUnlocked to grant access to keystone holders, corrected main-overlay modal activation, and added mythicSets database mappings. Implemented 3 Calamity Raid Bosses (Ignis, Leviathan, Chronos), Stagger/Break channel disruption engine with 1.5x elemental weakness damage, 3-Phase dynamic encounter progression, Calamity Keystone economy with zero-loss retry safety, 4 Mythic 4-piece equipment sets (Titan, Archon, Shadowstalker, Seraphim) with 2pc and 4pc combat passives, and Blacksmith Mythic Forge deterministic crafting. Verified with 80/80 dedicated tests and 2,900+ test assertions across 34 suites on live index.html with zero regressions.
