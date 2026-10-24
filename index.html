@@ -62,6 +62,10 @@
                     <div class="town-btn-icon" style="font-size: 24px; margin-bottom: 4px;">🍺</div>
                     <div class="town-btn-label" style="font-weight: 600;">Tavern & Bounties</div>
                 </button>
+                <button class="btn town-btn" id="btn-town-mercenary" style="width: 150px; height: 100px; color: #ec4899; border-color: #ec4899; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="openMercenaryModal()">
+                    <div class="town-btn-icon" style="font-size: 24px; margin-bottom: 4px;">⚔️</div>
+                    <div class="town-btn-label" style="font-weight: 600;">Mercenary Barracks</div>
+                </button>
             </div>
         </div>
     </div>
@@ -80,7 +84,8 @@
                     <!-- Dedicated Non-Destructive Floating Combat Text Layer -->
                     <div id="combat-float-layer" class="combat-float-layer"></div>
                     <div id="player-side">
-                        <div class="entity-box" id="battle-player">
+                        <div class="player-formation-container" id="player-formation-container">
+                            <div class="entity-box" id="battle-player">
                             <div class="entity-name">Hero</div>
                             <div class="entity-element elem-Physical">Player</div>
                             <div class="entity-sprite" id="player-sprite-visual">
@@ -91,6 +96,7 @@
                                 <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
                                 <div class="status-tray" id="statuses-player"></div>
                             </div>
+                        </div>
                         </div>
                         <div id="player-pets-container" style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;"></div>
                     </div>
@@ -130,6 +136,7 @@
         <div id="battle-ui">
             <div id="combat-log"></div>
             <div id="battle-commands">
+                <div id="acting-hero-banner" class="acting-hero-banner"></div>
                 <div id="cmd-main" class="cmd-grid">
                     <button class="btn" onclick="onAttackClicked()">Attack</button>
                     <button class="btn" onclick="openBattleSkills()">Skills</button>
@@ -350,8 +357,18 @@
         <div id="tavern-nav-bar" class="tavern-nav-bar">
             <button class="btn tavern-tab active" onclick="switchTavernTab('bounties')">📜 Bounty Board</button>
             <button class="btn tavern-tab" onclick="switchTavernTab('quartermaster')">🎖️ Guild Quartermaster</button>
+            <button class="btn tavern-tab" onclick="switchTavernTab('recruitment')">⚔️ Mercenary Hall</button>
         </div>
         <div id="tavern-content" class="tavern-content"></div>
+    </div>
+
+    <!-- MERCENARY RECRUITMENT & BARRACKS MODAL -->
+    <div id="modal-mercenary" class="modal">
+        <div class="modal-header">
+            <div>⚔️ Mercenary Guild & Barracks</div>
+            <span class="close-btn" onclick="closeModal('modal-mercenary')">&times;</span>
+        </div>
+        <div id="mercenary-modal-content" style="max-height: 70vh; overflow-y: auto; padding-right: 4px;"></div>
     </div>
 
     <!-- Database Constants First -->

@@ -1858,3 +1858,86 @@
     ];
     window.TAVERN_EXCHANGE_DB = TAVERN_EXCHANGE_DB;
 
+    /* =========================================================================
+       HERO RANKS, STAT GROWTH & SCOUTING RECRUITMENT DATABASE
+       ========================================================================= */
+    const HERO_RANKS_DB = {
+        'F': { name: 'F-Rank', mult: 0.85, growth: { hp: 8, mp: 3, atk: 1, def: 1, matk: 1, mdef: 1, spd: 0.5 }, color: '#94a3b8' },
+        'E': { name: 'E-Rank', mult: 0.95, growth: { hp: 10, mp: 4, atk: 2, def: 1, matk: 2, mdef: 1, spd: 0.6 }, color: '#cbd5e1' },
+        'D': { name: 'D-Rank', mult: 1.05, growth: { hp: 12, mp: 5, atk: 2, def: 2, matk: 2, mdef: 2, spd: 0.8 }, color: '#4ade80' },
+        'C': { name: 'C-Rank', mult: 1.15, growth: { hp: 15, mp: 6, atk: 3, def: 2, matk: 3, mdef: 2, spd: 1.0 }, color: '#38bdf8' },
+        'B': { name: 'B-Rank', mult: 1.25, growth: { hp: 18, mp: 8, atk: 4, def: 3, matk: 4, mdef: 3, spd: 1.2 }, color: '#a855f7' },
+        'A': { name: 'A-Rank', mult: 1.40, growth: { hp: 22, mp: 10, atk: 5, def: 4, matk: 5, mdef: 4, spd: 1.5 }, color: '#f59e0b' },
+        'S': { name: 'S-Rank', mult: 1.65, growth: { hp: 28, mp: 12, atk: 7, def: 5, matk: 7, mdef: 5, spd: 2.0 }, color: '#ec4899' }
+    };
+    window.HERO_RANKS_DB = HERO_RANKS_DB;
+
+    const SCOUT_TIERS_DB = {
+        standard: {
+            id: 'standard',
+            name: 'Standard Scout',
+            tierNum: 1,
+            costType: 'gold',
+            cost: 250,
+            rates: { 'S': 0.1, 'A': 0.5, 'B': 1.0, 'C': 15.0, 'D': 25.0, 'E': 30.0, 'F': 28.4 },
+            desc: 'Recruit local adventurers and sellswords seeking fortune.'
+        },
+        advanced: {
+            id: 'advanced',
+            name: 'Advanced Scout',
+            tierNum: 2,
+            costType: 'gold',
+            cost: 1000,
+            rates: { 'S': 0.5, 'A': 1.5, 'B': 3.0, 'C': 25.0, 'D': 35.0, 'E': 25.0, 'F': 10.0 },
+            desc: 'Contract seasoned veterans with superior potential and discipline.'
+        },
+        royal: {
+            id: 'royal',
+            name: 'Royal Mercenary Scout',
+            tierNum: 3,
+            costType: 'marks',
+            cost: 5,
+            rates: { 'S': 2.0, 'A': 8.0, 'B': 20.0, 'C': 40.0, 'D': 30.0, 'E': 0.0, 'F': 0.0 },
+            desc: 'Call upon legendary guild champions. Guaranteed Rank D or higher (Zero E or F ranks)!'
+        }
+    };
+    window.SCOUT_TIERS_DB = SCOUT_TIERS_DB;
+
+    const BARRACKS_EXPANSIONS = [
+        { from: 5, to: 8, cost: 1000 },
+        { from: 8, to: 12, cost: 3500 },
+        { from: 12, to: 16, cost: 10000 },
+        { from: 16, to: 20, cost: 25000 },
+        { from: 20, to: 25, cost: 50000 }
+    ];
+    window.BARRACKS_EXPANSIONS = BARRACKS_EXPANSIONS;
+
+    const PARTY_SLOT_TIERS = [
+        {
+            from: 1,
+            to: 3,
+            targetSlots: 3,
+            cost: 250,
+            reqBossArea: 1,
+            reqBossName: 'Ancient Treant',
+            altBossName: 'Elder Treant',
+            reqUnlockedArea: 'area_2',
+            label: '3-Hero Squad Formation',
+            desc: 'Expand active party capacity from 1 to 3 Heroes. Requires defeating Area 1 Boss (Ancient Treant) and 250 Gold.'
+        },
+        {
+            from: 3,
+            to: 5,
+            targetSlots: 5,
+            cost: 2500,
+            reqBossArea: 5,
+            reqBossName: 'Void Guardian',
+            altBossName: 'Void Guardian',
+            reqUnlockedArea: 'area_6',
+            label: '5-Hero Grand Party',
+            desc: 'Expand active party capacity from 3 to 5 Heroes. Requires defeating Area 5 Boss (Void Guardian) and 2,500 Gold.'
+        }
+    ];
+    window.PARTY_SLOT_TIERS = PARTY_SLOT_TIERS;
+
+

@@ -1580,6 +1580,93 @@ if (typeof window !== 'undefined') {
        STATUS EFFECTS & TACTICAL COMBAT ENGINE
        ========================================================================= */
 
+    function getHeroSpriteSvg(hero) {
+        if (!hero) return '';
+        if (hero.isMain) {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#f59e0b"/><rect x="45" y="10" width="10" height="80" fill="#fef3c7"/><rect x="20" y="45" width="60" height="10" fill="#fef3c7"/><circle cx="50" cy="50" r="16" fill="#d97706"/></svg>`;
+        }
+        const cls = hero.classId || 'warrior';
+        if (cls === 'mage') {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><polygon points="50,15 20,75 80,75" fill="#7c3aed"/><circle cx="50" cy="50" r="18" fill="#c084fc"/><path d="M40,75 Q50,90 60,75" stroke="#e9d5ff" stroke-width="4" fill="none"/><circle cx="50" cy="30" r="6" fill="#fde047"/></svg>`;
+        } else if (cls === 'rogue') {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="45" r="30" fill="#047857"/><path d="M30,35 Q50,20 70,35 Q60,65 50,70 Q40,65 30,35 Z" fill="#065f46"/><rect x="25" y="60" width="6" height="30" fill="#a7f3d0"/><rect x="69" y="60" width="6" height="30" fill="#a7f3d0"/></svg>`;
+        } else {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="38" fill="#b91c1c"/><rect x="46" y="15" width="8" height="70" fill="#fca5a5"/><rect x="25" y="35" width="50" height="8" fill="#fca5a5"/><circle cx="50" cy="50" r="14" fill="#991b1b"/></svg>`;
+        }
+    }
+
+    function getLivingPartyHeroes() {
+        if (!player || !player.activeParty || !player.roster) return [];
+        return player.activeParty.map(id => player.roster.find(h => h.id === id)).filter(h => {
+            if (!h) return false;
+            let stats = (typeof computeHeroStats === 'function') ? computeHeroStats(h) : (h.baseStats || { maxHp: 100, hp: 100 });
+            let curHp = h.isMain ? (pStats && pStats.hp !== undefined ? pStats.hp : player.baseStats.hp) : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || stats.maxHp));
+            return curHp > 0;
+        });
+    }
+
+    function getHeroCombatEntity(hero) {
+        if (!hero || hero.isMain || hero.id === 'hero_main') {
+            return getPlayerCombatEntity();
+        }
+        if (!hero._combatEntity) {
+            hero._combatEntity = {
+                id: 'battle-hero-' + hero.id,
+                heroId: hero.id,
+                name: hero.name,
+                element: hero.element || ELEMENTS.Physical,
+                hero: hero,
+                get hp() {
+                    let s = computeHeroStats(hero);
+                    return hero.hp !== undefined ? hero.hp : (hero.baseStats?.hp || s.maxHp || 100);
+                },
+                set hp(val) {
+                    let s = computeHeroStats(hero);
+                    hero.hp = Math.max(0, Math.min(s.maxHp, val));
+                    if (hero.baseStats) hero.baseStats.hp = hero.hp;
+                },
+                get maxHp() { return computeHeroStats(hero).maxHp || 100; },
+                get mp() {
+                    let s = computeHeroStats(hero);
+                    return hero.mp !== undefined ? hero.mp : (hero.baseStats?.mp || s.maxMp || 50);
+                },
+                set mp(val) {
+                    let s = computeHeroStats(hero);
+                    hero.mp = Math.max(0, Math.min(s.maxMp, val));
+                    if (hero.baseStats) hero.baseStats.mp = hero.mp;
+                },
+                get maxMp() { return computeHeroStats(hero).maxMp || 50; },
+                get atk() {
+                    let s = computeHeroStats(hero);
+                    let mult = hasStatus(this, 'berserk') ? 1.4 : 1.0;
+                    if (hasStatus(this, 'battle_cry')) mult *= 1.2;
+                    return Math.floor(s.atk * mult);
+                },
+                get def() {
+                    let s = computeHeroStats(hero);
+                    let mult = 1.0;
+                    if (hasStatus(this, 'armor_break')) mult *= 0.7;
+                    if (hasStatus(this, 'berserk')) mult *= 0.75;
+                    return Math.max(0, Math.floor(s.def * mult));
+                },
+                get matk() { return computeHeroStats(hero).matk || 10; },
+                get mdef() { return computeHeroStats(hero).mdef || 8; },
+                get spd() {
+                    let s = computeHeroStats(hero);
+                    let mult = 1.0;
+                    if (hasStatus(this, 'haste')) mult *= 1.3;
+                    if (hasStatus(this, 'slow')) mult *= 0.7;
+                    return Math.max(1, Math.floor(s.spd * mult));
+                },
+                isPlayer: true,
+                isHero: true,
+                isBoss: false,
+                statuses: hero.statuses || (hero.statuses = {})
+            };
+        }
+        return hero._combatEntity;
+    }
+
     function getPlayerCombatEntity() {
         if (!battleState.playerEntity) {
             battleState.playerEntity = {
@@ -2056,6 +2143,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         if(id === 'modal-saves') renderSaveManager();
         if(id === 'modal-pets') renderPetsModal();
         if(id === 'modal-tavern') { if (!player.bounties || !player.bounties.available || player.bounties.available.length === 0) refreshBountyBoard(true); renderTavernContent(); }
+        if(id === 'modal-mercenary') { renderBarracksUI('mercenary-modal-content'); }
     }
     function closeAllModals() {
         document.querySelectorAll('.modal, .overlay').forEach(el => el.classList.remove('active'));
@@ -2115,8 +2203,13 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             },
             bestiary: {},
             bountyMarks: 0,
-            bounties: { available: [], active: [], completedCount: 0 }
+            bounties: { available: [], active: [], completedCount: 0 },
+            roster: [],
+            rosterMax: 5,
+            activeParty: ['hero_main'],
+            partyUnlockedSlots: 1
         };
+        syncMainHero();
         init();
         switchScreen('town');
     }
@@ -2268,6 +2361,13 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             if (!Array.isArray(player.bounties.available)) player.bounties.available = [];
             if (!Array.isArray(player.bounties.active)) player.bounties.active = [];
             if (typeof player.bounties.completedCount !== 'number') player.bounties.completedCount = 0;
+
+            // Tactical Party & Hero Roster Initialization
+            player.roster = player.roster || [];
+            player.rosterMax = player.rosterMax || 5;
+            player.activeParty = player.activeParty || ['hero_main'];
+            player.partyUnlockedSlots = player.partyUnlockedSlots || 1;
+            syncMainHero();
             
             // Class Advancement Initialization & Retroactive Qualification
             if(!player.currentClass) {
@@ -2279,6 +2379,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 }, 800);
             }
             // Retroactive Signature Class Skills Check
+            if (!player.skills || !Array.isArray(player.skills)) player.skills = ['Fireball', 'Heal'];
             if (player.currentClass && player.currentClass !== 'novice' && typeof getClassSkills === 'function') {
                 let reqSkills = getClassSkills(player.currentClass);
                 reqSkills.forEach(s => {
@@ -2663,8 +2764,19 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             player.gold -= 20;
             player.baseStats.hp = pStats.maxHp;
             player.baseStats.mp = pStats.maxMp;
+            if (player.roster && Array.isArray(player.roster)) {
+                player.roster.forEach(h => {
+                    const hs = (typeof computeHeroStats === 'function') ? computeHeroStats(h) : (h.baseStats || { maxHp: 100, maxMp: 50 });
+                    h.hp = hs.maxHp;
+                    h.mp = hs.maxMp;
+                    if (h.baseStats) {
+                        h.baseStats.hp = hs.maxHp;
+                        h.baseStats.mp = hs.maxMp;
+                    }
+                });
+            }
             init();
-            showToast("Inn Rest", "Rested at the Inn. HP and MP restored.", "info");
+            showToast("Inn Rest", "Rested at the Inn. Party HP and MP restored.", "info");
         } else {
             showToast("Inn", "Not enough gold to rest at the Inn!", "info");
         }
@@ -2744,6 +2856,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 }, 1200);
             }
         }
+        if (typeof syncMainHero === 'function') syncMainHero();
     }
 
     /* =========================================================================
@@ -4545,6 +4658,12 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         if (vActions) vActions.style.display = 'none';
         if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         player.statuses = battleState.playerStatuses;
+        if (player.roster && Array.isArray(player.roster)) {
+            player.roster.forEach(h => {
+                h.statuses = {};
+                if (h._combatEntity) h._combatEntity.statuses = h.statuses;
+            });
+        }
         
         let areaKey = (player && player.selectedArea) || 'area_1';
         let area = AREAS_DB[areaKey] || AREAS_DB['area_1'];
@@ -4617,6 +4736,28 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         
         // Reset battle state flags
         battleState.undyingWrathUsed = false;
+        battleState.activeHero = null;
+
+        // Initialize active heroes HP and statuses
+        if (player.activeParty && player.roster) {
+            player.activeParty.forEach(id => {
+                const h = player.roster.find(r => r.id === id);
+                if (h) {
+                    h.statuses = {};
+                    if (!h.isMain) {
+                        let stats = computeHeroStats(h);
+                        if (h.hp === undefined || h.hp <= 0) {
+                            h.hp = stats.maxHp;
+                            if (h.baseStats) h.baseStats.hp = stats.maxHp;
+                        }
+                        if (h.mp === undefined) {
+                            h.mp = stats.maxMp;
+                            if (h.baseStats) h.baseStats.mp = stats.maxMp;
+                        }
+                    }
+                }
+            });
+        }
 
         if (typeof spireRun !== 'undefined') spireRun.hourglassUsed = false;
 
@@ -4657,14 +4798,119 @@ window.checkAreaUnlocks = checkAreaUnlocks;
     }
 
     function renderBattlefield() {
-        document.getElementById('battle-player-hp-bar').style.width = `${(pStats.hp / pStats.maxHp) * 100}%`;
-        document.getElementById('battle-player-hp-txt').innerText = `${pStats.hp}/${pStats.maxHp}`;
-        document.getElementById('battle-player-mp-bar').style.width = `${(pStats.mp / pStats.maxMp) * 100}%`;
-        document.getElementById('battle-player-mp-txt').innerText = `${pStats.mp}/${pStats.maxMp}`;
+        const playerSide = document.getElementById('player-side');
+        if (playerSide) {
+            let activeHeroes = [];
+            if (player.activeParty && Array.isArray(player.activeParty) && player.roster) {
+                activeHeroes = player.activeParty.map(id => player.roster.find(h => h.id === id)).filter(Boolean);
+            }
+            if (activeHeroes.length === 0 && player.roster && player.roster[0]) {
+                activeHeroes = [player.roster[0]];
+            }
 
-        const pTray = document.getElementById('statuses-player');
-        if (pTray) {
-            pTray.innerHTML = renderStatusBadges(battleState.playerStatuses || (player && player.statuses));
+            let frontHeroes = activeHeroes.filter(h => h.row === 'front');
+            let backHeroes = activeHeroes.filter(h => h.row === 'back');
+            if (frontHeroes.length === 0 && backHeroes.length === 0) frontHeroes = activeHeroes;
+
+            let formationContainer = document.getElementById('player-formation-container');
+            if (!formationContainer) {
+                formationContainer = document.createElement('div');
+                formationContainer.id = 'player-formation-container';
+                formationContainer.className = 'player-formation-container';
+                const petsCont = document.getElementById('player-pets-container');
+                if (petsCont) playerSide.insertBefore(formationContainer, petsCont);
+                else playerSide.appendChild(formationContainer);
+            }
+
+            // Check if DOM rebuild of cards is required
+            const needsRebuild = !document.getElementById('battle-player') ||
+                activeHeroes.some(h => {
+                    const id = h.isMain ? 'battle-player' : `battle-hero-${h.id}`;
+                    return !document.getElementById(id);
+                });
+
+            function renderHeroCardHtml(h) {
+                const isMain = !!h.isMain || h.id === 'hero_main';
+                const hStats = computeHeroStats(h);
+                const curHp = isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || hStats.maxHp));
+                const curMp = isMain ? pStats.mp : (h.mp !== undefined ? h.mp : (h.baseStats?.mp || hStats.maxMp));
+                const isDead = curHp <= 0;
+                const isActive = battleState && battleState.activeHero && battleState.activeHero.id === h.id;
+                const hpPct = Math.max(0, Math.min(100, (curHp / hStats.maxHp) * 100));
+                const mpPct = Math.max(0, Math.min(100, (curMp / hStats.maxMp) * 100));
+                const cardId = isMain ? 'battle-player' : `battle-hero-${h.id}`;
+                const hpBarId = isMain ? 'battle-player-hp-bar' : `battle-hero-${h.id}-hp-bar`;
+                const hpTxtId = isMain ? 'battle-player-hp-txt' : `battle-hero-${h.id}-hp-txt`;
+                const mpBarId = isMain ? 'battle-player-mp-bar' : `battle-hero-${h.id}-mp-bar`;
+                const mpTxtId = isMain ? 'battle-player-mp-txt' : `battle-hero-${h.id}-mp-txt`;
+                const statusTrayId = isMain ? 'statuses-player' : `statuses-${h.id}`;
+                const statusMap = isMain ? (battleState.playerStatuses || player.statuses) : (h.statuses || {});
+
+                return `
+                    <div class="entity-box hero-card-combat ${isActive ? 'is-active-turn' : ''} ${isDead ? 'dead' : ''}" id="${cardId}" data-hero-id="${h.id}">
+                        <div class="entity-name" style="font-size: 11px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; text-align: center;">${h.name}</div>
+                        <div class="entity-element elem-${h.element || 'Physical'}" style="font-size: 9px; padding: 1px 4px;">${h.element || 'Physical'}</div>
+                        <div class="entity-sprite hero-card-avatar" style="width: 40px; height: 40px; margin: 2px auto;">
+                            ${getHeroSpriteSvg(h)}
+                        </div>
+                        <div id="${isMain ? 'battle-player-bars' : 'bars-' + h.id}" style="width: 100%;">
+                            <div class="bar-container" style="height: 12px; margin-bottom: 2px;">
+                                <div class="bar-fill hp-fill" id="${hpBarId}" style="width: ${hpPct}%"></div>
+                                <div class="bar-text" id="${hpTxtId}" style="font-size: 9px; line-height: 12px;">${curHp}/${hStats.maxHp}</div>
+                            </div>
+                            <div class="bar-container" style="height: 12px; margin-bottom: 2px;">
+                                <div class="bar-fill mp-fill" id="${mpBarId}" style="width: ${mpPct}%"></div>
+                                <div class="bar-text" id="${mpTxtId}" style="font-size: 9px; line-height: 12px;">${curMp}/${hStats.maxMp}</div>
+                            </div>
+                            <div class="status-tray" id="${statusTrayId}" style="min-height: 12px;">${renderStatusBadges(statusMap)}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (needsRebuild) {
+                let formHtml = '';
+                if (backHeroes.length > 0) {
+                    formHtml += `<div class="formation-row formation-back" id="formation-back"><div class="formation-row-label">🏹 Backline</div>${backHeroes.map(renderHeroCardHtml).join('')}</div>`;
+                }
+                if (frontHeroes.length > 0) {
+                    formHtml += `<div class="formation-row formation-front" id="formation-front"><div class="formation-row-label">🛡️ Frontline</div>${frontHeroes.map(renderHeroCardHtml).join('')}</div>`;
+                }
+                formationContainer.innerHTML = formHtml;
+            }
+
+            // In-place update of all active hero cards
+            activeHeroes.forEach(h => {
+                const isMain = !!h.isMain || h.id === 'hero_main';
+                const hStats = computeHeroStats(h);
+                const curHp = isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || hStats.maxHp));
+                const curMp = isMain ? pStats.mp : (h.mp !== undefined ? h.mp : (h.baseStats?.mp || hStats.maxMp));
+                const isDead = curHp <= 0;
+                const isActive = battleState && battleState.activeHero && battleState.activeHero.id === h.id;
+                const hpPct = Math.max(0, Math.min(100, (curHp / hStats.maxHp) * 100));
+                const mpPct = Math.max(0, Math.min(100, (curMp / hStats.maxMp) * 100));
+
+                const cardId = isMain ? 'battle-player' : `battle-hero-${h.id}`;
+                const cardEl = document.getElementById(cardId);
+                if (cardEl) {
+                    if (isActive) cardEl.classList.add('is-active-turn');
+                    else cardEl.classList.remove('is-active-turn');
+                    if (isDead) cardEl.classList.add('dead');
+                    else cardEl.classList.remove('dead');
+                }
+
+                const hpBar = document.getElementById(isMain ? 'battle-player-hp-bar' : `battle-hero-${h.id}-hp-bar`);
+                const hpTxt = document.getElementById(isMain ? 'battle-player-hp-txt' : `battle-hero-${h.id}-hp-txt`);
+                const mpBar = document.getElementById(isMain ? 'battle-player-mp-bar' : `battle-hero-${h.id}-mp-bar`);
+                const mpTxt = document.getElementById(isMain ? 'battle-player-mp-txt' : `battle-hero-${h.id}-mp-txt`);
+                const tray = document.getElementById(isMain ? 'statuses-player' : `statuses-${h.id}`);
+
+                if (hpBar) hpBar.style.width = `${hpPct}%`;
+                if (hpTxt) hpTxt.innerText = `${curHp}/${hStats.maxHp}`;
+                if (mpBar) mpBar.style.width = `${mpPct}%`;
+                if (mpTxt) mpTxt.innerText = `${curMp}/${hStats.maxMp}`;
+                if (tray) tray.innerHTML = renderStatusBadges(isMain ? (battleState.playerStatuses || player.statuses) : (h.statuses || {}));
+            });
         }
 
         const petsContainer = document.getElementById('player-pets-container');
@@ -4933,19 +5179,26 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
         list.forEach(actor => {
             const chip = document.createElement('div');
-            const isPlayer = actor.type === 'player';
+            const isPlayer = actor.type === 'player' || actor.type === 'hero';
             let isBoss = false;
             if (!isPlayer && battleState.enemies && actor.index !== undefined && battleState.enemies[actor.index]) {
                 const e = battleState.enemies[actor.index];
                 isBoss = Boolean(e.isBoss || e.rank === 'boss' || e.tier === 'boss');
             }
-            let classes = ['turn-chip'];
+            let classes = ['turn-chip', 'timeline-chip'];
             if (isPlayer) classes.push('is-hero');
+            else classes.push('is-enemy');
             if (isBoss) classes.push('is-boss');
             if (actor.isActive) classes.push('is-active');
 
             chip.className = classes.join(' ');
-            const icon = isPlayer ? '🛡️' : (isBoss ? '👑' : '👾');
+            let icon = '👾';
+            if (isPlayer) {
+                const hCls = actor.hero ? actor.hero.classId : 'warrior';
+                icon = hCls === 'mage' ? '🔮' : (hCls === 'rogue' ? '🗡️' : '⚔️');
+            } else if (isBoss) {
+                icon = '👑';
+            }
             chip.innerHTML = `<span class="chip-icon">${icon}</span> <span class="chip-name">${actor.name || (isPlayer ? 'Hero' : 'Enemy')}</span>`;
             if (actor.type) chip.dataset.type = actor.type;
             if (actor.index !== undefined) chip.dataset.index = actor.index;
@@ -5097,9 +5350,34 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         window.closeEnemyInspector = closeEnemyInspector;
     }
 
+    function bindCommandDeckToHero(hero) {
+        if (!hero) return;
+        if (battleState) battleState.activeHero = hero;
+        const banner = document.getElementById('acting-hero-banner');
+        const heroStats = computeHeroStats(hero);
+        const curMp = hero.isMain ? pStats.mp : (hero.mp !== undefined ? hero.mp : heroStats.mp);
+        if (banner) {
+            banner.style.display = 'block';
+            banner.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; width:100%; font-size:12px;">
+                    <span><b>${hero.name}</b> <span style="font-size:10px; color:#94a3b8;">(${hero.rank}-Rank ${hero.classId || 'Hero'})</span></span>
+                    <span style="color:#fbbf24; font-size:11px;">⚔️ ATK: <b>${heroStats.atk}</b> | 💧 MP: <b>${curMp}/${heroStats.maxMp}</b></span>
+                </div>
+            `;
+        }
+        if (typeof renderSkillButtons === 'function' && document.getElementById('skills-items-container')) {
+            renderSkillButtons(activeSkillCategory || 'all');
+        }
+    }
+
     function startRound() {
         if(!battleState.active) return;
-        battleState.turnQueue = [{ type: 'player', spd: pStats.spd, name: 'Hero' }];
+        const livingParty = getLivingPartyHeroes();
+        battleState.turnQueue = [];
+        livingParty.forEach(h => {
+            const hStats = (typeof getHeroComputedStats === 'function') ? getHeroComputedStats(h) : computeHeroStats(h);
+            battleState.turnQueue.push({ type: 'hero', id: h.id, spd: hStats.spd, name: h.name, hero: h });
+        });
         battleState.enemies.forEach(e => {
             if(e.hp > 0) battleState.turnQueue.push({ type: 'enemy', index: e.index, spd: e.spd, name: e.name });
         });
@@ -5111,7 +5389,8 @@ window.checkAreaUnlocks = checkAreaUnlocks;
     function processNextTurn() {
         if(!battleState.active) return;
         
-        if(pStats.hp <= 0) { loseBattle(); return; }
+        let livingHeroes = getLivingPartyHeroes();
+        if(livingHeroes.length === 0) { loseBattle(); return; }
         if(battleState.enemies.every(e => e.hp <= 0)) { winBattle(); return; }
 
         if(battleState.turnQueue.length === 0) {
@@ -5124,23 +5403,39 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         battleState.currentActor = currentTurn;
         if (typeof renderTurnOrderRibbon === 'function') renderTurnOrderRibbon();
         
-        if(currentTurn.type === 'player') {
+        if(currentTurn.type === 'player' || currentTurn.type === 'hero') {
+            const hero = currentTurn.hero || (player.roster && player.roster.find(h => h.id === currentTurn.id)) || (player.roster && player.roster[0]);
+            battleState.activeHero = hero;
             battleState.isPlayerTurn = false;
-            logMsg("Hero's Turn", "#ffffff");
-            if (typeof triggerPetTurnCadence === 'function') triggerPetTurnCadence();
+
+            const hStats = computeHeroStats(hero);
+            const curHp = hero.isMain ? pStats.hp : (hero.hp !== undefined ? hero.hp : hStats.hp);
+            if (curHp <= 0) {
+                processNextTurn();
+                return;
+            }
+
+            logMsg(`${hero.name}'s Turn`, "#ffffff");
+            if (hero.isMain && typeof triggerPetTurnCadence === 'function') triggerPetTurnCadence();
             if (!battleState.active) return;
-            let playerEnt = getPlayerCombatEntity();
-            let turnSkipped = processStatusesStartTurn(playerEnt);
+
+            let heroEnt = getHeroCombatEntity(hero);
+            let turnSkipped = processStatusesStartTurn(heroEnt);
             if (turnSkipped) {
                 battleState.isPlayerTurn = false;
                 if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
+                setCombatTimeout(processNextTurn, 1000);
                 return;
             }
+
             battleState.isPlayerTurn = true;
+            bindCommandDeckToHero(hero);
             enableCommands();
+            renderBattlefield();
             if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         } else {
             battleState.isPlayerTurn = false;
+            battleState.activeHero = null;
             if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
             const enemy = battleState.enemies[currentTurn.index];
             if(enemy && enemy.hp > 0) {
@@ -5241,15 +5536,19 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
         if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
         
-        let playerEnt = getPlayerCombatEntity();
+        const actingHero = battleState.activeHero || (player.roster && player.roster.find(h => h.id === 'hero_main')) || player.roster[0];
+        const isMain = actingHero.isMain || actingHero.id === 'hero_main';
+        const playerEnt = getHeroCombatEntity(actingHero);
+        const heroStats = computeHeroStats(actingHero);
 
         // Bleed check on player action
         if (hasStatus(playerEnt, 'bleed')) {
-            let bDmg = Math.max(2, Math.floor(pStats.maxHp * 0.04) + 4);
+            let bDmg = Math.max(2, Math.floor(heroStats.maxHp * 0.04) + 4);
             playerEnt.hp = Math.max(0, playerEnt.hp - bDmg);
-            logMsg(`Hero suffers ${bDmg} bleed damage from attacking!`, "#ef4444");
-            floatText('battle-player', `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
-            if (playerEnt.hp <= 0) {
+            logMsg(`${actingHero.name} suffers ${bDmg} bleed damage from attacking!`, "#ef4444");
+            floatText(playerEnt.id, `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
+            let livingCheck = getLivingPartyHeroes();
+            if (livingCheck.length === 0) {
                 loseBattle();
                 return;
             }
@@ -5257,9 +5556,9 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
         // Blind check on player attack
         if (hasStatus(playerEnt, 'blind') && Math.random() < 0.4) {
-            logMsg("Hero's attack missed due to Blindness!", "#64748b");
+            logMsg(`${actingHero.name}'s attack missed due to Blindness!`, "#64748b");
             floatText(target.id, "MISS", "#64748b");
-            triggerRegen();
+            if (isMain) triggerRegen();
             processStatusesEndTurn(playerEnt);
             setCombatTimeout(processNextTurn, 1200);
             return;
@@ -5269,20 +5568,21 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         let mitigation = 20 / (20 + target.def);
         let dmg = Math.max(1, Math.floor(baseDmg * mitigation));
 
-        if(player.skillTree && player.skillTree.combatMastery > 0) {
+        if(isMain && player.skillTree && player.skillTree.combatMastery > 0) {
             dmg = Math.floor(dmg * 1.1);
         }
 
         // Blood Frenzy Missing HP Damage Scaling
-        if (playerHasPassive('blood_frenzy')) {
+        if (isMain && playerHasPassive('blood_frenzy')) {
             let missingHpRatio = 1 - (pStats.hp / pStats.maxHp);
             let bfBonus = 1 + (missingHpRatio * 0.40);
             dmg = Math.floor(dmg * bfBonus);
         }
         
-        let critChance = pStats.crit + (hasStatus(playerEnt, 'focus') ? 25 : 0);
+        let heroCrit = isMain ? pStats.crit : (heroStats.crit || 5);
+        let critChance = heroCrit + (hasStatus(playerEnt, 'focus') ? 25 : 0);
         let critMult = hasStatus(playerEnt, 'focus') ? 2.0 : 1.5;
-        if (player.skillTree && player.skillTree.precisionStrikes > 0) {
+        if (isMain && player.skillTree && player.skillTree.precisionStrikes > 0) {
             critMult += (player.skillTree.precisionStrikes * 0.05);
         }
 
@@ -5292,7 +5592,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             hasStatus(target, 'burn') || hasStatus(target, 'freeze') ||
             hasStatus(target, 'decay') || hasStatus(target, 'shock')
         );
-        if (playerHasPassive('lethal_exploit') && hasAilment) {
+        if (isMain && playerHasPassive('lethal_exploit') && hasAilment) {
             critMult += 0.40;
         }
 
@@ -5300,18 +5600,18 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         if(Math.random() * 100 < critChance) {
             isCrit = true;
             dmg = Math.floor(dmg * critMult);
-            logMsg(playerHasPassive('lethal_exploit') && hasAilment ? "🎯 Lethal Exploit Critical Strike!" : "Critical Hit!", "#ff5555");
+            logMsg(isMain && playerHasPassive('lethal_exploit') && hasAilment ? "🎯 Lethal Exploit Critical Strike!" : "Critical Hit!", "#ff5555");
             playSFX('crit');
             screenShake('medium');
 
             // Vampiric Fervor Keystone: Physical critical strikes restore 10% damage dealt as HP
-            if (player.skillTree && player.skillTree.vampiricFervor > 0) {
+            if (isMain && player.skillTree && player.skillTree.vampiricFervor > 0) {
                 let vHeal = Math.max(1, Math.floor(dmg * 0.10));
                 let prevHp = pStats.hp;
                 let excessHeal = Math.max(0, (prevHp + vHeal) - pStats.maxHp);
-                playerEnt.hp = Math.min(pStats.maxHp, playerEnt.hp + vHeal);
-                pStats.hp = playerEnt.hp;
-                if (player.baseStats) player.baseStats.hp = playerEnt.hp;
+                player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + vHeal);
+                pStats.hp = player.baseStats.hp;
+                playerEnt.hp = pStats.hp;
                 logMsg(`🩸 Vampiric Fervor restored ${vHeal} HP on critical hit!`, "#ef4444");
                 floatText('battle-player', `+${vHeal} Vampiric`, "#55ff55");
 
@@ -5328,13 +5628,32 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 }
                 renderBattlefield();
                 updateHeader();
+            } else if (!isMain && player.skillTree && player.skillTree.vampiricFervor > 0) {
+                let vHeal = Math.max(1, Math.floor(dmg * 0.10));
+                let curHeroHp = actingHero.hp !== undefined ? actingHero.hp : (actingHero.baseStats?.hp || heroStats.maxHp);
+                let excessHeal = Math.max(0, (curHeroHp + vHeal) - heroStats.maxHp);
+                playerEnt.hp = Math.min(heroStats.maxHp, curHeroHp + vHeal);
+                logMsg(`🩸 Vampiric Fervor restored ${vHeal} HP to ${actingHero.name}!`, "#ef4444");
+                floatText(playerEnt.id, `+${vHeal} Vampiric`, "#55ff55");
+
+                if (player.skillTree.overchargedAegis > 0 && excessHeal > 0) {
+                    let maxBarrier = Math.floor(heroStats.maxHp * 0.20);
+                    let currentBarrier = (playerEnt.statuses && playerEnt.statuses.divine_barrier && playerEnt.statuses.divine_barrier.value) || 0;
+                    let barrierToAdd = Math.min(excessHeal, Math.max(0, maxBarrier - currentBarrier));
+                    if (barrierToAdd > 0) {
+                        applyStatus(playerEnt, 'divine_barrier', 3, currentBarrier + barrierToAdd);
+                        logMsg(`✨ Overcharged Aegis converted ${barrierToAdd} excess healing into Divine Barrier!`, "#ffd700");
+                        floatText(playerEnt.id, `+${barrierToAdd} Barrier`, "#ffd700");
+                    }
+                }
+                renderBattlefield();
             }
 
             // Momentum Keystone: Landing a critical strike grants Haste for 2 turns
             if (player.skillTree && player.skillTree.momentum > 0) {
                 applyStatus(playerEnt, 'haste', 2);
-                logMsg("⚡ Momentum activated! Critical strike grants Haste for 2 turns!", "#eab308");
-                floatText('battle-player', "MOMENTUM HASTE", "#eab308");
+                logMsg(`⚡ Momentum activated! ${actingHero.name} gained Haste for 2 turns!`, "#eab308");
+                floatText(playerEnt.id, "MOMENTUM HASTE", "#eab308");
             }
         } else {
             playSFX('slash');
@@ -5342,13 +5661,13 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         
         triggerHitVFX(target.id, 'physical');
         applyDamage(target, dmg, ELEMENTS.Physical, playerEnt, isCrit);
-        animateAction('battle-player');
+        animateAction(playerEnt.id);
 
         // Thunderstone Core Relic Chain Lightning
-        if (player.spire && player.spire.equippedRelic === 'thunderstone_core' && Math.random() < 0.35) {
+        if (isMain && player.spire && player.spire.equippedRelic === 'thunderstone_core' && Math.random() < 0.35) {
             let splashDmg = Math.max(1, Math.floor(dmg * 0.5));
             logMsg("⚡ Thunderstone Core discharges chain lightning!", "#eab308");
-            floatText('battle-player', "THUNDER SPLASH", "#eab308");
+            floatText(playerEnt.id, "THUNDER SPLASH", "#eab308");
             if (battleState.enemies && Array.isArray(battleState.enemies)) {
                 battleState.enemies.forEach(other => {
                     if (other !== target && other.hp > 0) {
@@ -5360,13 +5679,13 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         }
 
         // Tempest Blademaster: Omnislash Flurry
-        if (playerHasPassive('omnislash_flurry') && target.hp > 0) {
+        if (isMain && playerHasPassive('omnislash_flurry') && target.hp > 0) {
             let dmg2 = Math.max(1, Math.floor(dmg * 0.5));
             logMsg("🌪️ Tempest Blademaster strikes a second time!", "#38bdf8");
             applyDamage(target, dmg2, ELEMENTS.Physical, playerEnt);
         }
         
-        triggerRegen();
+        if (isMain) triggerRegen();
         processStatusesEndTurn(playerEnt);
         setCombatTimeout(processNextTurn, 1200);
     }
@@ -5378,12 +5697,15 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
         if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
 
-        let playerEnt = getPlayerCombatEntity();
+        const actingHero = (battleState && battleState.activeHero) || (player.roster && player.roster.find(h => h.id === 'hero_main')) || player.roster[0];
+        const isMain = actingHero.isMain || actingHero.id === 'hero_main';
+        const playerEnt = getHeroCombatEntity(actingHero);
+        const heroStats = computeHeroStats(actingHero);
 
         // Silence check on player casting spells
         if (hasStatus(playerEnt, 'silence') && (skill.type === 'magic' || skill.type === 'heal')) {
-            logMsg("Hero is Silenced and cannot cast spells!", "#94a3b8");
-            floatText('battle-player', "SILENCED", "#94a3b8");
+            logMsg(`${actingHero.name} is Silenced and cannot cast spells!`, "#94a3b8");
+            floatText(playerEnt.id, "SILENCED", "#94a3b8");
             if (battleState) battleState.isPlayerTurn = true;
             enableCommands();
             return;
@@ -5391,29 +5713,34 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
         // Bleed check on player action
         if (hasStatus(playerEnt, 'bleed')) {
-            let bDmg = Math.max(2, Math.floor(pStats.maxHp * 0.04) + 4);
+            let bDmg = Math.max(2, Math.floor(heroStats.maxHp * 0.04) + 4);
             playerEnt.hp = Math.max(0, playerEnt.hp - bDmg);
-            logMsg(`Hero suffers ${bDmg} bleed damage from casting!`, "#ef4444");
-            floatText('battle-player', `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
-            if (playerEnt.hp <= 0) {
+            logMsg(`${actingHero.name} suffers ${bDmg} bleed damage from casting!`, "#ef4444");
+            floatText(playerEnt.id, `🩸 -${bDmg} Bleed`, "#ef4444", false, 'dot');
+            let livingCheck = getLivingPartyHeroes();
+            if (livingCheck.length === 0) {
                 loseBattle();
                 return;
             }
         }
 
         let isArcaneSurge = false;
-        if (skill.type === 'magic' && player.skillTree && player.skillTree.arcaneSurge > 0 && Math.random() < 0.25) {
+        if (isMain && skill.type === 'magic' && player.skillTree && player.skillTree.arcaneSurge > 0 && Math.random() < 0.25) {
             isArcaneSurge = true;
             logMsg("✨ Arcane Surge activated! 0 MP cost & +30% spell damage!", "#c084fc");
-            floatText('battle-player', "ARCANE SURGE!", "#c084fc");
+            floatText(playerEnt.id, "ARCANE SURGE!", "#c084fc");
         }
 
         let cost = isArcaneSurge ? 0 : getSkillCost(skill);
-        player.baseStats.mp = Math.max(0, player.baseStats.mp - cost);
-        pStats.mp = player.baseStats.mp;
+        if (isMain) {
+            player.baseStats.mp = Math.max(0, player.baseStats.mp - cost);
+            pStats.mp = player.baseStats.mp;
+        } else {
+            actingHero.mp = Math.max(0, (actingHero.mp !== undefined ? actingHero.mp : heroStats.maxMp) - cost);
+        }
         
-        logMsg(`Hero casts ${skill.name}!`, "#aaddff");
-        animateAction('battle-player');
+        logMsg(`${actingHero.name} casts ${skill.name}!`, "#aaddff");
+        animateAction(playerEnt.id);
 
         const skillFX = getSkillSFXAndVFX(skill);
         playSFX(skillFX.sfx);
@@ -5495,27 +5822,40 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             // Bloodthirst Strike Lifesteal
             if (skill.name === 'Bloodthirst Strike' && dmg > 0) {
                 let heal = Math.max(1, Math.floor(dmg * 0.30));
-                player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + heal);
-                pStats.hp = player.baseStats.hp;
-                logMsg(`🩸 Bloodthirst Strike restored ${heal} HP to Hero!`, "#ef4444");
-                floatText('battle-player', `+${heal} HP`, "#55ff55");
+                if (isMain) {
+                    player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + heal);
+                    pStats.hp = player.baseStats.hp;
+                    playerEnt.hp = pStats.hp;
+                    floatText('battle-player', `+${heal} HP`, "#55ff55");
+                } else {
+                    playerEnt.hp = Math.min(heroStats.maxHp, playerEnt.hp + heal);
+                    floatText(playerEnt.id, `+${heal} HP`, "#55ff55");
+                }
+                logMsg(`🩸 Bloodthirst Strike restored ${heal} HP to ${actingHero.name}!`, "#ef4444");
             }
 
             // Soul Siphon Skill Lifesteal & Decay
             if (skill.name === 'Soul Siphon' && dmg > 0) {
                 applyStatus(target, 'decay', 3);
                 let heal = Math.max(1, Math.floor(dmg * 0.50));
-                player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + heal);
-                pStats.hp = player.baseStats.hp;
-                logMsg(`🔮 Soul Siphon drained ${heal} HP to Hero!`, "#a855f7");
-                floatText('battle-player', `+${heal} HP`, "#a855f7");
+                if (isMain) {
+                    player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + heal);
+                    pStats.hp = player.baseStats.hp;
+                    playerEnt.hp = pStats.hp;
+                    floatText('battle-player', `+${heal} HP`, "#a855f7");
+                } else {
+                    playerEnt.hp = Math.min(heroStats.maxHp, playerEnt.hp + heal);
+                    floatText(playerEnt.id, `+${heal} HP`, "#a855f7");
+                }
+                logMsg(`🔮 Soul Siphon drained ${heal} HP to ${actingHero.name}!`, "#a855f7");
             }
 
             // Passive Soul Siphon Magic Leech (Warlock passive on other magic skills)
-            if (skill.type === 'magic' && playerHasPassive('soul_siphon') && dmg > 0 && skill.name !== 'Soul Siphon') {
+            if (isMain && skill.type === 'magic' && playerHasPassive('soul_siphon') && dmg > 0 && skill.name !== 'Soul Siphon') {
                 let leech = Math.max(1, Math.floor(dmg * 0.20));
                 player.baseStats.hp = Math.min(pStats.maxHp, player.baseStats.hp + leech);
                 pStats.hp = player.baseStats.hp;
+                playerEnt.hp = pStats.hp;
                 logMsg(`🔮 Soul Siphon leeches ${leech} HP back to Hero!`, "#a855f7");
                 floatText('battle-player', `+${leech} HP`, "#a855f7");
             }
@@ -5599,7 +5939,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         }
         
         renderBattlefield();
-        triggerRegen();
+        if (isMain) triggerRegen();
         processStatusesEndTurn(playerEnt);
         setCombatTimeout(processNextTurn, 1200);
     }
@@ -5799,23 +6139,33 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
         // Hourglass Chronomancer Fatal Blow Rewind Check
         if (isTargetPlayer && target.hp <= 0 && wasAlive) {
-            if (player.spire && player.spire.equippedRelic === 'hourglass_chronomancer' && !spireRun.hourglassUsed) {
-                spireRun.hourglassUsed = true;
-                let restoredHp = Math.max(1, Math.round(pStats.maxHp * 0.30));
-                target.hp = restoredHp;
-                pStats.hp = restoredHp;
-                if (player.baseStats) player.baseStats.hp = restoredHp;
-                logMsg("⌛ Chronomancer's Hourglass rewinds time! Fatal blow avoided!", "#38bdf8");
-                floatText('battle-player', "REWIND!", "#38bdf8");
-            } else if (playerHasPassive('undying_wrath') && !battleState.undyingWrathUsed) {
-                battleState.undyingWrathUsed = true;
-                target.hp = 1;
-                pStats.hp = 1;
-                if (player.baseStats) player.baseStats.hp = 1;
-                target.atk = Math.round(target.atk * 1.5);
-                applyStatus('player', 'berserk', 3);
-                logMsg("💥 Undying Wrath activated! Survived fatal hit with 1 HP and gained +50% ATK & Berserk!", "#ef4444");
-                floatText('battle-player', "UNDYING WRATH!", "#ef4444");
+            const isMainTarget = target.id === 'battle-player' || target.heroId === 'hero_main' || target === player || (target.hero && target.hero.isMain);
+            if (isMainTarget) {
+                if (player.spire && player.spire.equippedRelic === 'hourglass_chronomancer' && !spireRun.hourglassUsed) {
+                    spireRun.hourglassUsed = true;
+                    let restoredHp = Math.max(1, Math.round(pStats.maxHp * 0.30));
+                    target.hp = restoredHp;
+                    pStats.hp = restoredHp;
+                    if (player.baseStats) player.baseStats.hp = restoredHp;
+                    logMsg("⌛ Chronomancer's Hourglass rewinds time! Fatal blow avoided!", "#38bdf8");
+                    floatText('battle-player', "REWIND!", "#38bdf8");
+                } else if (playerHasPassive('undying_wrath') && !battleState.undyingWrathUsed) {
+                    battleState.undyingWrathUsed = true;
+                    target.hp = 1;
+                    pStats.hp = 1;
+                    if (player.baseStats) player.baseStats.hp = 1;
+                    target.atk = Math.round(target.atk * 1.5);
+                    applyStatus('player', 'berserk', 3);
+                    logMsg("💥 Undying Wrath activated! Survived fatal hit with 1 HP and gained +50% ATK & Berserk!", "#ef4444");
+                    floatText('battle-player', "UNDYING WRATH!", "#ef4444");
+                }
+            } else {
+                if (playerHasPassive('undying_wrath') && !battleState.undyingWrathUsed) {
+                    battleState.undyingWrathUsed = true;
+                    target.hp = 1;
+                    logMsg(`💥 Undying Wrath activated! ${target.name} survived fatal hit with 1 HP!`, "#ef4444");
+                    floatText(target.id, "UNDYING WRATH!", "#ef4444");
+                }
             }
         }
         
@@ -5852,6 +6202,15 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 }
                 playSFX('enemy_death');
 
+                if (target.isBoss) {
+                    if (target.name === 'Elder Treant' || target.name === 'Ancient Treant') {
+                        player.defeatedArea1Boss = true;
+                    }
+                    if (target.name === 'Void Guardian') {
+                        player.defeatedArea5Boss = true;
+                    }
+                }
+
                 // Tavern Bounty Progress Hook
                 if (player.bounties && Array.isArray(player.bounties.active)) {
                     player.bounties.active.forEach(b => {
@@ -5872,7 +6231,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                     player.gold = (player.gold || 0) + bonusGold;
                     updateHeader();
                     logMsg(`🪙 Midas Touch! Gained +${bonusGold} bonus Gold from defeating ${target.name}!`, "#ffd700");
-                    floatText('battle-player', `+${bonusGold}G Midas`, "#ffd700");
+                    floatText((attacker && attacker.id) ? attacker.id : 'battle-player', `+${bonusGold}G Midas`, "#ffd700");
                 }
             }
             logMsg(`${target.name} was defeated!`, "#ff8888");
@@ -5929,7 +6288,13 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         let html = '';
         let hasSkills = false;
         
-        player.skills.forEach(skillName => {
+        const actingHero = (battleState && battleState.activeHero) || (player.roster && player.roster.find(h => h.id === 'hero_main')) || player.roster[0];
+        const isMain = actingHero.isMain || actingHero.id === 'hero_main';
+        const heroSkills = isMain ? player.skills : (actingHero.skills || (actingHero.classId === 'mage' ? ['Fireball', 'Heal'] : (actingHero.classId === 'rogue' ? ['Quick Slash', 'Smoke Screen'] : ['Power Strike', 'Cleave'])));
+        const heroStats = computeHeroStats(actingHero);
+        const curMp = isMain ? pStats.mp : (actingHero.mp !== undefined ? actingHero.mp : (actingHero.baseStats?.mp || heroStats.maxMp));
+
+        heroSkills.forEach(skillName => {
             const skill = SKILLS_DB[skillName];
             if (!skill) return;
             
@@ -5937,7 +6302,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             
             hasSkills = true;
             const cost = getSkillCost(skill);
-            const canCast = pStats.mp >= cost;
+            const canCast = curMp >= cost;
             const catIcon = skill.category === 'offense' ? '⚔️' : (skill.category === 'defense' ? '🛡️' : '✨');
             const targetDesc = skill.target === 'enemy_all' ? 'All Foes' : (skill.target === 'ally_single' || skill.target === 'self' ? 'Self' : 'Single');
             
@@ -5964,22 +6329,33 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         const skill = SKILLS_DB[skillName];
         if(!skill) return;
 
+        const actingHero = (battleState && battleState.activeHero) || (player.roster && player.roster.find(h => h.id === 'hero_main')) || player.roster[0];
+        const isMain = actingHero.isMain || actingHero.id === 'hero_main';
+        let playerEnt = getHeroCombatEntity(actingHero);
+
         if(skill.target === 'ally_single' || skill.target === 'self') {
-            let playerEnt = getPlayerCombatEntity();
             if (hasStatus(playerEnt, 'silence') && (skill.type === 'magic' || skill.type === 'heal')) {
-                logMsg("Hero is Silenced and cannot cast spells!", "#94a3b8");
-                floatText('battle-player', "SILENCED", "#94a3b8");
+                logMsg(`${actingHero.name} is Silenced and cannot cast spells!`, "#94a3b8");
+                floatText(playerEnt.id, "SILENCED", "#94a3b8");
                 return;
             }
             let cost = getSkillCost(skill);
-            player.baseStats.mp -= cost;
-            pStats.mp -= cost;
+            if (isMain) {
+                player.baseStats.mp = Math.max(0, player.baseStats.mp - cost);
+                pStats.mp = player.baseStats.mp;
+            } else {
+                actingHero.mp = Math.max(0, (actingHero.mp !== undefined ? actingHero.mp : computeHeroStats(actingHero).maxMp) - cost);
+            }
+
+            const heroStats = computeHeroStats(actingHero);
+            const actingMaxHp = isMain ? pStats.maxHp : heroStats.maxHp;
+            const curActingHp = isMain ? pStats.hp : (actingHero.hp !== undefined ? actingHero.hp : (actingHero.baseStats?.hp || heroStats.maxHp));
 
             if (skill.name === 'Battle Cry') {
                 applyStatus(playerEnt, 'haste', 3);
                 applyStatus(playerEnt, 'battle_cry', 3);
-                logMsg("Hero roars with Battle Cry! Gained Haste (+30% SPD) and +20% ATK for 3 turns!", "#f59e0b");
-                floatText('battle-player', "BATTLE CRY", "#f59e0b");
+                logMsg(`${actingHero.name} roars with Battle Cry! Gained Haste (+30% SPD) and +20% ATK for 3 turns!`, "#f59e0b");
+                floatText(playerEnt.id, "BATTLE CRY", "#f59e0b");
             } else if (skill.name === 'Shield of Faith') {
                 if(playerEnt.statuses) {
                     for(let sId in playerEnt.statuses) {
@@ -5989,43 +6365,48 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                         }
                     }
                 }
-                let shieldVal = Math.floor(pStats.maxHp * 0.20);
+                let shieldVal = Math.floor(actingMaxHp * 0.20);
                 applyStatus(playerEnt, 'divine_barrier', 3, shieldVal);
-                logMsg(`Hero casts Shield of Faith! Cleansed all debuffs and gained ${shieldVal} HP Divine Barrier!`, "#ffd700");
-                floatText('battle-player', `+${shieldVal} Shield`, '#ffd700');
+                logMsg(`${actingHero.name} casts Shield of Faith! Cleansed all debuffs and gained ${shieldVal} HP Divine Barrier!`, "#ffd700");
+                floatText(playerEnt.id, `+${shieldVal} Shield`, '#ffd700');
             } else if (skill.name === 'Blade Dance') {
                 applyStatus(playerEnt, 'counter_stance', 3);
-                logMsg("Hero enters Blade Dance counter-stance for 3 turns!", "#38bdf8");
-                floatText('battle-player', "COUNTER STANCE", "#38bdf8");
+                logMsg(`${actingHero.name} enters Blade Dance counter-stance for 3 turns!`, "#38bdf8");
+                floatText(playerEnt.id, "COUNTER STANCE", "#38bdf8");
             } else {
-                let heal = skill.power + Math.floor(pStats.matk / 2);
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                let heal = skill.power + Math.floor(actingMatk / 2);
                 if (hasStatus(playerEnt, 'burn')) heal = Math.floor(heal * 0.7);
                 
                 let decayDmg = 0;
                 if (hasStatus(playerEnt, 'decay')) {
                     decayDmg = Math.floor(heal * 0.25);
                     heal = Math.max(0, heal - decayDmg);
-                    logMsg(`Hero's Decay corrupted healing into ${decayDmg} damage!`, "#a855f7");
+                    logMsg(`${actingHero.name}'s Decay corrupted healing into ${decayDmg} damage!`, "#a855f7");
                 }
-                let prevHp = pStats.hp;
+                let prevHp = curActingHp;
                 let netHeal = Math.max(0, heal - decayDmg);
-                let excessHeal = Math.max(0, (prevHp + netHeal) - pStats.maxHp);
+                let excessHeal = Math.max(0, (prevHp + netHeal) - actingMaxHp);
 
-                player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + netHeal);
-                pStats.hp = player.baseStats.hp;
-                playerEnt.hp = pStats.hp;
-                logMsg(`Hero casts ${skill.name}! Restored ${heal} HP.`, "#55ff55");
-                floatText('battle-player', `+${heal}`, '#55ff55');
+                if (isMain) {
+                    player.baseStats.hp = Math.min(pStats.maxHp, pStats.hp + netHeal);
+                    pStats.hp = player.baseStats.hp;
+                    playerEnt.hp = pStats.hp;
+                } else {
+                    playerEnt.hp = Math.min(actingMaxHp, curActingHp + netHeal);
+                }
+                logMsg(`${actingHero.name} casts ${skill.name}! Restored ${heal} HP.`, "#55ff55");
+                floatText(playerEnt.id, `+${heal}`, '#55ff55');
 
                 // Overcharged Aegis Keystone: Excess healing converts into Divine Barrier up to 20% Max HP
                 if (player.skillTree && player.skillTree.overchargedAegis > 0 && excessHeal > 0) {
-                    let maxBarrier = Math.floor(pStats.maxHp * 0.20);
+                    let maxBarrier = Math.floor(actingMaxHp * 0.20);
                     let currentBarrier = (playerEnt.statuses && playerEnt.statuses.divine_barrier && playerEnt.statuses.divine_barrier.value) || 0;
                     let barrierToAdd = Math.min(excessHeal, Math.max(0, maxBarrier - currentBarrier));
                     if (barrierToAdd > 0) {
                         applyStatus(playerEnt, 'divine_barrier', 3, currentBarrier + barrierToAdd);
                         logMsg(`✨ Overcharged Aegis converted ${barrierToAdd} excess healing into Divine Barrier!`, "#ffd700");
-                        floatText('battle-player', `+${barrierToAdd} Barrier`, "#ffd700");
+                        floatText(playerEnt.id, `+${barrierToAdd} Barrier`, "#ffd700");
                     }
                 }
 
@@ -6033,7 +6414,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 if (skill.name === 'Heal') {
                     applyStatus(playerEnt, 'regeneration', 3);
                 } else if (skill.name === 'Recovery') {
-                    let shieldVal = Math.floor(pStats.maxHp * 0.15);
+                    let shieldVal = Math.floor(actingMaxHp * 0.15);
                     applyStatus(playerEnt, 'divine_barrier', 3, shieldVal);
                 }
             }
@@ -6041,7 +6422,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
             renderBattlefield();
             closeSubMenu();
             document.querySelectorAll('#cmd-main .btn').forEach(b => b.disabled = true);
-            triggerRegen();
+            if (isMain) triggerRegen();
             processStatusesEndTurn(playerEnt);
             setCombatTimeout(processNextTurn, 1000);
         } else if (skill.target === 'enemy_all') {
@@ -6345,7 +6726,14 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 return;
             }
 
-            let playerEnt = getPlayerCombatEntity();
+            const livingParty = getLivingPartyHeroes();
+            const targetHero = (typeof selectPartyTarget === 'function') ? selectPartyTarget(livingParty) : livingParty[0];
+            if (!targetHero) {
+                loseBattle();
+                return;
+            }
+            const targetEnt = getHeroCombatEntity(targetHero);
+            const targetStats = computeHeroStats(targetHero);
 
             if (action === 'heal') {
                 let healAmount = Math.floor(enemy.matk * 2);
@@ -6362,21 +6750,20 @@ window.checkAreaUnlocks = checkAreaUnlocks;
                 floatText(enemy.id, `+${healAmount} HP`, "#4ade80", false, 'heal');
             } 
             else if (action === 'magic') {
-                let dmg = Math.max(1, Math.floor(enemy.matk * 1.5) - pStats.mdef);
-                let armorBase = player.equipment && player.equipment.armor ? (player.equipment.armor.baseName || player.equipment.armor) : null;
-                let playerElement = player.element || (armorBase && ITEMS_DB[armorBase] && ITEMS_DB[armorBase].element) || ELEMENTS.Physical;
-                logMsg(`${enemy.name} casts a ${enemy.element} spell!`);
-                applyDamage(playerEnt, dmg, enemy.element, enemy);
+                let targetMdef = targetEnt.mdef;
+                let dmg = Math.max(1, Math.floor(enemy.matk * 1.5) - targetMdef);
+                logMsg(`${enemy.name} casts a ${enemy.element} spell at ${targetHero.name}!`);
+                applyDamage(targetEnt, dmg, enemy.element, enemy);
             } 
             else {
                 let rawDmg = Math.floor(enemy.atk * 1.5);
-                let playerDef = playerEnt.def;
-                let mitigation = 20 / (20 + playerDef);
+                let heroDef = targetEnt.def;
+                let mitigation = 20 / (20 + heroDef);
                 let dmg = Math.max(1, Math.floor(rawDmg * mitigation));
-                playerEnt.lastDefMitigated = Math.max(0, rawDmg - dmg);
+                targetEnt.lastDefMitigated = Math.max(0, rawDmg - dmg);
 
-                logMsg(`${enemy.name} attacks!`);
-                applyDamage(playerEnt, dmg, ELEMENTS.Physical, enemy);
+                logMsg(`${enemy.name} attacks ${targetHero.name}!`);
+                applyDamage(targetEnt, dmg, ELEMENTS.Physical, enemy);
             }
 
             processStatusesEndTurn(enemy);
@@ -6654,6 +7041,28 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         
         player.exp += totalExp;
         player.gold += totalGold;
+
+        // Distribute Combat EXP to all active party members
+        if (player.activeParty && Array.isArray(player.activeParty) && player.roster) {
+            player.activeParty.forEach(heroId => {
+                const h = player.roster.find(r => r.id === heroId);
+                if (h && !h.isMain) {
+                    h.exp = (h.exp || 0) + totalExp;
+                    let reqExp = (h.level || 1) * 40;
+                    let leveled = false;
+                    while (h.exp >= reqExp && (h.level || 1) < 50) {
+                        h.exp -= reqExp;
+                        levelUpHero(h);
+                        leveled = true;
+                        reqExp = (h.level || 1) * 40;
+                        logMsg(`★ ${h.name} leveled up to Level ${h.level}!`, "#55ff55");
+                    }
+                    if (leveled) {
+                        showToast('Hero Leveled Up!', `${h.name} reached Level ${h.level}!`, 'level', 4000);
+                    }
+                }
+            });
+        }
         
         if(!player.questStats) player.questStats = { enemiesDefeated: 0, battlesWon: 0, bossesDefeated: 0 };
         player.questStats.battlesWon = (player.questStats.battlesWon || 0) + 1;
@@ -6667,6 +7076,14 @@ window.checkAreaUnlocks = checkAreaUnlocks;
         
         // Zone Conquest & Progression Unlock
         let defeatedBoss = battleState.enemies.find(e => e.isBoss);
+        if (defeatedBoss) {
+            if (defeatedBoss.name === 'Elder Treant' || defeatedBoss.name === 'Ancient Treant') {
+                player.defeatedArea1Boss = true;
+            }
+            if (defeatedBoss.name === 'Void Guardian') {
+                player.defeatedArea5Boss = true;
+            }
+        }
         if(defeatedBoss && typeof AREAS_DB !== 'undefined') {
             for(let aId of getAllAreaKeys()) {
                 let a = AREAS_DB[aId];
@@ -8871,7 +9288,7 @@ function switchTavernTab(tab) {
     const tabBtns = document.querySelectorAll('.tavern-tab');
     tabBtns.forEach(btn => {
         if ((tab === 'bounties' && btn.textContent.includes('Bounty Board')) ||
-            (tab === 'quartermaster' && btn.textContent.includes('Quartermaster'))) {
+            (tab === 'quartermaster' && btn.textContent.includes('Quartermaster')) || (tab === 'recruitment' && (btn.textContent.includes('Mercenary') || btn.textContent.includes('Recruitment')))) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -9024,6 +9441,8 @@ function renderTavernContent() {
         }
 
         contentEl.innerHTML = html;
+    } else if (tavernActiveTab === 'recruitment') {
+        renderBarracksUI('tavern-content');
     } else if (tavernActiveTab === 'quartermaster') {
         let html = `
             <div style="margin-bottom: 12px; font-size: 13px; color: #94a3b8;">
@@ -9082,3 +9501,1163 @@ window.closeTavernModal = closeTavernModal;
 window.switchTavernTab = switchTavernTab;
 window.renderTavernContent = renderTavernContent;
 
+/* =========================================================================
+   TACTICAL PARTY, RECRUITMENT & BARRACKS ENGINE (PHASE 1)
+   ========================================================================= */
+
+const HERO_FIRST_NAMES = [
+    'Garrick', 'Lyra', 'Theron', 'Vespera', 'Kaelen', 'Seraphina', 'Darius', 'Morgana',
+    'Orion', 'Valeria', 'Cedric', 'Elowen', 'Boran', 'Selene', 'Finnian', 'Isolde',
+    'Zephyr', 'Rhea', 'Kael', 'Althea', 'Torin', 'Astrid', 'Lucan', 'Sylvia'
+];
+
+const HERO_EPITHETS = [
+    'Ironwood', 'Stormborn', 'Flameheart', 'Shadowveil', 'Frostwhisper', 'Dawnseeker',
+    'Voidstrider', 'Moonshadow', 'Stonebreaker', 'Starfall', 'Bloodhound', 'Swiftstride'
+];
+
+function syncMainHero() {
+    if (!player) return;
+    if (!player.roster || !Array.isArray(player.roster)) player.roster = [];
+    if (!player.rosterMax) player.rosterMax = 5;
+    if (!player.activeParty || !Array.isArray(player.activeParty)) player.activeParty = ['hero_main'];
+    if (!player.partyUnlockedSlots) player.partyUnlockedSlots = 1;
+
+    let main = player.roster.find(h => h.isMain || h.id === 'hero_main');
+    if (!main) {
+        main = {
+            id: 'hero_main',
+            name: player.name || 'Hero',
+            isMain: true,
+            rank: 'S',
+            classId: player.currentClass || 'warrior',
+            subclassId: player.subclass || null,
+            element: 'Physical',
+            level: player.level || 1,
+            exp: player.exp || 0,
+            baseStats: player.baseStats ? { ...player.baseStats } : { hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 12, def: 8, matk: 10, mdef: 8, spd: 14, crit: 5 },
+            equipment: player.equipment ? player.equipment : { weapon: null, helmet: null, armor: null, gloves: null, boots: null, accessory: null },
+            skillTree: player.skillTree ? player.skillTree : {},
+            row: 'front'
+        };
+        player.roster.unshift(main);
+    } else {
+        main.name = player.name || main.name || 'Hero';
+        main.isMain = true;
+        main.rank = 'S';
+        main.level = player.level || main.level || 1;
+        main.exp = player.exp || 0;
+        main.classId = player.currentClass || main.classId || 'warrior';
+        main.subclassId = player.subclass || main.subclassId || null;
+        if (player.baseStats) main.baseStats = player.baseStats;
+        if (player.equipment) main.equipment = player.equipment;
+        if (player.skillTree) main.skillTree = player.skillTree;
+    }
+
+    if (!player.activeParty.includes(main.id)) {
+        player.activeParty.unshift(main.id);
+    }
+
+    if (player.unlockedAreas) {
+        if (player.unlockedAreas.includes('area_2') || player.unlockedAreas.includes('area_3') || player.unlockedAreas.includes('area_4') || player.unlockedAreas.includes('area_5') || player.unlockedAreas.includes('area_6')) {
+            player.defeatedArea1Boss = true;
+        }
+        if (player.unlockedAreas.includes('area_6') || player.unlockedAreas.includes('area_7') || player.unlockedAreas.includes('area_8') || player.unlockedAreas.includes('area_9') || player.unlockedAreas.includes('area_10')) {
+            player.defeatedArea5Boss = true;
+        }
+    }
+
+    if (player.roster && Array.isArray(player.roster)) {
+        player.roster.forEach(h => {
+            if (!h.equipment) {
+                h.equipment = { weapon: null, helmet: null, armor: null, gloves: null, boots: null, accessory: null };
+            }
+        });
+    }
+}
+
+function rollScoutRank(tier = 'standard') {
+    const roll = Math.random() * 100;
+    if (tier === 'royal' || tier === 'bounty' || tier === 'type3') {
+        // Royal: S 2%, A 8%, B 20%, C 40%, D 30% (Zero E or F)
+        if (roll < 2.0) return 'S';
+        if (roll < 10.0) return 'A';
+        if (roll < 30.0) return 'B';
+        if (roll < 70.0) return 'C';
+        return 'D';
+    } else if (tier === 'advanced' || tier === 'type2') {
+        // Advanced: S 0.5%, A 1.5%, B 3%, C 25%, D 35%, E 25%, F 10%
+        if (roll < 0.5) return 'S';
+        if (roll < 2.0) return 'A';
+        if (roll < 5.0) return 'B';
+        if (roll < 30.0) return 'C';
+        if (roll < 65.0) return 'D';
+        if (roll < 90.0) return 'E';
+        return 'F';
+    } else {
+        // Standard: S 0.1%, A 0.5%, B 1%, C 15%, D 25%, E 30%, F 28.4%
+        if (roll < 0.1) return 'S';
+        if (roll < 0.6) return 'A';
+        if (roll < 1.6) return 'B';
+        if (roll < 16.6) return 'C';
+        if (roll < 41.6) return 'D';
+        if (roll < 71.6) return 'E';
+        return 'F';
+    }
+}
+
+function generateRecruit(tier = 'standard') {
+    const rank = rollScoutRank(tier);
+    const classes = ['warrior', 'mage', 'rogue'];
+    const classId = classes[Math.floor(Math.random() * classes.length)];
+    const elements = ['Fire', 'Water', 'Wind', 'Earth', 'Light', 'Dark'];
+    const element = elements[Math.floor(Math.random() * elements.length)];
+
+    const fName = HERO_FIRST_NAMES[Math.floor(Math.random() * HERO_FIRST_NAMES.length)];
+    const epith = HERO_EPITHETS[Math.floor(Math.random() * HERO_EPITHETS.length)];
+    const heroName = `${fName} ${epith}`;
+    let starterSkills = ['Power Strike', 'Cleave'];
+    if (classId === 'mage') starterSkills = ['Fireball', 'Heal'];
+    else if (classId === 'rogue') starterSkills = ['Quick Slash', 'Smoke Screen'];
+
+    const rankDef = (typeof HERO_RANKS_DB !== 'undefined' && HERO_RANKS_DB[rank]) || { mult: 1.0 };
+    const mult = rankDef.mult;
+
+    const templates = {
+        warrior: { hp: 110, maxHp: 110, mp: 40, maxMp: 40, atk: 12, def: 8, matk: 6, mdef: 6, spd: 12, crit: 5 },
+        mage:    { hp: 80,  maxHp: 80,  mp: 80, maxMp: 80, atk: 6,  def: 5, matk: 14, mdef: 10, spd: 11, crit: 6 },
+        rogue:   { hp: 90,  maxHp: 90,  mp: 50, maxMp: 50, atk: 11, def: 6, matk: 8,  mdef: 6, spd: 16, crit: 10 }
+    };
+    const tpl = templates[classId] || templates.warrior;
+
+    const baseStats = {
+        hp: Math.round(tpl.hp * mult),
+        maxHp: Math.round(tpl.maxHp * mult),
+        mp: Math.round(tpl.mp * mult),
+        maxMp: Math.round(tpl.maxMp * mult),
+        atk: Math.round(tpl.atk * mult),
+        def: Math.round(tpl.def * mult),
+        matk: Math.round(tpl.matk * mult),
+        mdef: Math.round(tpl.mdef * mult),
+        spd: Math.round(tpl.spd * mult * 10) / 10,
+        crit: tpl.crit
+    };
+
+    return {
+        id: 'hero_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        name: heroName,
+        isMain: false,
+        rank: rank,
+        classId: classId,
+        subclassId: null,
+        element: element,
+        level: 1,
+        exp: 0,
+        baseStats: baseStats,
+        equipment: { weapon: null, helmet: null, armor: null, gloves: null, boots: null, accessory: null },
+        statuses: {},
+        skills: [...starterSkills],
+        skillTree: {},
+        row: (classId === 'mage') ? 'back' : 'front'
+    };
+}
+
+function recruitHero(scoutTier = 'standard') {
+    if (!player) return null;
+    player.roster = player.roster || [];
+    player.rosterMax = player.rosterMax || 5;
+
+    // 1. Barracks Capacity Check
+    if (player.roster.length >= player.rosterMax) {
+        showToast('⚠️ Barracks Full', `Maximum barracks capacity reached (${player.rosterMax} Heroes)! Expand barracks at the Guildmaster.`, 'info');
+        return null;
+    }
+
+    const tierKey = (scoutTier === 'type1') ? 'standard' : (scoutTier === 'type2') ? 'advanced' : (scoutTier === 'type3' || scoutTier === 'bounty') ? 'royal' : scoutTier;
+    const tierDef = (typeof SCOUT_TIERS_DB !== 'undefined' && SCOUT_TIERS_DB[tierKey]) || { costType: 'gold', cost: 250 };
+
+    // 2. Currency Check & Deduction
+    if (tierDef.costType === 'marks') {
+        player.bountyMarks = player.bountyMarks || 0;
+        if (player.bountyMarks < tierDef.cost) {
+            showToast('Insufficient Marks', `You need 🎖️ ${tierDef.cost} Bounty Marks to conduct a Royal Scout.`, 'info');
+            return null;
+        }
+        player.bountyMarks -= tierDef.cost;
+    } else {
+        if ((player.gold || 0) < tierDef.cost) {
+            showToast('Insufficient Gold', `You need 💰 ${tierDef.cost} Gold to scout mercenaries.`, 'info');
+            return null;
+        }
+        player.gold -= tierDef.cost;
+    }
+
+    // 3. Generate Recruit & Add to Roster
+    const newHero = generateRecruit(tierKey);
+    player.roster.push(newHero);
+
+    // 4. Auto-assign to Active Party if slots available
+    player.partyUnlockedSlots = player.partyUnlockedSlots || 1;
+    player.activeParty = player.activeParty || ['hero_main'];
+    if (player.activeParty.length < player.partyUnlockedSlots && !player.activeParty.includes(newHero.id)) {
+        player.activeParty.push(newHero.id);
+    }
+
+    playSFX('quest_claim');
+    showToast(`🎉 Recruited [${newHero.rank}-Rank] ${newHero.name}!`, `${newHero.classId.toUpperCase()} • ${newHero.element} • Lv.1`, 'quest', 5000);
+
+    updateHeader();
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return newHero;
+}
+
+function getNextBarracksExpansion() {
+    const cur = (player && player.rosterMax) || 5;
+    const expansions = (typeof BARRACKS_EXPANSIONS !== 'undefined') ? BARRACKS_EXPANSIONS : [
+        { from: 5, to: 8, cost: 1000 },
+        { from: 8, to: 12, cost: 3500 },
+        { from: 12, to: 16, cost: 10000 },
+        { from: 16, to: 20, cost: 25000 },
+        { from: 20, to: 25, cost: 50000 }
+    ];
+    return expansions.find(e => e.from === cur) || null;
+}
+
+function expandBarracksCapacity() {
+    if (!player) return false;
+    player.rosterMax = player.rosterMax || 5;
+    const exp = getNextBarracksExpansion();
+    if (!exp) {
+        showToast('Max Capacity', 'Barracks is already at maximum capacity (25 Heroes)!', 'info');
+        return false;
+    }
+
+    if ((player.gold || 0) < exp.cost) {
+        showToast('Insufficient Gold', `Expanding to ${exp.to} slots costs ${exp.cost.toLocaleString()} Gold.`, 'info');
+        return false;
+    }
+
+    player.gold -= exp.cost;
+    player.rosterMax = exp.to;
+    showToast('Barracks Expanded!', `Barracks capacity upgraded to ${player.rosterMax} slots!`, 'level', 5000);
+
+    updateHeader();
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function dismissHero(heroId) {
+    if (!player || !player.roster) return false;
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero) return false;
+
+    if (hero.isMain) {
+        showToast('Cannot Dismiss', 'You cannot dismiss the Main Hero!', 'info');
+        return false;
+    }
+
+    const rankMult = (typeof HERO_RANKS_DB !== 'undefined' && HERO_RANKS_DB[hero.rank]?.mult) || 1.0;
+    const goldRefund = Math.round(100 * (hero.level || 1) * rankMult);
+    player.gold = (player.gold || 0) + goldRefund;
+
+    if (hero.equipment) {
+        const slots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+        slots.forEach(slot => {
+            if (hero.equipment[slot]) {
+                if (!player.inventory.equipment) player.inventory.equipment = [];
+                player.inventory.equipment.push(hero.equipment[slot]);
+                hero.equipment[slot] = null;
+            }
+        });
+    }
+
+    if (player.activeParty && Array.isArray(player.activeParty)) {
+        player.activeParty = player.activeParty.filter(id => id !== heroId);
+        if (player.activeParty.length === 0) {
+            player.activeParty = ['hero_main'];
+        }
+    }
+
+    player.roster = player.roster.filter(h => h.id !== heroId);
+
+    showToast('Hero Dismissed', `Dismissed ${hero.name}. Received 💰 ${goldRefund} Gold severance pay.`, 'info');
+    updateHeader();
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function levelUpHero(hero) {
+    if (!hero) return;
+    const rankDef = (typeof HERO_RANKS_DB !== 'undefined' && HERO_RANKS_DB[hero.rank]) || HERO_RANKS_DB['D'];
+    const growth = rankDef.growth;
+    hero.level = (hero.level || 1) + 1;
+    if (!hero.baseStats) hero.baseStats = { hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 10, def: 8, matk: 10, mdef: 8, spd: 12, crit: 5 };
+
+    hero.baseStats.maxHp = (hero.baseStats.maxHp || 100) + growth.hp;
+    hero.baseStats.hp = hero.baseStats.maxHp;
+    hero.baseStats.maxMp = (hero.baseStats.maxMp || 50) + growth.mp;
+    hero.baseStats.mp = hero.baseStats.maxMp;
+    hero.baseStats.atk = (hero.baseStats.atk || 10) + growth.atk;
+    hero.baseStats.def = (hero.baseStats.def || 8) + growth.def;
+    hero.baseStats.matk = (hero.baseStats.matk || 10) + growth.matk;
+    hero.baseStats.mdef = (hero.baseStats.mdef || 8) + growth.mdef;
+    hero.baseStats.spd = Math.round(((hero.baseStats.spd || 12) + growth.spd) * 10) / 10;
+    hero.hp = hero.baseStats.maxHp;
+    hero.mp = hero.baseStats.maxMp;
+
+    if (hero.isMain && player) {
+        player.level = hero.level;
+        player.baseStats = { ...hero.baseStats };
+        if (typeof computeStats === 'function') computeStats();
+        if (typeof updateHeader === 'function') updateHeader();
+    }
+}
+
+function isAreaBossDefeated(areaNum) {
+    if (!player) return false;
+    if (areaNum === 1) {
+        if (player.defeatedArea1Boss) return true;
+        if (player.bestiary) {
+            if ((player.bestiary['Ancient Treant'] || 0) > 0) return true;
+            if ((player.bestiary['Elder Treant'] || 0) > 0) return true;
+        }
+        if (player.unlockedAreas && (player.unlockedAreas.includes('area_2') || player.unlockedAreas.includes('area_3') || player.unlockedAreas.includes('area_4') || player.unlockedAreas.includes('area_5') || player.unlockedAreas.includes('area_6'))) return true;
+        return false;
+    }
+    if (areaNum === 5) {
+        if (player.defeatedArea5Boss) return true;
+        if (player.bestiary && (player.bestiary['Void Guardian'] || 0) > 0) return true;
+        if (player.unlockedAreas && (player.unlockedAreas.includes('area_6') || player.unlockedAreas.includes('area_7') || player.unlockedAreas.includes('area_8') || player.unlockedAreas.includes('area_9') || player.unlockedAreas.includes('area_10'))) return true;
+        return false;
+    }
+    return false;
+}
+
+function getNextPartySlotTier() {
+    if (!player) return null;
+    const currentSlots = player.partyUnlockedSlots || 1;
+    if (typeof PARTY_SLOT_TIERS === 'undefined') return null;
+    return PARTY_SLOT_TIERS.find(t => t.from === currentSlots || t.targetSlots > currentSlots) || null;
+}
+
+function canUnlockPartySlots(targetSlots) {
+    if (!player) return false;
+    const tier = targetSlots
+        ? (typeof PARTY_SLOT_TIERS !== 'undefined' && PARTY_SLOT_TIERS.find(t => t.targetSlots === targetSlots))
+        : getNextPartySlotTier();
+    if (!tier) return false;
+    if (!isAreaBossDefeated(tier.reqBossArea)) return false;
+    if ((player.gold || 0) < tier.cost) return false;
+    return true;
+}
+
+function unlockPartySlots() {
+    if (!player) return false;
+    const tier = getNextPartySlotTier();
+    if (!tier) {
+        showToast('Max Party Size', 'Party capacity is already at the maximum (5 Heroes)!', 'info');
+        return false;
+    }
+
+    if (!isAreaBossDefeated(tier.reqBossArea)) {
+        showToast('Requirement Locked', `Must defeat Area ${tier.reqBossArea} Boss (${tier.reqBossName}) first!`, 'warning');
+        return false;
+    }
+
+    if ((player.gold || 0) < tier.cost) {
+        showToast('Insufficient Gold', `Unlocking ${tier.targetSlots}-Hero squad requires ${tier.cost.toLocaleString()} Gold.`, 'warning');
+        return false;
+    }
+
+    player.gold -= tier.cost;
+    player.partyUnlockedSlots = tier.targetSlots;
+    playSFX('achievement');
+    showToast('Squad Expanded!', `Active party capacity unlocked to ${player.partyUnlockedSlots} Heroes!`, 'level', 6000);
+
+    updateHeader();
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function setHeroRow(heroId, row) {
+    if (!player || !player.roster) return false;
+    if (row !== 'front' && row !== 'back') return false;
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero) return false;
+    if (hero.row === row) return true;
+
+    // Row capacity validation for active party members
+    if (player.activeParty && player.activeParty.includes(heroId)) {
+        const otherActiveHeroes = player.roster.filter(h => player.activeParty.includes(h.id) && h.id !== heroId);
+        const rowCount = otherActiveHeroes.filter(h => h.row === row).length;
+        if (rowCount >= 3) {
+            showToast('Formation Limit', `${row === 'front' ? 'Frontline' : 'Backline'} accommodates at most 3 heroes!`, 'warning');
+            return false;
+        }
+    }
+
+    hero.row = row;
+    showToast('Formation Updated', `${hero.name} moved to the ${row === 'front' ? 'Frontline' : 'Backline'}.`, 'info');
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function toggleHeroRow(heroId) {
+    if (!player || !player.roster) return false;
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero) return false;
+    const targetRow = (hero.row === 'front') ? 'back' : 'front';
+    return setHeroRow(heroId, targetRow);
+}
+
+function assignHeroToParty(heroId) {
+    if (!player || !player.roster) return false;
+    player.activeParty = player.activeParty || ['hero_main'];
+    player.partyUnlockedSlots = player.partyUnlockedSlots || 1;
+
+    if (player.activeParty.includes(heroId)) {
+        showToast('Already Deployed', 'This hero is already in the active party.', 'info');
+        return false;
+    }
+
+    if (player.activeParty.length >= player.partyUnlockedSlots) {
+        showToast('Party Full', `Active party is full (${player.activeParty.length}/${player.partyUnlockedSlots} slots). Upgrade squad size or bench a hero.`, 'warning');
+        return false;
+    }
+
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero) return false;
+
+    // Check row limits
+    const activeHeroes = player.roster.filter(h => player.activeParty.includes(h.id));
+    const frontCount = activeHeroes.filter(h => h.row === 'front').length;
+    const backCount = activeHeroes.filter(h => h.row === 'back').length;
+
+    if (hero.row === 'front' && frontCount >= 3) {
+        showToast('Frontline Full', 'Frontline accommodates up to 3 heroes. Move hero to backline first.', 'warning');
+        return false;
+    }
+    if (hero.row === 'back' && backCount >= 3) {
+        showToast('Backline Full', 'Backline accommodates up to 3 heroes. Move hero to frontline first.', 'warning');
+        return false;
+    }
+
+    player.activeParty.push(heroId);
+    showToast('Hero Deployed', `${hero.name} joined the active battle party!`, 'info');
+
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function removeHeroFromParty(heroId) {
+    if (!player || !player.activeParty) return false;
+    if (heroId === 'hero_main') {
+        showToast('Cannot Remove Leader', 'The Main Hero must always lead the active party!', 'warning');
+        return false;
+    }
+    const hero = player.roster && player.roster.find(h => h.id === heroId);
+    if (hero && hero.isMain) {
+        showToast('Cannot Remove Leader', 'The Main Hero must always lead the active party!', 'warning');
+        return false;
+    }
+
+    if (!player.activeParty.includes(heroId)) return false;
+
+    player.activeParty = player.activeParty.filter(id => id !== heroId);
+    showToast('Hero Benched', `${hero ? hero.name : 'Hero'} removed from active party.`, 'info');
+
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function randomChoice(arr) {
+    if (!arr || !Array.isArray(arr) || arr.length === 0) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function selectPartyTarget(livingParty) {
+    if (!livingParty || !Array.isArray(livingParty) || livingParty.length === 0) return null;
+    let frontHeroes = livingParty.filter(h => h.row === 'front');
+    let backHeroes = livingParty.filter(h => h.row === 'back');
+    // Frontline Collapse: If all frontline heroes are down, backline is 100% exposed
+    if (frontHeroes.length === 0) return randomChoice(backHeroes);
+    if (backHeroes.length === 0) return randomChoice(frontHeroes);
+    // Standard Weighting: 75% Frontline, 25% Backline
+    let roll = Math.random() * 100;
+    if (roll < 75) {
+        return randomChoice(frontHeroes);
+    } else {
+        return randomChoice(backHeroes);
+    }
+}
+
+function computeHeroStats(hero) {
+    if (!hero) return null;
+    if (hero.isMain && typeof pStats !== 'undefined' && pStats) {
+        return pStats;
+    }
+
+    const base = hero.baseStats || { hp: 100, maxHp: 100, mp: 50, maxMp: 50, atk: 10, def: 8, matk: 10, mdef: 8, spd: 12, crit: 5 };
+
+    const total = {
+        maxHp: base.maxHp || base.hp || 100,
+        hp: hero.hp !== undefined ? hero.hp : (base.hp || base.maxHp || 100),
+        maxMp: base.maxMp || base.mp || 50,
+        mp: hero.mp !== undefined ? hero.mp : (base.mp || base.maxMp || 50),
+        atk: base.atk || 10,
+        def: base.def || 8,
+        matk: base.matk || 10,
+        mdef: base.mdef || 8,
+        spd: base.spd || 12,
+        crit: base.crit || 5
+    };
+
+    if (hero.equipment) {
+        const slots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+        slots.forEach(slot => {
+            const item = hero.equipment[slot];
+            if (item) {
+                const s = (typeof getItemTotalStats === 'function') ? getItemTotalStats(item) : {};
+                if (s.maxHp) total.maxHp += s.maxHp;
+                if (s.maxMp) total.maxMp += s.maxMp;
+                if (s.atk) total.atk += s.atk;
+                if (s.def) total.def += s.def;
+                if (s.matk) total.matk += s.matk;
+                if (s.mdef) total.mdef += s.mdef;
+                if (s.spd) total.spd += s.spd;
+                if (s.crit) total.crit += s.crit;
+            }
+        });
+    }
+
+    return total;
+}
+
+function calculateHeroGearScore(hero) {
+    if (!hero || !hero.equipment) return 0;
+    let score = 0;
+    const slots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+    slots.forEach(slot => {
+        const item = hero.equipment[slot];
+        if (item && typeof calculateGearScore === 'function') {
+            score += calculateGearScore(item);
+        }
+    });
+    return score;
+}
+
+function formatItemStats(item) {
+    if (!item) return '';
+    let stats = (typeof getItemTotalStats === 'function') ? getItemTotalStats(item) : {};
+    let parts = [];
+    if (stats.atk) parts.push(`+${stats.atk} ATK`);
+    if (stats.def) parts.push(`+${stats.def} DEF`);
+    if (stats.matk) parts.push(`+${stats.matk} MATK`);
+    if (stats.mdef) parts.push(`+${stats.mdef} MDEF`);
+    if (stats.spd) parts.push(`+${stats.spd} SPD`);
+    if (stats.maxHp) parts.push(`+${stats.maxHp} HP`);
+    if (stats.maxMp) parts.push(`+${stats.maxMp} MP`);
+    if (stats.crit) parts.push(`+${stats.crit}% Crit`);
+    return parts.join(', ') || 'Standard item';
+}
+
+function equipHeroItem(heroId, itemOrId, slotType) {
+    if (!player || !player.roster || !player.inventory) return false;
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero) return false;
+
+    if (!hero.equipment) {
+        hero.equipment = { weapon: null, helmet: null, armor: null, gloves: null, boots: null, accessory: null };
+    }
+
+    let itemIndex = -1;
+    let itemToEquip = null;
+
+    if (typeof itemOrId === 'object' && itemOrId !== null) {
+        itemToEquip = itemOrId;
+        if (player.inventory.equipment && Array.isArray(player.inventory.equipment)) {
+            itemIndex = player.inventory.equipment.findIndex(i => i.id === itemToEquip.id);
+        }
+    } else if (player.inventory.equipment && Array.isArray(player.inventory.equipment)) {
+        itemIndex = player.inventory.equipment.findIndex(i => i.id === itemOrId || i.baseName === itemOrId || i.name === itemOrId);
+        if (itemIndex !== -1) {
+            itemToEquip = player.inventory.equipment[itemIndex];
+        }
+    }
+
+    if (!itemToEquip && typeof ITEMS_DB !== 'undefined' && ITEMS_DB[itemOrId] && ITEMS_DB[itemOrId].type !== 'consumable') {
+        itemToEquip = (typeof generateItem === 'function') ? generateItem(itemOrId, 'Common') : { id: 'gen_' + Date.now(), name: itemOrId, type: slotType || 'weapon' };
+    }
+
+    if (!itemToEquip) return false;
+
+    let targetSlot = itemToEquip.type || slotType;
+    if (targetSlot === 'chest') targetSlot = 'armor';
+    const validSlots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+    if (!validSlots.includes(targetSlot)) targetSlot = 'weapon';
+
+    const oldItem = hero.equipment[targetSlot];
+    if (oldItem) {
+        const oldInstance = (typeof oldItem === 'object') ? oldItem : (typeof generateItem === 'function' ? generateItem(oldItem, 'Common') : { id: 'old_' + Date.now(), name: oldItem, type: targetSlot });
+        if (!player.inventory.equipment) player.inventory.equipment = [];
+        player.inventory.equipment.push(oldInstance);
+    }
+
+    if (itemIndex !== -1 && player.inventory.equipment) {
+        player.inventory.equipment.splice(itemIndex, 1);
+    }
+
+    hero.equipment[targetSlot] = itemToEquip;
+
+    if (hero.isMain) {
+        player.equipment[targetSlot] = itemToEquip;
+        if (typeof computeStats === 'function') computeStats();
+        if (typeof updateHeader === 'function') updateHeader();
+        if (typeof renderStats === 'function') renderStats();
+        if (typeof renderInventory === 'function') renderInventory();
+    }
+
+    showToast('Hero Gear Equipped', `${itemToEquip.name} equipped to ${hero.name}'s ${targetSlot.toUpperCase()}.`, 'info');
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function unequipHeroItem(heroId, slot) {
+    if (!player || !player.roster || !player.inventory) return false;
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero || !hero.equipment || !hero.equipment[slot]) return false;
+
+    const oldItem = hero.equipment[slot];
+    const oldInstance = (typeof oldItem === 'object') ? oldItem : (typeof generateItem === 'function' ? generateItem(oldItem, 'Common') : { id: 'old_' + Date.now(), name: oldItem, type: slot });
+    if (!player.inventory.equipment) player.inventory.equipment = [];
+    player.inventory.equipment.push(oldInstance);
+
+    hero.equipment[slot] = null;
+
+    if (hero.isMain) {
+        player.equipment[slot] = null;
+        if (typeof computeStats === 'function') computeStats();
+        if (typeof updateHeader === 'function') updateHeader();
+        if (typeof renderStats === 'function') renderStats();
+        if (typeof renderInventory === 'function') renderInventory();
+    }
+
+    showToast('Hero Gear Unequipped', `Unequipped ${oldInstance.name} from ${hero.name}.`, 'info');
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+    return true;
+}
+
+function autoEquipHeroBestGear(heroId) {
+    if (!player || !player.roster || !player.inventory) return 0;
+    const hero = player.roster.find(h => h.id === heroId);
+    if (!hero) return 0;
+
+    if (hero.isMain) {
+        return (typeof autoEquipBestGear === 'function') ? autoEquipBestGear() : 0;
+    }
+
+    if (!hero.equipment) {
+        hero.equipment = { weapon: null, helmet: null, armor: null, gloves: null, boots: null, accessory: null };
+    }
+    if (!player.inventory.equipment) player.inventory.equipment = [];
+
+    const slots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+    let swappedCount = 0;
+
+    for (let slot of slots) {
+        let curEquipped = hero.equipment[slot];
+        let curScore = curEquipped ? calculateGearScore(curEquipped) : -1;
+
+        let bestIndex = -1;
+        let bestScore = curScore;
+
+        for (let i = 0; i < player.inventory.equipment.length; i++) {
+            let item = player.inventory.equipment[i];
+            if (!item) continue;
+            let itemSlot = item.type;
+            if (itemSlot === 'chest') itemSlot = 'armor';
+            if (itemSlot === slot) {
+                let score = calculateGearScore(item);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestIndex = i;
+                }
+            }
+        }
+
+        if (bestIndex !== -1) {
+            let bestItem = player.inventory.equipment[bestIndex];
+            player.inventory.equipment.splice(bestIndex, 1);
+            if (curEquipped) {
+                let oldInstance = (typeof curEquipped === 'object') ? curEquipped : (typeof generateItem === 'function' ? generateItem(curEquipped, 'Common') : { id: 'old_' + Date.now(), name: curEquipped, type: slot });
+                player.inventory.equipment.push(oldInstance);
+            }
+            hero.equipment[slot] = bestItem;
+            swappedCount++;
+        }
+    }
+
+    if (swappedCount > 0) {
+        showToast('Hero Gear Optimized', `Equipped ${swappedCount} superior item${swappedCount > 1 ? 's' : ''} on ${hero.name}!`, 'info');
+        if (typeof renderBarracksUI === 'function') {
+            if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+            if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+        }
+    } else {
+        showToast('Gear Optimized', `${hero.name}'s equipment is already optimal!`, 'info');
+    }
+
+    return swappedCount;
+}
+
+let inspectedHeroId = null;
+
+function openHeroInspector(heroId) {
+    inspectedHeroId = heroId;
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+}
+
+function closeHeroInspector() {
+    inspectedHeroId = null;
+    if (typeof renderBarracksUI === 'function') {
+        if (document.getElementById('mercenary-modal-content')) renderBarracksUI('mercenary-modal-content');
+        if (document.getElementById('tavern-content') && tavernActiveTab === 'recruitment') renderBarracksUI('tavern-content');
+    }
+}
+
+function openMercenaryModal() {
+    syncMainHero();
+    renderBarracksUI('mercenary-modal-content');
+    openModal('modal-mercenary');
+}
+
+function closeMercenaryModal() {
+    closeModal('modal-mercenary');
+}
+
+function renderBarracksUI(targetId = 'mercenary-modal-content') {
+    syncMainHero();
+    const container = document.getElementById(targetId);
+    if (!container) return;
+
+    const roster = player.roster || [];
+    const rosterMax = player.rosterMax || 5;
+    const nextExp = (typeof getNextBarracksExpansion === 'function') ? getNextBarracksExpansion() : null;
+    const partySlots = player.partyUnlockedSlots || 1;
+    const nextSlotTier = (typeof getNextPartySlotTier === 'function') ? getNextPartySlotTier() : null;
+
+    // A. HERO INSPECTOR SUB-VIEW
+    if (inspectedHeroId) {
+        const hero = roster.find(h => h.id === inspectedHeroId);
+        if (!hero) {
+            inspectedHeroId = null;
+        } else {
+            const isMain = !!hero.isMain;
+            const rankInfo = (typeof HERO_RANKS_DB !== 'undefined' && HERO_RANKS_DB[hero.rank]) || { color: '#94a3b8', name: 'Rank ' + hero.rank };
+            const isInParty = player.activeParty && player.activeParty.includes(hero.id);
+            const heroStats = computeHeroStats(hero);
+            const heroScore = calculateHeroGearScore(hero);
+            const slots = ['weapon', 'helmet', 'armor', 'gloves', 'boots', 'accessory'];
+
+            let inspHtml = `
+                <div class="hero-inspector-panel">
+                    <button class="btn" style="padding: 6px 14px; font-size: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.1);" onclick="closeHeroInspector()">
+                        ← Back to Barracks Roster
+                    </button>
+
+                    <div class="hero-inspector-header">
+                        <div class="hero-inspector-identity">
+                            <span class="hero-rank-badge" style="background: ${rankInfo.color}22; color: ${rankInfo.color}; border: 1px solid ${rankInfo.color}; font-size: 13px;">
+                                ${hero.rank}-RANK
+                            </span>
+                            <span class="hero-inspector-name">${hero.name}</span>
+                            ${isMain ? `<span class="hero-main-badge">👑 Leader</span>` : ''}
+                            ${isInParty ? `<span style="font-size: 11px; background: #065f46; color: #6ee7b7; border: 1px solid #10b981; padding: 2px 8px; border-radius: 4px; font-weight: bold;">Active Squad</span>` : ''}
+                            <span class="hero-row-badge ${hero.row === 'front' ? 'front' : 'back'}">${hero.row === 'front' ? '🛡️ Frontline' : '🏹 Backline'}</span>
+                            <span class="hero-gear-score-pill">Gear Score: <b>${heroScore}</b></span>
+                        </div>
+
+                        <div class="hero-inspector-actions">
+                            <button class="btn" style="padding: 5px 12px; font-size: 12px;" onclick="toggleHeroRow('${hero.id}')">
+                                ${hero.row === 'front' ? 'Move to Backline' : 'Move to Frontline'}
+                            </button>
+                            ${isInParty
+                                ? (isMain
+                                    ? `<button class="btn" disabled style="padding: 5px 12px; font-size: 12px; opacity: 0.5;">👑 Leader Locked</button>`
+                                    : `<button class="btn" style="padding: 5px 12px; font-size: 12px; background: #b91c1c; color: white;" onclick="removeHeroFromParty('${hero.id}')">Remove from Party</button>`)
+                                : `<button class="btn" style="padding: 5px 12px; font-size: 12px; background: #059669; color: white;" onclick="assignHeroToParty('${hero.id}')">⚔️ Deploy to Party</button>`
+                            }
+                            <button class="btn" style="padding: 5px 12px; font-size: 12px; background: #4f46e5; border-color: #6366f1; color: white;" onclick="autoEquipHeroBestGear('${hero.id}')">
+                                ⚡ Auto-Equip Best Gear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+                        Class: <b style="color: #cbd5e1; text-transform: capitalize;">${hero.classId}</b> • 
+                        Element: <b style="color: #fde047;">${hero.element || 'Physical'}</b> • 
+                        Level: <b style="color: #4ade80;">${hero.level || 1}</b>
+                    </div>
+
+                    <!-- Hero Total Stats Box -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: rgba(0,0,0,0.4); border: 1px solid #334155; padding: 10px; border-radius: 8px; margin-bottom: 14px; text-align: center;">
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">Max HP:</span> <b style="color: #4ade80;">${heroStats.maxHp}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">ATK:</span> <b style="color: #f87171;">${heroStats.atk}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">DEF:</span> <b style="color: #60a5fa;">${heroStats.def}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">SPD:</span> <b style="color: #fbbf24;">${heroStats.spd}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">Max MP:</span> <b style="color: #a855f7;">${heroStats.maxMp}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">MATK:</span> <b style="color: #ec4899;">${heroStats.matk}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">MDEF:</span> <b style="color: #38bdf8;">${heroStats.mdef}</b></div>
+                        <div class="hero-stat-badge-pill"><span style="color: #94a3b8;">CRIT:</span> <b style="color: #f59e0b;">${heroStats.crit}%</b></div>
+                    </div>
+
+                    <!-- 6 Equipment Slots -->
+                    <div style="font-size: 14px; font-weight: bold; color: #ffd700; margin-bottom: 6px;">
+                        🛡️ Hero Equipment (6 Slots)
+                    </div>
+                    <div class="hero-gear-grid">
+            `;
+
+            const invEquip = (player.inventory && player.inventory.equipment) ? player.inventory.equipment : [];
+
+            slots.forEach(slot => {
+                const equippedItem = hero.equipment ? hero.equipment[slot] : null;
+                const slotName = slot.toUpperCase();
+                const slotScore = equippedItem ? calculateGearScore(equippedItem) : 0;
+                const rarity = equippedItem ? (equippedItem.rarity || 'Common') : '';
+                const tierInfo = (typeof RARITY_TIERS !== 'undefined' && RARITY_TIERS[rarity]) || { color: '#ffffff' };
+
+                // Find compatible inventory items
+                const compatibleInv = invEquip.filter(i => {
+                    if (!i) return false;
+                    let t = i.type;
+                    if (t === 'chest') t = 'armor';
+                    return t === slot;
+                });
+
+                inspHtml += `
+                    <div class="hero-gear-slot-card">
+                        <div class="hero-gear-slot-header">
+                            <span class="hero-gear-slot-title">${slotName}</span>
+                            ${equippedItem ? `<span style="font-size: 10px; color: #fbbf24;">Score: <b>${slotScore}</b></span>` : ''}
+                        </div>
+
+                        ${equippedItem ? `
+                            <div class="hero-gear-equipped-box" style="border-color: ${tierInfo.color};">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-weight: bold; color: ${tierInfo.color}; font-size: 12px;">
+                                        ${equippedItem.name}${equippedItem.upgradeLevel ? ` +${equippedItem.upgradeLevel}` : ''}
+                                    </span>
+                                    <button class="btn" style="padding: 2px 8px; font-size: 10px; background: #dc2626; color: white;" onclick="unequipHeroItem('${hero.id}', '${slot}')">
+                                        Unequip
+                                    </button>
+                                </div>
+                                <div style="font-size: 10px; color: #94a3b8;">
+                                    ${rarity} • ${formatItemStats(equippedItem)}
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="hero-gear-equipped-box is-empty">
+                                No ${slotName} Equipped
+                            </div>
+                        `}
+
+                        <!-- Available in Inventory -->
+                        <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">
+                            Inventory (${compatibleInv.length}):
+                        </div>
+                        <div class="hero-gear-inv-list">
+                            ${compatibleInv.length === 0 ? `<div style="color: #64748b; font-size: 10px; font-style: italic; padding: 4px;">No items in bag</div>` : ''}
+                            ${compatibleInv.map(invItem => {
+                                const invRarity = invItem.rarity || 'Common';
+                                const invTier = (typeof RARITY_TIERS !== 'undefined' && RARITY_TIERS[invRarity]) || { color: '#ffffff' };
+                                const score = calculateGearScore(invItem);
+                                return `
+                                    <div class="hero-gear-inv-item">
+                                        <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">
+                                            <span style="color: ${invTier.color}; font-weight: bold;">${invItem.name}${invItem.upgradeLevel ? ` +${invItem.upgradeLevel}` : ''}</span>
+                                            <span style="color: #fbbf24; font-size: 9px; margin-left: 4px;">(${score})</span>
+                                        </div>
+                                        <button class="btn" style="padding: 2px 8px; font-size: 10px; color: #55ff55; border-color: #55ff55;" onclick="equipHeroItem('${hero.id}', '${invItem.id}', '${slot}')">
+                                            Equip
+                                        </button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            inspHtml += `
+                    </div>
+                </div>
+            `;
+            container.innerHTML = inspHtml;
+            return;
+        }
+    }
+
+    // B. STANDARD BARRACKS & ROSTER VIEW
+    let html = '';
+
+    // 1. Barracks & Squad Status Bar
+    html += `
+        <div class="barracks-status-bar">
+            <div>
+                <span class="barracks-capacity-text">🏛️ Mercenary Barracks</span>
+                <span class="barracks-capacity-badge" style="margin-left: 8px;">
+                    Roster: <b>${roster.length}</b> / <b>${rosterMax}</b> Heroes
+                </span>
+                <span class="barracks-capacity-badge" style="margin-left: 6px; background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #6ee7b7;">
+                    Squad: <b>${player.activeParty.length}</b> / <b>${partySlots}</b> Active
+                </span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                ${nextSlotTier ? `
+                    <button class="btn" style="padding: 5px 12px; font-size: 12px; background: #059669; border-color: #10b981; color: white;" onclick="unlockPartySlots()">
+                        ⚔️ Unlock ${nextSlotTier.label} (${nextSlotTier.cost.toLocaleString()}g)
+                    </button>
+                ` : `
+                    <span style="font-size: 12px; color: #10b981; font-weight: bold; align-self: center;">🏆 Grand Party Maxed (5 Slots)</span>
+                `}
+                ${nextExp ? `
+                    <button class="btn" style="padding: 5px 12px; font-size: 12px; background: #4f46e5; border-color: #6366f1; color: white;" onclick="expandBarracksCapacity()">
+                        🏛️ Expand Barracks to ${nextExp.to} (${nextExp.cost.toLocaleString()}g)
+                    </button>
+                ` : `
+                    <span style="font-size: 12px; color: #10b981; font-weight: bold; align-self: center;">🏆 Barracks Maxed (25)</span>
+                `}
+            </div>
+        </div>
+    `;
+
+    // 2. 3-Tier Recruitment Scouting Section
+    html += `
+        <div class="scout-section-title">
+            <span>🎲 Mercenary Recruitment Hall</span>
+            <span style="font-size: 11px; font-weight: normal; color: #94a3b8;">(All recruits start at Level 1 with unique potential)</span>
+        </div>
+        <div class="scout-grid">
+    `;
+
+    // Tier 1 Standard
+    html += `
+        <div class="scout-card tier-standard">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-weight: bold; font-size: 14px; color: #60a5fa;">⚔️ Standard Scout</span>
+                    <span class="scout-cost-badge scout-cost-gold">💰 250 Gold</span>
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Recruit local sellswords & adventurers.</div>
+                <div class="scout-rates-table">
+                    <span class="scout-rate-pill" style="color: #ec4899;">S: 0.1%</span>
+                    <span class="scout-rate-pill" style="color: #f59e0b;">A: 0.5%</span>
+                    <span class="scout-rate-pill" style="color: #a855f7;">B: 1%</span>
+                    <span class="scout-rate-pill" style="color: #38bdf8;">C: 15%</span>
+                    <span class="scout-rate-pill" style="color: #4ade80;">D: 25%</span>
+                    <span class="scout-rate-pill" style="color: #cbd5e1;">E: 30%</span>
+                    <span class="scout-rate-pill" style="color: #94a3b8;">F: 28.4%</span>
+                </div>
+            </div>
+            <button class="btn" style="width: 100%; background: #2563eb; color: #fff; border-color: #3b82f6;" onclick="recruitHero('standard')">
+                Scout (250 Gold)
+            </button>
+        </div>
+    `;
+
+    // Tier 2 Advanced
+    html += `
+        <div class="scout-card tier-advanced">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-weight: bold; font-size: 14px; color: #c084fc;">🛡️ Advanced Scout</span>
+                    <span class="scout-cost-badge scout-cost-gold">💰 1,000 Gold</span>
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Contract seasoned veterans with higher potential.</div>
+                <div class="scout-rates-table">
+                    <span class="scout-rate-pill" style="color: #ec4899;">S: 0.5%</span>
+                    <span class="scout-rate-pill" style="color: #f59e0b;">A: 1.5%</span>
+                    <span class="scout-rate-pill" style="color: #a855f7;">B: 3%</span>
+                    <span class="scout-rate-pill" style="color: #38bdf8;">C: 25%</span>
+                    <span class="scout-rate-pill" style="color: #4ade80;">D: 35%</span>
+                    <span class="scout-rate-pill" style="color: #cbd5e1;">E: 25%</span>
+                    <span class="scout-rate-pill" style="color: #94a3b8;">F: 10%</span>
+                </div>
+            </div>
+            <button class="btn" style="width: 100%; background: #7c3aed; color: #fff; border-color: #8b5cf6;" onclick="recruitHero('advanced')">
+                Scout (1,000 Gold)
+            </button>
+        </div>
+    `;
+
+    // Tier 3 Royal (Bounty Marks)
+    html += `
+        <div class="scout-card tier-royal">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-weight: bold; font-size: 14px; color: #fbbf24;">👑 Royal Mercenary Scout</span>
+                    <span class="scout-cost-badge scout-cost-marks">🎖️ 5 Marks</span>
+                </div>
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">Elite champions. Zero E or F ranks guaranteed!</div>
+                <div class="scout-rates-table">
+                    <span class="scout-rate-pill" style="color: #ec4899;">S: 2%</span>
+                    <span class="scout-rate-pill" style="color: #f59e0b;">A: 8%</span>
+                    <span class="scout-rate-pill" style="color: #a855f7;">B: 20%</span>
+                    <span class="scout-rate-pill" style="color: #38bdf8;">C: 40%</span>
+                    <span class="scout-rate-pill" style="color: #4ade80;">D: 30%</span>
+                </div>
+            </div>
+            <button class="btn" style="width: 100%; background: #d97706; color: #fff; border-color: #f59e0b;" onclick="recruitHero('royal')">
+                Royal Scout (5 Marks)
+            </button>
+        </div>
+    `;
+
+    html += `</div>`; // End scout-grid
+
+    // 3. Hero Roster Section
+    html += `
+        <div class="scout-section-title">
+            <span>📋 Mercenary Roster (${roster.length}/${rosterMax})</span>
+            <span style="font-size: 11px; font-weight: normal; color: #94a3b8;">Active Squad: ${player.activeParty.length} / ${partySlots} Slots</span>
+        </div>
+        <div class="hero-roster-grid">
+    `;
+
+    roster.forEach(hero => {
+        const rankInfo = (typeof HERO_RANKS_DB !== 'undefined' && HERO_RANKS_DB[hero.rank]) || { color: '#94a3b8', name: 'Rank ' + hero.rank };
+        const isMain = !!hero.isMain;
+        const isInParty = player.activeParty && player.activeParty.includes(hero.id);
+        const stats = hero.baseStats || {};
+        const heroScore = calculateHeroGearScore(hero);
+
+        html += `
+            <div class="hero-card" style="border: 2px solid ${rankInfo.color};">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span class="hero-rank-badge" style="background: ${rankInfo.color}22; color: ${rankInfo.color}; border: 1px solid ${rankInfo.color};">
+                            ${hero.rank}-RANK
+                        </span>
+                        <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                            ${isMain ? `<span class="hero-main-badge">👑 Leader</span>` : ''}
+                            ${isInParty ? `<span style="font-size: 10px; background: #065f46; color: #6ee7b7; border: 1px solid #10b981; padding: 1px 6px; border-radius: 3px; font-weight: bold;">In Party</span>` : ''}
+                            <span class="hero-row-badge ${hero.row === 'front' ? 'front' : 'back'}">${hero.row === 'front' ? 'Front' : 'Back'}</span>
+                            <span class="hero-gear-score-pill" style="font-size: 10px; padding: 1px 6px;">GS: ${heroScore}</span>
+                        </div>
+                    </div>
+
+                    <div style="font-weight: bold; font-size: 15px; color: #f8fafc; margin-bottom: 2px;">
+                        ${hero.name}
+                    </div>
+
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">
+                        Class: <b style="color: #cbd5e1; text-transform: capitalize;">${hero.classId}</b> • 
+                        Element: <b style="color: #fde047;">${hero.element || 'Physical'}</b> • 
+                        Level: <b style="color: #4ade80;">${hero.level || 1}</b>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 6px; font-size: 11px; text-align: center;">
+                        <div><span style="color: #94a3b8;">HP:</span> <b>${stats.maxHp || stats.hp || 100}</b></div>
+                        <div><span style="color: #94a3b8;">ATK:</span> <b>${stats.atk || 10}</b></div>
+                        <div><span style="color: #94a3b8;">DEF:</span> <b>${stats.def || 8}</b></div>
+                        <div><span style="color: #94a3b8;">SPD:</span> <b>${stats.spd || 12}</b></div>
+                        <div><span style="color: #94a3b8;">MP:</span> <b>${stats.maxMp || stats.mp || 50}</b></div>
+                        <div><span style="color: #94a3b8;">MATK:</span> <b>${stats.matk || 10}</b></div>
+                        <div><span style="color: #94a3b8;">MDEF:</span> <b>${stats.mdef || 8}</b></div>
+                        <div><span style="color: #94a3b8;">CRIT:</span> <b>${stats.crit || 5}%</b></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 6px; margin-top: 8px; justify-content: flex-end; flex-wrap: wrap;">
+                    <button class="btn" style="padding: 4px 8px; font-size: 11px; background: #2563eb; color: white; border-color: #3b82f6;" onclick="openHeroInspector('${hero.id}')">
+                        🛡️ Gear &amp; Stats
+                    </button>
+                    ${isInParty
+                        ? (isMain
+                            ? `<button class="btn" disabled style="padding: 4px 8px; font-size: 11px; opacity: 0.5;">Leader</button>`
+                            : `<button class="btn" style="padding: 4px 8px; font-size: 11px; background: #b91c1c; color: white;" onclick="removeHeroFromParty('${hero.id}')">Remove</button>`)
+                        : `<button class="btn" style="padding: 4px 8px; font-size: 11px; background: #059669; color: white;" onclick="assignHeroToParty('${hero.id}')">Deploy</button>`
+                    }
+                    <button class="btn" style="padding: 4px 8px; font-size: 11px;" onclick="toggleHeroRow('${hero.id}')">
+                        ${hero.row === 'front' ? 'Move to Back' : 'Move to Front'}
+                    </button>
+                    ${isMain
+                        ? `<button class="btn" disabled style="padding: 4px 8px; font-size: 11px; opacity: 0.4; cursor: not-allowed;">Protected</button>`
+                        : `<button class="btn" style="padding: 4px 8px; font-size: 11px; background: #dc2626; color: white;" onclick="dismissHero('${hero.id}')">Dismiss</button>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div>`; // End hero-roster-grid
+
+    container.innerHTML = html;
+}
+
+// Global window attachments
+window.syncMainHero = syncMainHero;
+window.rollScoutRank = rollScoutRank;
+window.generateRecruit = generateRecruit;
+window.recruitHero = recruitHero;
+window.dismissHero = dismissHero;
+window.expandBarracksCapacity = expandBarracksCapacity;
+window.getNextBarracksExpansion = getNextBarracksExpansion;
+window.levelUpHero = levelUpHero;
+window.setHeroRow = setHeroRow;
+window.toggleHeroRow = toggleHeroRow;
+window.assignHeroToParty = assignHeroToParty;
+window.removeHeroFromParty = removeHeroFromParty;
+window.randomChoice = randomChoice;
+window.selectPartyTarget = selectPartyTarget;
+window.isAreaBossDefeated = isAreaBossDefeated;
+window.getNextPartySlotTier = getNextPartySlotTier;
+window.canUnlockPartySlots = canUnlockPartySlots;
+window.unlockPartySlots = unlockPartySlots;
+window.computeHeroStats = computeHeroStats;
+window.calculateHeroGearScore = calculateHeroGearScore;
+window.formatItemStats = formatItemStats;
+window.equipHeroItem = equipHeroItem;
+window.unequipHeroItem = unequipHeroItem;
+window.autoEquipHeroBestGear = autoEquipHeroBestGear;
+window.openHeroInspector = openHeroInspector;
+window.closeHeroInspector = closeHeroInspector;
+window.openMercenaryModal = openMercenaryModal;
+window.closeMercenaryModal = closeMercenaryModal;
+window.renderBarracksUI = renderBarracksUI;
+window.getHeroSpriteSvg = getHeroSpriteSvg;
+window.getLivingPartyHeroes = getLivingPartyHeroes;
+window.getHeroCombatEntity = getHeroCombatEntity;
+window.bindCommandDeckToHero = bindCommandDeckToHero;
+window.getHeroComputedStats = computeHeroStats;

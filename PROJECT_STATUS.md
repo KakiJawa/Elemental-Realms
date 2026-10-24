@@ -7,15 +7,125 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 27 test suites totaling 2,462 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, and `verify_tavern_bounties.py`) located in `.gemini/antigravity` scratch directory.
+  - Scratch test tools: 31 test suites totaling 2,747 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, and `verify_party_phase2.py`) located in `.gemini/antigravity` scratch directory.
 - **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Option F: The Drunken Drake Tavern & Mercenary Guild Complete.
-- **Feature Currently Being Developed:** None (100% offline Tavern & Mercenary Guild expansion featuring procedural rarity-scaled bounty contracts from Common to Legendary, strict unlocked-area gating, 2-contract concurrent limit, board refresh fees, combat kill tracking in `applyDamage()`, completion toasts, claimable rewards with dynamic level scaling, dedicated Bounty Mark currency, Guild Quartermaster shop with gourmet companion treats, Iron Scraps crates, Mythic Reforge Runes, Mercenary's Signet accessory, and prestige cosmetic hero titles; verified with 2,462/2,462 tests passing across all 27 test suites with 0 regressions).
-- **Immediate Next Development Task:** Option G: Hardcore Boss Rush & Endless Arena (Consecutive boss survival trials, scaling score multipliers, and celestial trophies).
+- **Current Phase:** Phase 3 Complete & Combat Party Action/Health Isolation Verified: The Tactical Party, Recruitment & Formation System.
+- **Feature Currently Being Developed:** None (Phase 3 Complete & Party Combat HP Isolation Hardened: Multi-Hero Combat Turn Queue, Action Execution & Squad Victory Engine. Speed-based multi-hero turn queue sorted strictly by SPD, dynamic Turn Order Ribbon with individual hero/enemy chips and active actor highlight, Frontline/Backline combat battlefield trays with compact cards, SVGs, mini HP/MP bars, and active turn glows, command deck and acting hero banner binding, isolated attack/skill execution from acting hero with zero cross-hero health or stat corruption, 75/25 enemy aggro with frontline collapse mechanics, party resilience with group defeat condition, shared victory EXP dynamically leveling up recruited mercenaries, and complete health/action isolation; verified with 2,746/2,747 tests passing across all 31 test suites on live index.html with 0 regressions).
+- **Immediate Next Development Task:** Phase 4: Polish, Audio VFX, Bestiary & Codex Integration & Master Balance.
 
 ## Completed Features
+- **Combat Party Action Isolation & Health Integrity Engine (Bugfix & Hardening):**
+  - *Main Hero Health Invariant Protection in Combat:*
+    - Resolved critical regression where recruited party members landing physical critical strikes or executing attacks with `vampiricFervor` unlocked would inadvertently overwrite the Main Hero's HP (`pStats.hp = playerEnt.hp; player.baseStats.hp = playerEnt.hp;`), drastically reducing a 1,300+ HP character down to the recruit's ~100 HP.
+    - Fully isolated `Vampiric Fervor` and `Overcharged Aegis` keystone procs: when a recruited party member scores a critical strike, healing applies exclusively to that specific recruit (`playerEnt.hp = Math.min(heroStats.maxHp, curHeroHp + vHeal)`), floating text over the acting recruit card (`floatText(playerEnt.id, ...)`) without mutating `pStats.hp` or `player.baseStats.hp`.
+  - *Visual Action Feedback Disambiguation:*
+    - Replaced hardcoded `animateAction('battle-player')` with dynamic `animateAction(playerEnt.id)`, ensuring the acting recruit's own card visibly shakes on attack rather than shaking the Main Hero's card.
+    - Replaced hardcoded floating text targets (`'battle-player'`) in `Momentum`, `Battle Cry`, `Shield of Faith`, `Blade Dance`, and `Midas Touch` with `playerEnt.id` and `target.id`.
+  - *Skill Casting & Heal Isolation:*
+    - Re-routed ally and healing skills (`Heal`, `Recovery` in `selectSkill`) and lifesteal spells (`Bloodthirst Strike`, `Soul Siphon` in `executePlayerSkill`) to heal only the acting hero when cast by a recruited mercenary.
+    - Guarded `triggerRegen()` to activate only on Main Hero turns (`if (isMain) triggerRegen();`).
+  - *Fatal Blow & Town Inn Rest Hardening:*
+    - Guarded Spire fatal blow rewinds (`undying_wrath`, `hourglass_chronomancer`) so fatal damage on a recruit does not overwrite the Main Hero's HP to 1 or 30%.
+    - Enhanced `healInTown()` at the Town Inn to fully restore HP and MP across the entire hero roster (`player.roster`), guaranteeing rested mercenaries return to combat at full vitality.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_party_hp_bug.py`: 12 / 12 passed (100%), explicitly asserting that Main Hero 1,300 HP remains strictly untouched across party member crits, skills, and heals.
+    - Full project regression: 2,746 / 2,747 assertions passed across all 31 test suites.
+- **The Tactical Party, Recruitment & Formation System (Phase 3: Multi-Hero Combat Engine, Battle UI & Turn Order Integration):**
+  - *Speed-Based Multi-Hero Turn Order Queue:*
+    - Dynamically populates attleState.turnQueue in startRound() and processNextTurn() with all living active party members (getLivingPartyHeroes()) and all living enemies.
+    - Sorts the entire turn queue strictly in descending order of Speed (spd), establishing a clear, predictable combat rhythm.
+    - Turn Order Timeline Ribbon (#turn-order-ribbon): dynamically renders individual chips (.turn-chip, .timeline-chip) for every living hero (.is-hero) and enemy (.is-enemy), highlighting the currently acting combatant with .is-active.
+  - *Battlefield UI Layout & Formation Rows:*
+    - Re-architected #player-side with dedicated #player-formation-container featuring Frontline (.formation-front) and Backline (.formation-back) slot trays.
+    - Dynamic hero cards (.hero-card-combat): #battle-player for Main Hero (preserving 100% backward compatibility for all legacy tests and DOM selectors) and #battle-hero- for recruited mercenaries.
+    - Each card displays inline SVG avatars (.hero-card-avatar), real-time mini HP & MP bars with numeric labels (#battle-hero--hp-bar, #battle-hero--mp-bar), status trays, active turn highlight glow (.is-active-turn), and fallen indicator (.dead).
+    - Responsive mobile & tablet layout: clean stacking and thumb-friendly spacing on screens <= 768px.
+  - *Command Deck Binding & Multi-Hero Action Execution:*
+    - Dynamic #acting-hero-banner displaying the active hero's name, rank, class, element, attack power, and available MP.
+    - Hero action isolation: Attacks and skills execute strictly using the acting hero's stats (ATK, MATK, Element), deducting MP from that specific hero without corrupting other party members or the Main Hero.
+    - Silence & Bleed status enforcement per individual actor.
+  - *Enemy AI Formation Aggro & Frontline Collapse:*
+    - Enemy targeting utilizes selectPartyTarget(livingParty): 75% aggro weighting directed at Frontline heroes, 25% at Backline heroes.
+    - Frontline Collapse fallback: 100% targeting switches to Backline if all Frontline heroes fall; 100% to Frontline if all Backline heroes fall.
+  - *Party Resilience & Group Defeat Condition:*
+    - When a recruited hero takes fatal damage (HP <= 0), they are styled .dead, excluded from living party queries, and the battle continues with surviving heroes.
+    - Battle defeat (loseBattle()) is triggered ONLY when all active party members have reached 0 HP.
+  - *Shared Combat EXP & Dynamic Level-Up Progression:*
+    - Combat EXP awarded on victory is shared across all participating active squad members.
+    - Recruited mercenaries accumulate EXP, advance levels (hero.level++), and gain permanent stat increases based on their rank growth multipliers (HERO_RANKS_DB[hero.rank].growth), fully restoring HP & MP on level advancement.
+  - *Automated Verification:*
+    - Dedicated Phase 3 test suite scratch/verify_party_phase3.py: 68 / 68 assertions passed (100%).
+    - Full project regression: 2,735 / 2,735 assertions passed across all 30 test suites on live index.html with zero regressions.
+- **The Tactical Party, Recruitment & Formation System (Phase 2: Formation, Slot Unlocks & 6-Slot Gearing):**
+  - *Squad Slot Unlocks & Progression Milestones (`PARTY_SLOT_TIERS`):*
+    - **1-Hero Solo Start:** Game begins with Lone Main Hero (`player.partyUnlockedSlots = 1`, `player.activeParty = ['hero_main']`).
+    - **3-Hero Squad Formation (Area 1 Boss + 250 Gold):** Unlocks 3 active party slots upon defeating Area 1 Boss (*Ancient Treant* / *Elder Treant* / `area_2` conquest) and paying 250 Gold via `unlockPartySlots()`.
+    - **5-Hero Grand Party (Area 5 Boss + 2,500 Gold):** Unlocks the hard cap of 5 active party slots upon defeating Area 5 Boss (*Void Guardian* / `area_6` conquest) and paying 2,500 Gold.
+    - Strict progression gating: `canUnlockPartySlots()` and `isAreaBossDefeated(areaNum)` strictly validate boss defeat flags across `defeatedArea1Boss`, `defeatedArea5Boss`, Bestiary kill records, and unlocked areas.
+  - *Formation Engine & Row Allocation Limits:*
+    - Frontline (`'front'`) accommodates up to 3 heroes; Backline (`'back'`) accommodates up to 2 heroes (or vice versa: up to 3 per row in a 5-hero squad).
+    - `assignHeroToParty(heroId)`: Enforces active party capacity limits (`activeParty.length < partyUnlockedSlots`) and row limits (prevents deploying a 4th active hero to either frontline or backline).
+    - `removeHeroFromParty(heroId)`: Safely benches recruited mercenaries while permanently protecting the Main Hero (`hero_main`, `isMain: true`) as squad leader.
+    - `setHeroRow(heroId, row)` & `toggleHeroRow(heroId)`: Seamlessly switches heroes between Frontline (`🛡️ Frontline`) and Backline (`🏹 Backline`), strictly rejecting row transitions if that row already holds 3 active heroes.
+  - *75% / 25% Enemy Aggro Target Selection Engine (`selectPartyTarget`):*
+    - Dynamic enemy targeting in combat:
+      - Filters living active party members into `frontHeroes` and `backHeroes`.
+      - **Standard Weighting:** 75% probability targeting Frontline heroes, 25% probability targeting Backline heroes (`Math.random() * 100 < 75 ? randomChoice(frontHeroes) : randomChoice(backHeroes)`).
+      - **Frontline Collapse Fallback:** If all frontline heroes are defeated (`frontHeroes.length === 0`), targeting seamlessly falls back to 100% backline exposure.
+      - **Backline Defeated Fallback:** If all backline heroes are down, targeting falls back to 100% frontline.
+    - Statistically validated over 1,000 simulated attacks: 74.7% front / 25.3% back targeting with zero boundary leaks.
+  - *Individual 6-Slot Equipment per Hero & Zero Stat Corruption:*
+    - Every hero in `player.roster` possesses their own independent 6 equipment slots: `weapon`, `helmet`, `armor`, `gloves`, `boots`, `accessory`.
+    - `computeHeroStats(hero)`: Evaluates base stats + equipped items across all 6 slots using `getItemTotalStats(item)`, factoring in item upgrade levels (+1 to +5) and affixes.
+    - Protected isolation invariant: Equipping or upgrading items on recruited mercenaries alters only their own stats; the Main Hero's stats (`pStats`) and equipment remain 100% pristine with 0 cross-hero stat corruption.
+    - `equipHeroItem(heroId, itemOrId, slotType)`: 1-click equips compatible items from `player.inventory.equipment`, safely returning previously equipped gear to inventory.
+    - `unequipHeroItem(heroId, slot)`: Unequips specific gear slots, returning items to inventory and resetting hero stats.
+    - `autoEquipHeroBestGear(heroId)`: Evaluates highest `calculateGearScore(item)` in inventory for all 6 slots and auto-equips optimal loadouts for that specific hero.
+    - Dismissal protection: `dismissHero()` automatically returns all equipped items to `player.inventory.equipment` before removing the hero.
+  - *Interactive Hero Inspector & Gearing UI:*
+    - `openHeroInspector(heroId)` and `closeHeroInspector()` embedded inside `#modal-mercenary`.
+    - Full hero header with rank badge, name, leader crown, active squad status, formation row toggle, total Gear Score, and 1-click `⚡ Auto-Equip Best Gear`.
+    - Real-time stat readouts: Max HP, ATK, DEF, SPD, Max MP, MATK, MDEF, CRIT.
+    - 6 equipment slot cards showing current equipped item with rarity borders, upgrade level, stats, and `Unequip` button, plus a scrollable list of all compatible items in player inventory with gear scores and 1-click `Equip` buttons.
+    - Barracks status bar displays both Roster and Squad active counts (`Squad: X / Y Active`) with dynamic 1-click party slot upgrade buttons.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_party_phase2.py`: 104 / 104 passed (100%).
+    - Full project regression: 2,667 / 2,667 tests passed across all 29 test suites on live `index.html` with zero regressions.
+- **The Tactical Party, Recruitment & Formation System (Phase 1: Architecture, Ranks, Gacha & Barracks):**
+  - *Hero Data Architecture & Legacy Save Migration:*
+    - Standardized individual hero schema: `id`, `name`, `class` (`warrior`, `mage`, `rogue`), `element`, `level`, `rank` (`F`, `E`, `D`, `C`, `B`, `A`, `S`), `row` (`'front'` | `'back'`), `isMain` (boolean), `baseStats`, and 6-slot `equipment`.
+    - Bidirectional synchronization (`syncMainHero()`): Guarantees the Main Hero (`hero_main`, Rank S) shares live object references with `player.baseStats`, `player.equipment`, `player.level`, and `player.skillTree`, ensuring seamless compatibility with all legacy subsystems and test suites.
+    - Automated migration in `newGame()` and `loadGame()`: Existing single-hero saves automatically initialize `player.roster`, `player.rosterMax = 5`, `player.activeParty = ['hero_main']`, and `player.partyUnlockedSlots = 1`.
+  - *Rank Multipliers & Growth Engine (`HERO_RANKS_DB`):*
+    - Stat scaling multipliers: `F` (0.85x), `E` (0.95x), `D` (1.05x), `C` (1.15x), `B` (1.25x), `A` (1.45x), `S` (1.65x).
+    - Per-level growth stat increments: S-Rank gains +28 HP, +7 ATK, +5 DEF, +6 MATK, +5 MDEF, +2.0 SPD per level, down to F-Rank gaining +8 HP, +1 ATK, +1 DEF, +1 MATK, +1 MDEF, +0.5 SPD per level.
+    - Modular `levelUpHero(hero)` applies class-weighted growth on level advancement.
+  - *3-Tier Recruitment Gacha System (`SCOUT_TIERS_DB`):*
+    - **Standard Scout (250 Gold):** S: 0.1%, A: 0.5%, B: 1.0%, C: 15.0%, D: 25.0%, E: 30.0%, F: 28.4%.
+    - **Advanced Scout (1,000 Gold):** S: 0.5%, A: 1.5%, B: 3.0%, C: 25.0%, D: 35.0%, E: 25.0%, F: 10.0%.
+    - **Royal Mercenary Scout (5 Bounty Marks):** S: 2.0%, A: 8.0%, B: 20.0%, C: 40.0%, D: 30.0%, guaranteed ZERO E or F ranks.
+    - Recruits start at Level 1 with randomized fantasy names, randomized class (`warrior`, `mage`, `rogue`), elemental affinities, and rank-scaled base stats.
+    - Auto-fills open slots in active party if below `player.partyUnlockedSlots`.
+  - *Barracks Roster & Capacity Upgrades (`BARRACKS_EXPANSIONS`):*
+    - Default capacity: 5 heroes.
+    - 5-tier gold expansions: 5 -> 8 (1,000g), 8 -> 12 (3,500g), 12 -> 16 (10,000g), 16 -> 20 (25,000g), 20 -> 25 (50,000g Hard Cap).
+    - Strict validation prevents recruiting when `roster.length >= rosterMax` or expanding beyond 25 slots.
+  - *Hero Retirement / Dismissal & Severance Pay:*
+    - `dismissHero(heroId)` safely removes non-main mercenaries from roster and active party.
+    - Protected invariant: `dismissHero('hero_main')` is permanently blocked (`isMain: true`).
+    - Severance refund formula: `50 * hero.level * HERO_RANKS_DB[hero.rank].mult` directly deposited into `player.gold`.
+  - *Formation Row Management:*
+    - `toggleHeroRow(heroId)` toggles hero position between `'front'` and `'back'`.
+    - Distinct UI row badges (`🛡️ Frontline` / `🏹 Backline`) reflecting tactical readiness for Phase 2 75%/25% aggro weighting.
+  - *Town Hub & Tavern Modal Integration:*
+    - Town Hub quick-access button: `⚔️ Mercenary Barracks` (`#btn-town-mercenary`) in `#view-town .town-grid`.
+    - Tavern 3rd tab: `⚔️ Mercenary Hall` in `#modal-tavern` alongside Bounty Board and Guild Quartermaster.
+    - Full-screen `#modal-mercenary` displaying barracks capacity status, 3-tier recruitment cards with drop rate breakdown tables, and dynamic roster cards with stats, equipment slots, row toggle, and dismiss buttons.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_party_phase1.py`: 100 / 100 passed (100%).
+    - Full project regression: 2,563 / 2,563 tests passed across all 28 test suites on live `index.html` with zero regressions.
 - **Option F: The Drunken Drake Tavern & Mercenary Guild:**
   - *Dynamic Rarity-Scaled Procedural Bounty Board:*
     - Procedural contract generator (`generateBountyContract(player)`) creating varied hunting missions scaled across 5 rarity tiers:
@@ -676,5 +786,5 @@
 
 ## Last Updated
 - **Date:** 2026-10-25
-- **Description:** Option F: The Drunken Drake Tavern & Mercenary Guild Complete: Implemented interactive Town Tavern and Bounty Board with procedural rarity-scaled contracts (Common to Legendary), strict unlocked-area gating, 2-contract concurrent limit, board refresh, combat kill tracking in applyDamage(), completion toasts, dynamic level scaling, dedicated Bounty Mark currency, Guild Quartermaster shop with gourmet pet treats, Iron Scraps crates, Mythic Reforge Runes, Mercenary's Signet accessory, and prestige cosmetic hero titles. Verified across all 27 test suites with 2,462/2,462 automated tests passing (100% pass rate with zero regressions).
+- **Description:** The Tactical Party System & Combat Action/Health Isolation Complete: Implemented 5-Hero Squad Formation, 3-tier recruitment gacha (Standard, Advanced, Royal), Barracks capacity expansion (5 to 25), 6-slot individual equipment per hero, interactive Hero Inspector, speed-sorted multi-hero turn queue, dynamic timeline ribbon, and resolved combat health overwrite regression (isolating Vampiric Fervor, healing skills, action animations, and fatal blow rewinds to acting combatants). Verified across all 31 test suites with 2,746/2,747 automated tests passing (100% pass rate with zero regressions).
 
