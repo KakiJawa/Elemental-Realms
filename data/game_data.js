@@ -1020,7 +1020,12 @@
         staggered: { id: 'staggered', name: 'Staggered', icon: '💫⚡', element: 'Physical', type: 'disable', color: '#f43f5e', desc: 'Staggered! Cannot act, DEF and MDEF reduced by 50%, takes +50% amplified damage.' },
         armor_shatter: { id: 'armor_shatter', name: 'Armor Shatter', icon: '💔', element: 'Physical', type: 'debuff', maxStacks: 2, color: '#e11d48', desc: 'Reduces DEF & MDEF by 30% per stack (up to 2 stacks: -60%).' },
         doom_brand: { id: 'doom_brand', name: 'Doom Brand', icon: '☠️⏳', element: 'Dark', type: 'debuff', color: '#a855f7', desc: 'Cursed with Doom! Must deal 1,500 damage or cleanse before countdown reaches 0 or suffers lethal void damage.' },
-        glacial_prison: { id: 'glacial_prison', name: 'Glacial Prison', icon: '🧊', element: 'Water', type: 'disable', color: '#06b6d4', desc: 'Encased in solid ice! Incapacitated until allies deal 3,000 damage to shatter the block.' }
+        glacial_prison: { id: 'glacial_prison', name: 'Glacial Prison', icon: '🧊', element: 'Water', type: 'disable', color: '#06b6d4', desc: 'Encased in solid ice! Incapacitated until allies deal 3,000 damage to shatter the block.' },
+        marked: { id: 'marked', name: 'Marked Prey', icon: '🎯', element: 'Physical', type: 'debuff', color: '#16a34a', desc: 'Marked for death! Takes +25% amplified damage from all attacks.' },
+        beast_roar: { id: 'beast_roar', name: 'Beast Roar', icon: '🐾', element: 'Physical', type: 'buff', color: '#10b981', desc: 'Empowered by the beast: +20% ATK and +15 SPD.' },
+        primal_roar: { id: 'primal_roar', name: 'Primal Roar', icon: '🦁', element: 'Physical', type: 'buff', color: '#ca8a04', desc: 'Primal aura active: +25% ATK, +20 SPD, and immune to Stun and Silence.' },
+        holy_vulnerability: { id: 'holy_vulnerability', name: 'Holy Vulnerability', icon: '✨🔥', element: 'Light', type: 'debuff', color: '#ffd700', desc: 'Afflicted by sacred fire: takes +25% amplified Holy damage for 3 turns.' },
+        sanctuary_protection: { id: 'sanctuary_protection', name: 'Sanctuary Protection', icon: '🛡️✨', element: 'Light', type: 'buff', color: '#fef08a', desc: 'Blessed sanctuary: DEF and MDEF increased by 15%.' }
     };
 
 
@@ -1037,7 +1042,7 @@
 
         'Wind Blade': { name: 'Wind Blade', category: 'offense', type: 'magic', element: ELEMENTS.Wind, power: 40, mp: 5, target: 'enemy_single' },
 
-        'Holy Light': { name: 'Holy Light', category: 'offense', type: 'magic', element: ELEMENTS.Light, power: 65, mp: 10, target: 'enemy_single' },
+        // (Replaced by Cleric Holy Light)
 
         'Dark Blast': { name: 'Dark Blast', category: 'offense', type: 'magic', element: ELEMENTS.Dark, power: 70, mp: 12, target: 'enemy_single' },
 
@@ -1097,8 +1102,21 @@
 
         'Mirage Flurry': { name: 'Mirage Flurry', category: 'offense', type: 'physical', element: ELEMENTS.Physical, power: 25, mp: 14, target: 'enemy_single' },
 
-        'Blade Dance': { name: 'Blade Dance', category: 'defense', type: 'buff', element: ELEMENTS.Physical, power: 0, mp: 12, target: 'self' }
-
+        'Blade Dance': { name: 'Blade Dance', category: 'defense', type: 'buff', element: ELEMENTS.Physical, power: 0, mp: 12, target: 'self' },
+        // Ranger & Marksman Evolutions
+        'Aimed Shot': { name: 'Aimed Shot', category: 'offense', type: 'physical', element: ELEMENTS.Physical, power: 160, mp: 8, target: 'enemy_single', desc: 'Carefully line up a shot. Deals 160% ATK physical damage with +20% bonus critical strike chance.' },
+        'Marked Prey': { name: 'Marked Prey', category: 'offense', type: 'physical', element: ELEMENTS.Physical, power: 100, mp: 10, target: 'enemy_single', desc: "Tag a target with a hunter's mark. Deals 100% ATK physical damage and applies Marked (+25% damage taken) for 3 turns." },
+        'Pack Hunt': { name: 'Pack Hunt', category: 'offense', type: 'physical', element: ELEMENTS.Physical, power: 180, mp: 14, target: 'enemy_single', desc: 'Coordinate a synchronized strike with your companion beast. Deals 180% ATK physical damage and triggers a bonus pet attack for 100% Beastmaster ATK.' },
+        'Beast Roar': { name: 'Beast Roar', category: 'buff', type: 'support', element: ELEMENTS.Physical, power: 0, mp: 16, target: 'all_allies', desc: 'Unleash a ferocious command roar that invigorates the squad. Grants all party members +20% ATK and +15 SPD for 3 turns.' },
+        'Piercing Shot': { name: 'Piercing Shot', category: 'offense', type: 'physical', element: ELEMENTS.Physical, power: 200, mp: 12, target: 'enemy_single', desc: "Fire a heavy sabot arrow that punches through armor. Deals 200% ATK physical damage, ignoring 50% of the target's physical DEF." },
+        'Headshot Stagger': { name: 'Headshot Stagger', category: 'offense', type: 'physical', element: ELEMENTS.Physical, power: 220, mp: 18, target: 'enemy_single', desc: 'Snipe a vital weak point with immense concussive force. Deals 220% ATK physical damage and deals 2.5x stagger damage against Boss Break/Stagger Gauges.' },
+        // Cleric & Evolutions
+        'Holy Light': { name: 'Holy Light', category: 'heal', type: 'heal', element: ELEMENTS.Light, power: 180, mp: 18, target: 'ally_single', desc: 'Restores HP equal to 180% MATK. Any excess healing above Max HP converts into a temporary Divine Barrier (up to 30% Max HP).' },
+        'Purify': { name: 'Purify', category: 'defense', type: 'buff', element: ELEMENTS.Light, power: 0, mp: 15, target: 'ally_single', desc: 'Dispels all negative status ailments (Burn, Poison, Freeze, Silence, Stun, Decay, Blind) from the target and grants a Divine Barrier equal to 15% Max HP.' },
+        'Prayer of Sanctuary': { name: 'Prayer of Sanctuary', category: 'defense', type: 'heal', element: ELEMENTS.Light, power: 130, mp: 35, target: 'all_allies', desc: 'Heals all living party members for 130% MATK, removes 1 negative status debuff from each, and grants +15% DEF/MDEF for 2 turns.' },
+        'Divine Intervention': { name: 'Divine Intervention', category: 'defense', type: 'buff', element: ELEMENTS.Light, power: 0, mp: 30, target: 'ally_single', desc: "Instantly grants a massive Divine Barrier equal to 40% of the target's Max HP and applies Regen (restoring 15% Max HP per turn) for 3 turns." },
+        'Radiant Smite': { name: 'Radiant Smite', category: 'offense', type: 'magic', element: ELEMENTS.Light, power: 170, mp: 22, target: 'enemy_single', desc: 'Deals 170% MATK + 80% ATK Holy damage. 50% of the damage dealt is immediately restored to the lowest HP party member.' },
+        'Judgement Pyre': { name: 'Judgement Pyre', category: 'offense', type: 'magic', element: ELEMENTS.Fire, power: 140, mp: 32, target: 'enemy_all', desc: 'Engulfs all enemies in sacred fire dealing 140% MATK damage, inflicting Burn (3 turns) and Holy Vulnerability (targets take +25% Holy damage for 3 turns).' },
     };
 
 
@@ -1979,7 +1997,7 @@
 
         },
 
-        tempest_blademaster: {
+                tempest_blademaster: {
 
             id: 'tempest_blademaster',
 
@@ -2001,8 +2019,130 @@
 
             passiveDesc: "Every basic attack strikes twice (second strike deals 50% damage)."
 
-        }
+        },
 
+        // Ranger & Marksman Tree (Tier 1 -> Tier 2 -> Tier 3)
+        ranger: {
+            id: 'ranger',
+            name: 'Ranger',
+            tier: 1,
+            parent: null,
+            minLevel: 10,
+            desc: "Nimble marksman who harries foes from afar with precision archery and traps.",
+            statMods: { atk: 1.25, spd: 1.20, crit: 15, maxHp: 0.90, def: 0.85, matk: 0.70 },
+            skills: ['Aimed Shot', 'Marked Prey']
+        },
+        beastmaster: {
+            id: 'beastmaster',
+            name: 'Beastmaster',
+            tier: 2,
+            parent: 'ranger',
+            minLevel: 25,
+            desc: "Primal commander fighting in flawless synchronization with faithful companion beasts.",
+            statMods: { atk: 1.35, spd: 1.30, crit: 20, maxHp: 1.10, def: 0.95 },
+            skills: ['Pack Hunt', 'Beast Roar'],
+            passive: 'pack_bond',
+            passiveName: "Pack Bond",
+            passiveDesc: "Whenever the Beastmaster attacks, their active Pet executes a synchronized strike for 75% ATK."
+        },
+        deadeye_sniper: {
+            id: 'deadeye_sniper',
+            name: 'Deadeye Sniper',
+            tier: 2,
+            parent: 'ranger',
+            minLevel: 25,
+            desc: "Cold, calculating sniper piercing heavy armor and breaking enemy stagger gauges.",
+            statMods: { atk: 1.50, crit: 30, spd: 1.15, maxHp: 0.80, def: 0.75 },
+            skills: ['Piercing Shot', 'Headshot Stagger'],
+            passive: 'eagle_eye',
+            passiveName: "Eagle Eye",
+            passiveDesc: "Basic attacks ignore 50% of the target's physical DEF, and stagger damage dealt to bosses is doubled."
+        },
+        primal_apex_lord: {
+            id: 'primal_apex_lord',
+            name: 'Primal Apex Lord',
+            tier: 3,
+            parent: 'beastmaster',
+            minLevel: 50,
+            desc: "Sovereign of the wild whose ferocious presence empowers all allies with primal dominance.",
+            statMods: { atk: 1.70, spd: 1.40, crit: 30, maxHp: 1.30, def: 1.10 },
+            passive: 'primal_roar',
+            passiveName: "Primal Roar",
+            passiveDesc: "At the start of battle, unleashes an intimidating roar: grants all party members +25% ATK, +20 SPD, and immunity to Stun & Silence for 3 turns."
+        },
+                celestial_sharpshooter: {
+            id: 'celestial_sharpshooter',
+            name: 'Celestial Sharpshooter',
+            tier: 3,
+            parent: 'deadeye_sniper',
+            minLevel: 50,
+            desc: "Transcendent marksman whose piercing projectiles pierce across dimensions with lethal certainty.",
+            statMods: { atk: 1.85, crit: 45, spd: 1.30, maxHp: 0.80, def: 0.80 },
+            passive: 'killshot_matrix',
+            passiveName: "Killshot Matrix",
+            passiveDesc: "Basic attacks pierce through all enemies in battle. Guaranteed critical strike against any enemy at or below 35% HP."
+        },
+        // --- Cleric Class Tree (Tier 1 -> Tier 2 -> Tier 3) ---
+        cleric: {
+            id: 'cleric',
+            name: 'Cleric',
+            tier: 1,
+            parent: null,
+            minLevel: 10,
+            desc: "Devoted holy conduit wielding divine restoration, cleansing rites, and radiant shielding.",
+            statMods: { matk: 1.25, mdef: 1.25, maxMp: 1.25, maxHp: 1.05, def: 0.95, atk: 0.70, spd: 0.95 },
+            skills: ['Holy Light', 'Purify']
+        },
+        high_priest: {
+            id: 'high_priest',
+            name: 'High Priest',
+            tier: 2,
+            parent: 'cleric',
+            minLevel: 25,
+            desc: "Sacred shepherd sustaining the entire party through devastating onslaughts and averting death.",
+            statMods: { matk: 1.40, mdef: 1.40, maxMp: 1.45, maxHp: 1.20, def: 1.05, spd: 1.00, atk: 0.65 },
+            skills: ['Prayer of Sanctuary', 'Divine Intervention'],
+            passive: 'divine_aegis',
+            passiveName: "Divine Aegis",
+            passiveDesc: "Once per battle, when any party ally would take fatal damage, prevents death, restores them to 1 HP, and grants a Divine Barrier equal to 50% of their Max HP."
+        },
+        inquisitor: {
+            id: 'inquisitor',
+            name: 'Inquisitor',
+            tier: 2,
+            parent: 'cleric',
+            minLevel: 25,
+            desc: "Righteous inquisitor punishing the wicked with searing holy flames and lifesteal smites.",
+            statMods: { matk: 1.45, atk: 1.20, crit: 20, mdef: 1.15, maxMp: 1.20, maxHp: 1.00, def: 0.90 },
+            skills: ['Radiant Smite', 'Judgement Pyre'],
+            passive: 'righteous_zeal',
+            passiveName: "Righteous Zeal",
+            passiveDesc: "Holy skills deal +30% amplified damage to debuffed targets, and basic attacks deal bonus Holy damage equal to 15% of the target's missing HP."
+        },
+        seraph_of_dawn: {
+            id: 'seraph_of_dawn',
+            name: 'Seraph of Dawn',
+            tier: 3,
+            parent: 'high_priest',
+            minLevel: 50,
+            desc: "Empyrean vessel of life whose holy aura continuously restores the squad and reflects violence.",
+            statMods: { matk: 1.70, mdef: 1.70, maxMp: 1.70, maxHp: 1.40, def: 1.20, spd: 1.10 },
+            passive: 'aura_of_immortality',
+            passiveName: "Aura of Immortality",
+            passiveDesc: "All living party members regenerate 10% Max HP at the start of each turn. Divine Barriers reflect 25% of absorbed damage back as Holy true damage."
+        },
+        grand_justiciar: {
+            id: 'grand_justiciar',
+            name: 'Grand Justiciar',
+            tier: 3,
+            parent: 'inquisitor',
+            minLevel: 50,
+            desc: "Living instrument of divine judgment executing instant retributive smites whenever allies are harmed.",
+            statMods: { matk: 1.75, atk: 1.40, crit: 35, mdef: 1.30, maxMp: 1.35, maxHp: 1.15, spd: 1.20 },
+            passive: 'sacred_retribution',
+            passiveName: "Sacred Retribution",
+            passiveDesc: "Whenever an enemy attacks any party member, the Grand Justiciar has a 40% chance to immediately counter-attack with an unblockable Holy Smite."
+        }
     };
 
 

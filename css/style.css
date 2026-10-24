@@ -6758,3 +6758,79 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
     color: #ffd700;
     font-weight: bold;
 }
+
+/* =========================================================================
+   RANGER / MARKSMAN CLASS TREE & BADGES
+   ========================================================================= */
+
+.class-ranger {
+    color: #16a34a;
+}
+
+.class-beastmaster {
+    color: #10b981;
+}
+
+.class-deadeye_sniper {
+    color: #ca8a04;
+}
+
+.class-primal_apex_lord {
+    color: #eab308;
+    text-shadow: 0 0 6px rgba(234, 179, 8, 0.4);
+}
+
+.class-celestial_sharpshooter {
+    color: #38bdf8;
+    text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
+.ranger-badge {
+    background: rgba(22, 163, 74, 0.2);
+    border: 1px solid #16a34a;
+    color: #4ade80;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* =========================================================================
+   CLERIC CLASS TREE & BADGES
+   ========================================================================= */
+
+.class-cleric {
+    color: #f8fafc;
+}
+
+.class-high_priest {
+    color: #38bdf8;
+}
+
+.class-inquisitor {
+    color: #f59e0b;
+}
+
+.class-seraph_of_dawn {
+    color: #ffd700;
+    text-shadow: 0 0 6px rgba(255, 215, 0, 0.4);
+}
+
+.class-grand_justiciar {
+    color: #f97316;
+    text-shadow: 0 0 6px rgba(249, 115, 22, 0.4);
+}
+
+.cleric-badge {
+    background: rgba(254, 240, 138, 0.2);
+    border: 1px solid #ffd700;
+    color: #fef08a;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}

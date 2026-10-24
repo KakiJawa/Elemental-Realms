@@ -12581,6 +12581,10 @@ if (typeof window !== 'undefined') {
 
 
 
+        } else if (cls === 'ranger' || cls === 'beastmaster' || cls === 'deadeye_sniper' || cls === 'primal_apex_lord' || cls === 'celestial_sharpshooter') {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,15 L75,85 L50,70 L25,85 Z" fill="#16a34a"/><circle cx="50" cy="40" r="14" fill="#ca8a04"/><line x1="50" y1="20" x2="50" y2="80" stroke="#fef08a" stroke-width="3"/><path d="M25,50 Q50,25 75,50" stroke="#ca8a04" stroke-width="3" fill="none"/></svg>`;
+        } else if (cls === 'cleric' || cls === 'high_priest' || cls === 'inquisitor' || cls === 'seraph_of_dawn' || cls === 'grand_justiciar') {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#f8fafc" stroke="#ffd700" stroke-width="4"/><path d="M50,15 L50,85 M25,40 L75,40" stroke="#ffd700" stroke-width="8" stroke-linecap="round"/><circle cx="50" cy="40" r="10" fill="#38bdf8"/><path d="M35,65 Q50,80 65,65" stroke="#38bdf8" stroke-width="3" fill="none"/></svg>`;
         } else {
 
 
@@ -12974,6 +12978,8 @@ if (typeof window !== 'undefined') {
 
 
                     if (hasStatus(this, 'battle_cry')) mult *= 1.2;
+                    if (hasStatus(this, 'beast_roar')) mult *= 1.2;
+                    if (hasStatus(this, 'primal_roar')) mult *= 1.25;
 
 
 
@@ -13030,6 +13036,7 @@ if (typeof window !== 'undefined') {
 
 
                     if (hasStatus(this, 'berserk')) mult *= 0.75;
+                    if (hasStatus(this, 'sanctuary_protection')) mult *= 1.15;
 
 
 
@@ -13061,7 +13068,12 @@ if (typeof window !== 'undefined') {
 
 
 
-                get mdef() { return computeHeroStats(hero).mdef || 8; },
+                get mdef() {
+                    let s = computeHeroStats(hero);
+                    let mult = 1.0;
+                    if (hasStatus(this, 'sanctuary_protection')) mult *= 1.15;
+                    return Math.max(0, Math.floor((s.mdef || 8) * mult));
+                },
 
 
 
@@ -13109,7 +13121,10 @@ if (typeof window !== 'undefined') {
 
 
 
-                    return Math.max(1, Math.floor(s.spd * mult));
+                    let flatSpd = 0;
+                    if (hasStatus(this, 'beast_roar')) flatSpd += 15;
+                    if (hasStatus(this, 'primal_roar')) flatSpd += 20;
+                    return Math.max(1, Math.floor(s.spd * mult) + flatSpd);
 
 
 
@@ -13198,6 +13213,7 @@ if (typeof window !== 'undefined') {
 
 
     function getPlayerCombatEntity() {
+        if (typeof window !== 'undefined') window.getPlayerCombatEntity = getPlayerCombatEntity;
 
 
 
@@ -13310,6 +13326,8 @@ if (typeof window !== 'undefined') {
 
 
                     if (hasStatus(this, 'battle_cry')) mult *= 1.2;
+                    if (hasStatus(this, 'beast_roar')) mult *= 1.2;
+                    if (hasStatus(this, 'primal_roar')) mult *= 1.25;
 
 
 
@@ -13358,6 +13376,7 @@ if (typeof window !== 'undefined') {
 
 
                     if (hasStatus(this, 'berserk')) mult *= 0.75;
+                    if (hasStatus(this, 'sanctuary_protection')) mult *= 1.15;
 
 
 
@@ -13381,7 +13400,11 @@ if (typeof window !== 'undefined') {
 
 
 
-                get mdef() { return pStats.mdef; },
+                get mdef() {
+                    let mult = 1.0;
+                    if (hasStatus(this, 'sanctuary_protection')) mult *= 1.15;
+                    return Math.max(0, Math.floor(pStats.mdef * mult));
+                },
 
 
 
@@ -13421,7 +13444,10 @@ if (typeof window !== 'undefined') {
 
 
 
-                    return Math.max(1, Math.floor(pStats.spd * mult));
+                    let pFlatSpd = 0;
+                    if (hasStatus(this, 'beast_roar')) pFlatSpd += 15;
+                    if (hasStatus(this, 'primal_roar')) pFlatSpd += 20;
+                    return Math.max(1, Math.floor(pStats.spd * mult) + pFlatSpd);
 
 
 
@@ -13704,6 +13730,13 @@ if (typeof window !== 'undefined') {
 
 
 
+
+        // Primal Roar Immunity Check (Immune to Stun & Silence)
+        if (hasStatus(ent, 'primal_roar') && (statusId === 'stun' || statusId === 'silence')) {
+            logMsg(`${ent.name || 'Hero'} resisted ${def.name} with Primal Roar!`, "#ca8a04");
+            floatText(ent.id, "IMMUNE", "#ca8a04");
+            return;
+        }
 
         if (ent.isBoss && (statusId === 'stun' || statusId === 'freeze')) {
 
@@ -42901,6 +42934,44 @@ ${setInfoHtml}
 
 
 
+        
+        // Primal Roar (Primal Apex Lord) start of combat trigger
+        if (!battleState._primalRoarTriggered) {
+            battleState._primalRoarTriggered = true;
+            if (livingParty.some(hero => heroHasPassive(hero, 'primal_roar'))) {
+                livingParty.forEach(h => {
+                    const ent = (typeof getHeroCombatEntity === 'function') ? getHeroCombatEntity(h) : null;
+                    if (ent) {
+                        applyStatus(ent, 'primal_roar', 3);
+                        floatText(ent.id, "PRIMAL ROAR", "#ca8a04");
+                    }
+                });
+                logMsg("🦁 Primal Roar! All allies empowered with +25% ATK, +20 SPD, and immunity to Stun & Silence for 3 turns!", "#ca8a04");
+            }
+        }
+        // Aura of Immortality (Seraph of Dawn Apex passive): 10% max HP party regen at round start
+        if (livingParty.some(hero => typeof heroHasPassive === 'function' && heroHasPassive(hero, 'aura_of_immortality'))) {
+            livingParty.forEach(h => {
+                let ent = (typeof getHeroCombatEntity === 'function') ? getHeroCombatEntity(h) : null;
+                let hStats = computeHeroStats(h);
+                let maxHp = h.isMain ? pStats.maxHp : (hStats.maxHp || 100);
+                let curHp = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || maxHp));
+                let regenAmount = Math.max(1, Math.round(maxHp * 0.10));
+                let newHp = Math.min(maxHp, curHp + regenAmount);
+                if (h.isMain) {
+                    player.baseStats.hp = newHp;
+                    pStats.hp = newHp;
+                } else {
+                    h.hp = newHp;
+                    if (h.baseStats) h.baseStats.hp = newHp;
+                }
+                if (ent) {
+                    ent.hp = newHp;
+                    floatText(ent.id, `+${regenAmount}`, "#55ff55");
+                }
+            });
+            logMsg("🕊️ Aura of Immortality radiates warm light! All party members regenerated 10% HP!", "#55ff55");
+        }
         battleState.turnQueue = [];
 
 
@@ -42925,7 +42996,9 @@ ${setInfoHtml}
 
 
 
-            battleState.turnQueue.push({ type: 'hero', id: h.id, spd: hStats.spd, name: h.name, hero: h });
+            const ent = (typeof getHeroCombatEntity === 'function') ? getHeroCombatEntity(h) : null;
+            const spdVal = ent ? ent.spd : hStats.spd;
+            battleState.turnQueue.push({ type: 'hero', id: h.id, spd: spdVal, name: h.name, hero: h });
 
 
 
@@ -44442,7 +44515,8 @@ ${setInfoHtml}
 
 
 
-        let mitigation = 20 / (20 + target.def);
+        let effTargetDef = (heroHasPassive(actingHero, 'eagle_eye')) ? Math.floor(target.def * 0.5) : target.def;
+        let mitigation = 20 / (20 + effTargetDef);
 
 
 
@@ -44714,7 +44788,8 @@ ${setInfoHtml}
 
 
 
-        if(Math.random() * 100 < critChance) {
+        let isKillshot = heroHasPassive(actingHero, 'killshot_matrix') && (target.hp <= target.maxHp * 0.35);
+        if(isKillshot || Math.random() * 100 < critChance) {
 
 
 
@@ -45219,6 +45294,40 @@ ${setInfoHtml}
 
 
         applyDamage(target, dmg, ELEMENTS.Physical, playerEnt, isCrit);
+        if (heroHasPassive(actingHero, 'righteous_zeal') && target && target.hp > 0) {
+            let tMaxHp = target.maxHp || (target.enemy && target.enemy.maxHp) || 100;
+            let missingHp = Math.max(0, tMaxHp - target.hp);
+            let bonusHoly = Math.round(missingHp * 0.15);
+            if (bonusHoly > 0) {
+                logMsg(`⚖️ Righteous Zeal smites ${target.name} for ${bonusHoly} bonus Holy damage!`, "#ffd700");
+                applyDamage(target, bonusHoly, ELEMENTS.Light, playerEnt);
+            }
+        }
+
+        // Killshot Matrix: Pierce all enemies in battle
+        if (heroHasPassive(actingHero, 'killshot_matrix') && battleState && battleState.enemies && Array.isArray(battleState.enemies)) {
+            battleState.enemies.forEach(other => {
+                if (other !== target && other.hp > 0) {
+                    let otherEffDef = Math.floor(other.def * 0.5);
+                    let otherMit = 20 / (20 + otherEffDef);
+                    let otherBase = playerEnt.atk * 1.5;
+                    let otherDmg = Math.max(1, Math.floor(otherBase * otherMit));
+                    let otherIsCrit = (other.hp <= other.maxHp * 0.35) || (Math.random() * 100 < critChance);
+                    if (otherIsCrit) otherDmg = Math.floor(otherDmg * critMult);
+                    applyDamage(other, otherDmg, ELEMENTS.Physical, playerEnt, otherIsCrit);
+                    floatText(other.id, `${otherDmg}`, "#38bdf8", otherIsCrit);
+                }
+            });
+            logMsg("🏹 Killshot Matrix: Projectile pierced through all enemies!", "#38bdf8");
+        }
+
+        // Beastmaster: Pack Bond synchronized pet attack
+        if (heroHasPassive(actingHero, 'pack_bond') && target.hp > 0) {
+            let petBaseDmg = Math.max(1, Math.floor(playerEnt.atk * 0.75 * (20 / (20 + target.def))));
+            logMsg(`🐾 Companion Beast pounces alongside ${actingHero.name} for ${petBaseDmg} damage!`, "#10b981");
+            floatText(target.id, `🐾 ${petBaseDmg}`, "#10b981");
+            applyDamage(target, petBaseDmg, ELEMENTS.Physical, playerEnt);
+        }
 
 
 
@@ -46300,6 +46409,59 @@ ${setInfoHtml}
 
 
 
+            } else if (skill.name === 'Aimed Shot') {
+                let effDef = target.def;
+                let mitigation = 20 / (20 + effDef);
+                let baseDmg = playerEnt.atk * 1.6;
+                let critRate = (pStats ? pStats.crit : (heroStats.crit || 10)) + 20;
+                let isAimedCrit = (Math.random() * 100) < critRate;
+                let critMult = isAimedCrit ? (hasStatus(playerEnt, 'focus') ? 2.0 : 1.5) : 1.0;
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation * critMult));
+                if (isAimedCrit) {
+                    logMsg("🎯 Aimed Shot lands a precision Critical Hit!", "#16a34a");
+                    playSFX('crit');
+                    screenShake('medium');
+                    floatText(target.id, "CRIT!", "#16a34a", true);
+                }
+            } else if (skill.name === 'Marked Prey') {
+                let effDef = target.def;
+                let mitigation = 20 / (20 + effDef);
+                let baseDmg = playerEnt.atk * 1.0;
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                applyStatus(target, 'marked', 3);
+                logMsg(`🎯 Marked Prey tags ${target.name}! Target takes +25% amplified damage for 3 turns!`, "#16a34a");
+                floatText(target.id, "MARKED!", "#16a34a");
+            } else if (skill.name === 'Pack Hunt') {
+                let effDef = target.def;
+                let mitigation = 20 / (20 + effDef);
+                let baseDmg = playerEnt.atk * 1.8;
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                let petDmg = Math.max(1, Math.floor(playerEnt.atk * 1.0 * (20 / (20 + target.def))));
+                if (target && target.hp > 0) {
+                    applyDamage(target, petDmg, ELEMENTS.Physical, playerEnt);
+                    logMsg(`🐾 Companion Beast tears into ${target.name} during Pack Hunt for ${petDmg} damage!`, "#10b981");
+                    floatText(target.id, `🐾 ${petDmg}`, "#10b981");
+                }
+            } else if (skill.name === 'Piercing Shot') {
+                let effDef = Math.floor(target.def * 0.5);
+                let mitigation = 20 / (20 + effDef);
+                let baseDmg = playerEnt.atk * 2.0;
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                logMsg("🎯 Piercing Shot punctures armor, ignoring 50% DEF!", "#ca8a04");
+            } else if (skill.name === 'Headshot Stagger') {
+                let effDef = target.def;
+                let mitigation = 20 / (20 + effDef);
+                let baseDmg = playerEnt.atk * 2.2;
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                target._isHeadshotStagger = true;
+                logMsg("🎯 Headshot Stagger delivers a crushing concussive blow! (2.5x Stagger)", "#f59e0b");
+            } else if (skill.name === 'Radiant Smite') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                let actingAtk = playerEnt.atk;
+                let baseDmg = (actingMatk * 1.7) + (actingAtk * 0.8) + (skill.power || 0);
+                let mitigation = 20 / (20 + (target.mdef || 0));
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                logMsg("✨ Radiant Smite unleashes sacred retribution!", "#ffd700");
             } else if(skill.type === 'physical') {
 
 
@@ -46517,6 +46679,42 @@ ${setInfoHtml}
 
 
             applyDamage(target, dmg, skill.element, playerEnt);
+            // Radiant Smite Party Siphon (50% damage dealt heals lowest HP party ally)
+            if (skill.name === 'Radiant Smite' && dmg > 0) {
+                let siphonHeal = Math.max(1, Math.floor(dmg * 0.50));
+                let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [actingHero];
+                let lowestAlly = null;
+                let lowestPercent = 2;
+                livingParty.forEach(h => {
+                    let hStats = computeHeroStats(h);
+                    let hMax = h.isMain ? pStats.maxHp : (hStats.maxHp || 100);
+                    let hCur = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || hMax));
+                    let pct = hCur / hMax;
+                    if (pct < lowestPercent) {
+                        lowestPercent = pct;
+                        lowestAlly = h;
+                    }
+                });
+                if (lowestAlly) {
+                    let aStats = computeHeroStats(lowestAlly);
+                    let aMax = lowestAlly.isMain ? pStats.maxHp : (aStats.maxHp || 100);
+                    let aCur = lowestAlly.isMain ? pStats.hp : (lowestAlly.hp !== undefined ? lowestAlly.hp : (lowestAlly.baseStats?.hp || aMax));
+                    let newHp = Math.min(aMax, aCur + siphonHeal);
+                    if (lowestAlly.isMain) {
+                        player.baseStats.hp = newHp;
+                        pStats.hp = newHp;
+                    } else {
+                        lowestAlly.hp = newHp;
+                        if (lowestAlly.baseStats) lowestAlly.baseStats.hp = newHp;
+                    }
+                    let allyEnt = (typeof getHeroCombatEntity === 'function') ? getHeroCombatEntity(lowestAlly) : null;
+                    if (allyEnt) {
+                        allyEnt.hp = newHp;
+                        floatText(allyEnt.id, `+${siphonHeal} Siphon`, "#55ff55");
+                    }
+                    logMsg(`✨ Radiant Smite siphoned ${siphonHeal} Holy healing to ${lowestAlly.name}!`, "#55ff55");
+                }
+            }
 
 
 
@@ -47253,6 +47451,10 @@ ${setInfoHtml}
 
 
             let dmg = Math.max(1, Math.floor(playerEnt.atk * 1.5 + skill.power));
+            if (skill.name === 'Judgement Pyre') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                dmg = Math.max(1, Math.floor(actingMatk * 1.4 + (skill.power || 0)));
+            } else
 
 
 
@@ -47500,6 +47702,9 @@ ${setInfoHtml}
 
 
 
+                    } else if(skill.name === 'Judgement Pyre') {
+                        applyStatus(e, 'burn', 3);
+                        applyStatus(e, 'holy_vulnerability', 3);
                     }
 
 
@@ -47640,6 +47845,37 @@ ${setInfoHtml}
         if (hasStatus(target, 'staggered')) {
             amount = Math.floor(amount * 1.5);
             logMsg(`💫 Stagger Amplification: +50% damage dealt to ${target.name}!`, "#f43f5e");
+        }
+
+        // Marked status: +25% amplified damage
+        if (hasStatus(target, 'marked')) {
+            amount = Math.floor(amount * 1.25);
+            logMsg(`🎯 Marked Prey: +25% amplified damage dealt to ${target.name}!`, "#16a34a");
+        }
+        // Holy Vulnerability status: +25% Holy damage taken
+        if (element === ELEMENTS.Light && hasStatus(target, 'holy_vulnerability')) {
+            amount = Math.floor(amount * 1.25);
+            logMsg(`✨ Holy Vulnerability: +25% Holy damage dealt to ${target.name}!`, "#ffd700");
+        }
+        // Righteous Zeal passive: Holy damage +30% against targets with active debuffs
+        if (element === ELEMENTS.Light && attacker) {
+            let attackerHero = attacker.hero || (player.roster && player.roster.find(h => h.id === attacker.heroId || (h.isMain && (attacker.isPlayer || attacker.id === 'battle-player'))));
+            if (attackerHero && typeof heroHasPassive === 'function' && heroHasPassive(attackerHero, 'righteous_zeal')) {
+                let hasDebuff = false;
+                if (target.statuses) {
+                    for (let sId in target.statuses) {
+                        let sDef = (typeof STATUS_TYPES_DB !== 'undefined') && STATUS_TYPES_DB[sId];
+                        if (sDef && (sDef.type === 'dot' || sDef.type === 'disable' || sDef.type === 'debuff' || sDef.type === 'ailment')) {
+                            hasDebuff = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasDebuff) {
+                    amount = Math.floor(amount * 1.30);
+                    logMsg(`⚖️ Righteous Zeal: +30% Holy damage dealt to afflicted ${target.name}!`, "#ffd700");
+                }
+            }
         }
 
         // Ignis Phase 2 Magma Totem 90% mitigation
@@ -48640,14 +48876,20 @@ ${setInfoHtml}
 
 
 
+            
+            // Aura of Immortality barrier reflection (reflects 25% absorbed damage as Holy damage)
+            if (absorbedAmount > 0 && attacker && attacker !== target && (attacker.hp > 0 || attacker.currentHp > 0)) {
+                let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+                let hasAura = livingParty.some(h => typeof heroHasPassive === 'function' && heroHasPassive(h, 'aura_of_immortality'));
+                if (hasAura && !attacker._inAuraReflect) {
+                    let reflectDmg = Math.max(1, Math.round(absorbedAmount * 0.25));
+                    logMsg(`🕊️ Aura of Immortality reflected ${reflectDmg} Holy damage back to ${attacker.name}!`, "#38bdf8");
+                    attacker._inAuraReflect = true;
+                    applyDamage(attacker, reflectDmg, ELEMENTS.Light, target);
+                    attacker._inAuraReflect = false;
+                }
+            }
             renderBattlefield();
-
-
-
-
-
-
-
         }
 
 
@@ -48987,6 +49229,13 @@ ${setInfoHtml}
             let staggerDmg = amount;
             if (isWeakness && (typeof getElementalMultiplier !== 'function' || getElementalMultiplier(element, target.element) <= 1.0)) {
                 staggerDmg = Math.round(staggerDmg * 1.5);
+            }
+            if (attacker && typeof heroHasPassive === 'function' && heroHasPassive(attacker, 'eagle_eye')) {
+                staggerDmg = Math.round(staggerDmg * 2.0);
+            }
+            if (target._isHeadshotStagger) {
+                staggerDmg = Math.round(staggerDmg * 2.5);
+                delete target._isHeadshotStagger;
             }
             let weaknessMulti = isWeakness ? 1.5 : 1.0;
             let cu = battleState.channelingUltimate;
@@ -49344,6 +49593,41 @@ ${setInfoHtml}
 
 
 
+            } else if (!battleState.divineAegisUsed && (isMainTarget || targetHero)) {
+                let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+                let aegisHero = livingParty.find(h => typeof heroHasPassive === 'function' && heroHasPassive(h, 'divine_aegis'));
+                if (aegisHero) {
+                    battleState.divineAegisUsed = true;
+                    target.hp = 1;
+                    if (isMainTarget) {
+                        pStats.hp = 1;
+                        if (player.baseStats) player.baseStats.hp = 1;
+                    } else if (targetHero) {
+                        targetHero.hp = 1;
+                        if (targetHero.baseStats) targetHero.baseStats.hp = 1;
+                    }
+                    let tStats = (typeof computeHeroStats === 'function') ? computeHeroStats(targetHero || player) : { maxHp: 100 };
+                    let barrierVal = Math.round((tStats.maxHp || 100) * 0.50);
+                    applyStatus(target, 'divine_barrier', 99, barrierVal);
+                    target.barrier = barrierVal;
+                    logMsg(`🕊️ DIVINE AEGIS! ${aegisHero.name} miraculously shields ${target.name} from death! (1 HP + ${barrierVal} Barrier)`, "#ffd700");
+                    floatText(target.id, "DIVINE AEGIS!", "#ffd700");
+                } else if (heroHasPassive(targetHero || player, 'undying_wrath') && !target.undyingWrathUsed && !battleState.undyingWrathUsed) {
+                    if (isMainTarget) battleState.undyingWrathUsed = true;
+                    target.undyingWrathUsed = true;
+                    target.hp = 1;
+                    if (isMainTarget) {
+                        pStats.hp = 1;
+                        if (player.baseStats) player.baseStats.hp = 1;
+                        target.atk = Math.round(target.atk * 1.5);
+                    } else if (targetHero) {
+                        targetHero.hp = 1;
+                        if (targetHero.baseStats) targetHero.baseStats.hp = 1;
+                    }
+                    applyStatus(target, 'berserk', 3);
+                    logMsg(`⚔️ UNDYING WRATH! ${target.name} defies death, surviving with 1 HP and entering Berserk (+50% ATK)!`, "#ef4444");
+                    floatText(target.id, "UNDYING WRATH!", "#ef4444");
+                }
             } else if (heroHasPassive(targetHero || player, 'undying_wrath') && !target.undyingWrathUsed && !battleState.undyingWrathUsed) {
 
 
@@ -49664,6 +49948,25 @@ ${setInfoHtml}
 
 
 
+        }
+        // 7. Sacred Retribution (Grand Justiciar Apex passive)
+        // 40% chance when any party ally is damaged by an enemy to counter-attack with 120% MATK Holy Smite
+        let isTargetHeroOrPlayer = isTargetPlayer || target.hero || (target.id && target.id.startsWith('battle-hero-'));
+        let isAttackerEnemy = attacker && (attacker.isEnemy || (attacker.index !== undefined) || (battleState && battleState.enemies && battleState.enemies.includes(attacker)));
+        if (isTargetHeroOrPlayer && isAttackerEnemy && attacker.hp > 0 && amount > 0 && !(battleState && battleState._inSacredRetribution)) {
+            let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+            let retributionHero = livingParty.find(h => typeof heroHasPassive === 'function' && heroHasPassive(h, 'sacred_retribution'));
+            if (retributionHero && (Math.random() < 0.40 || (typeof window !== 'undefined' && window.__forceSacredRetribution))) {
+                if (battleState) battleState._inSacredRetribution = true;
+                let gjStats = computeHeroStats(retributionHero);
+                let gjMatk = retributionHero.isMain ? pStats.matk : gjStats.matk;
+                let smiteDmg = Math.max(1, Math.round(gjMatk * 1.20));
+                logMsg(`⚖️ Sacred Retribution! ${retributionHero.name} counters ${attacker.name} with Holy Smite for ${smiteDmg} damage!`, "#ffd700");
+                let gjEnt = (typeof getHeroCombatEntity === 'function') ? getHeroCombatEntity(retributionHero) : null;
+                if (gjEnt) floatText(gjEnt.id, "SACRED RETRIBUTION!", "#ffd700");
+                applyDamage(attacker, smiteDmg, ELEMENTS.Light, gjEnt);
+                if (battleState) battleState._inSacredRetribution = false;
+            }
         }
 
 
@@ -50800,7 +51103,7 @@ ${setInfoHtml}
 
 
 
-        if(skill.target === 'ally_single' || skill.target === 'self') {
+        if(skill.target === 'ally_single' || skill.target === 'self' || skill.target === 'all_allies') {
 
 
 
@@ -50944,7 +51247,17 @@ ${setInfoHtml}
 
 
 
-            if (skill.name === 'Battle Cry') {
+            if (skill.name === 'Beast Roar') {
+                const livingHeroes = (battleState && battleState.party) 
+                    ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
+                    : (typeof getLivingPartyHeroes === 'function' ? getLivingPartyHeroes() : [actingHero]);
+                livingHeroes.forEach(h => {
+                    let ent = getHeroCombatEntity(h);
+                    applyStatus(ent, 'beast_roar', 3);
+                    floatText(ent.id, "BEAST ROAR", "#10b981");
+                });
+                logMsg(`${actingHero.name} unleashes a ferocious Beast Roar! All allies gained +20% ATK and +15 SPD for 3 turns!`, "#10b981");
+            } else if (skill.name === 'Battle Cry') {
 
 
 
@@ -50984,6 +51297,150 @@ ${setInfoHtml}
 
 
 
+            } else if (skill.name === 'Holy Light') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                let heal = Math.round(actingMatk * 1.80) + (skill.power || 0);
+                if (typeof getHeroHealShieldPotency === 'function') {
+                    heal = Math.round(heal * getHeroHealShieldPotency(actingHero));
+                }
+                const livingHeroes = (battleState && battleState.party) 
+                    ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
+                    : (typeof getLivingPartyHeroes === 'function' ? getLivingPartyHeroes() : [actingHero]);
+                let targetH = actingHero;
+                let lowestRatio = 2;
+                livingHeroes.forEach(h => {
+                    let s = computeHeroStats(h);
+                    let mHp = h.isMain ? pStats.maxHp : (s.maxHp || 100);
+                    let cHp = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || mHp));
+                    let ratio = cHp / mHp;
+                    if (ratio < lowestRatio) {
+                        lowestRatio = ratio;
+                        targetH = h;
+                    }
+                });
+                let tEnt = getHeroCombatEntity(targetH);
+                let tStats = computeHeroStats(targetH);
+                let tMaxHp = targetH.isMain ? pStats.maxHp : (tStats.maxHp || 100);
+                let tCurHp = targetH.isMain ? pStats.hp : (targetH.hp !== undefined ? targetH.hp : (targetH.baseStats?.hp || tMaxHp));
+                if (hasStatus(tEnt, 'burn')) heal = Math.floor(heal * 0.7);
+                let decayDmg = 0;
+                if (hasStatus(tEnt, 'decay')) {
+                    decayDmg = Math.floor(heal * 0.25);
+                    heal = Math.max(0, heal - decayDmg);
+                    logMsg(`${targetH.name}'s Decay corrupted healing into ${decayDmg} damage!`, "#a855f7");
+                }
+                let netHeal = Math.max(0, heal - decayDmg);
+                let excessHeal = Math.max(0, (tCurHp + netHeal) - tMaxHp);
+                let newHp = Math.min(tMaxHp, tCurHp + netHeal);
+                if (targetH.isMain) {
+                    player.baseStats.hp = newHp;
+                    pStats.hp = newHp;
+                    tEnt.hp = newHp;
+                } else {
+                    targetH.hp = newHp;
+                    if (targetH.baseStats) targetH.baseStats.hp = newHp;
+                    tEnt.hp = newHp;
+                }
+                logMsg(`${actingHero.name} casts Holy Light on ${targetH.name}! Restored ${netHeal} HP.`, "#55ff55");
+                floatText(tEnt.id, `+${netHeal}`, "#55ff55");
+                // Overheal converted to Divine Barrier (up to 30% Max HP)
+                let maxBarrier = Math.round(tMaxHp * 0.30);
+                let currentBarrier = (tEnt.statuses && tEnt.statuses.divine_barrier && tEnt.statuses.divine_barrier.value) || 0;
+                let barrierToAdd = Math.min(excessHeal, Math.max(0, maxBarrier - currentBarrier));
+                if (barrierToAdd > 0) {
+                    applyStatus(tEnt, 'divine_barrier', 3, currentBarrier + barrierToAdd);
+                    logMsg(`✨ Holy Light converted ${barrierToAdd} overhealing into Divine Barrier for ${targetH.name}!`, "#ffd700");
+                    floatText(tEnt.id, `+${barrierToAdd} Barrier`, "#ffd700");
+                }
+            } else if (skill.name === 'Purify') {
+                const livingHeroes = (battleState && battleState.party) 
+                    ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
+                    : (typeof getLivingPartyHeroes === 'function' ? getLivingPartyHeroes() : [actingHero]);
+                let targetH = livingHeroes.find(h => {
+                    let ent = getHeroCombatEntity(h);
+                    if (!ent || !ent.statuses) return false;
+                    return Object.keys(ent.statuses).length > 0;
+                }) || actingHero;
+                let tEnt = getHeroCombatEntity(targetH);
+                let tStats = computeHeroStats(targetH);
+                let tMaxHp = targetH.isMain ? pStats.maxHp : (tStats.maxHp || 100);
+                const ailmentsToCleanse = ['burn', 'poison', 'freeze', 'silence', 'stun', 'decay', 'blind', 'bleed', 'slow'];
+                if (tEnt.statuses) {
+                    ailmentsToCleanse.forEach(ail => {
+                        delete tEnt.statuses[ail];
+                    });
+                }
+                let shieldVal = Math.round(tMaxHp * 0.15);
+                applyStatus(tEnt, 'divine_barrier', 3, shieldVal);
+                logMsg(`${actingHero.name} casts Purify on ${targetH.name}! Cleansed negative ailments and granted a ${shieldVal} HP Divine Barrier!`, "#38bdf8");
+                floatText(tEnt.id, `PURIFIED (+${shieldVal} Shield)`, "#38bdf8");
+            } else if (skill.name === 'Prayer of Sanctuary') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                let baseHeal = Math.round(actingMatk * 1.30) + (skill.power || 0);
+                if (typeof getHeroHealShieldPotency === 'function') {
+                    baseHeal = Math.round(baseHeal * getHeroHealShieldPotency(actingHero));
+                }
+                const livingHeroes = (battleState && battleState.party) 
+                    ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
+                    : (typeof getLivingPartyHeroes === 'function' ? getLivingPartyHeroes() : [actingHero]);
+                livingHeroes.forEach(h => {
+                    let ent = getHeroCombatEntity(h);
+                    let s = computeHeroStats(h);
+                    let mHp = h.isMain ? pStats.maxHp : (s.maxHp || 100);
+                    let cHp = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || mHp));
+                    let heal = baseHeal;
+                    if (hasStatus(ent, 'burn')) heal = Math.floor(heal * 0.7);
+                    let newHp = Math.min(mHp, cHp + heal);
+                    if (h.isMain) {
+                        player.baseStats.hp = newHp;
+                        pStats.hp = newHp;
+                    } else {
+                        h.hp = newHp;
+                        if (h.baseStats) h.baseStats.hp = newHp;
+                    }
+                    ent.hp = newHp;
+                    // Remove 1 debuff
+                    if (ent.statuses) {
+                        for (let sId in ent.statuses) {
+                            let sDef = (typeof STATUS_TYPES_DB !== 'undefined') && STATUS_TYPES_DB[sId];
+                            if (sDef && (sDef.type === 'dot' || sDef.type === 'disable' || sDef.type === 'debuff' || sDef.type === 'ailment')) {
+                                delete ent.statuses[sId];
+                                break;
+                            }
+                        }
+                    }
+                    applyStatus(ent, 'sanctuary_protection', 2);
+                    floatText(ent.id, `+${heal} SANCTUARY`, "#ffd700");
+                });
+                logMsg(`${actingHero.name} casts Prayer of Sanctuary! Healed all allies for ${baseHeal} HP, cleansed 1 debuff, and granted Sanctuary Protection (+15% DEF/MDEF for 2t)!`, "#ffd700");
+            } else if (skill.name === 'Divine Intervention') {
+                const livingHeroes = (battleState && battleState.party) 
+                    ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
+                    : (typeof getLivingPartyHeroes === 'function' ? getLivingPartyHeroes() : [actingHero]);
+                let targetH = actingHero;
+                let lowestRatio = 2;
+                livingHeroes.forEach(h => {
+                    let s = computeHeroStats(h);
+                    let mHp = h.isMain ? pStats.maxHp : (s.maxHp || 100);
+                    let cHp = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || mHp));
+                    let ratio = cHp / mHp;
+                    if (ratio < lowestRatio) {
+                        lowestRatio = ratio;
+                        targetH = h;
+                    }
+                });
+                let tEnt = getHeroCombatEntity(targetH);
+                let tStats = computeHeroStats(targetH);
+                let tMaxHp = targetH.isMain ? pStats.maxHp : (tStats.maxHp || 100);
+                let barrierVal = Math.round(tMaxHp * 0.40);
+                if (typeof getHeroHealShieldPotency === 'function') {
+                    barrierVal = Math.round(barrierVal * getHeroHealShieldPotency(actingHero));
+                }
+                applyStatus(tEnt, 'divine_barrier', 3, barrierVal);
+                let regenVal = Math.round(tMaxHp * 0.15);
+                applyStatus(tEnt, 'regeneration', 3, regenVal);
+                logMsg(`🕊️ Divine Intervention! ${actingHero.name} bestows a ${barrierVal} HP Divine Barrier and Regeneration upon ${targetH.name}!`, "#ffd700");
+                floatText(tEnt.id, `DIVINE INTERVENTION (+${barrierVal} Shield)`, "#ffd700");
             } else if (skill.name === 'Shield of Faith') {
 
 
@@ -54872,7 +55329,7 @@ ${setInfoHtml}
 
 
 
-                let icon = isLeader ? '👑' : (h.classId === 'mage' ? '🔮' : (h.classId === 'rogue' ? '🏹' : '🛡️'));
+                let icon = isLeader ? '👑' : ((h.classId === 'cleric' || h.classId === 'high_priest' || h.classId === 'inquisitor' || h.classId === 'seraph_of_dawn' || h.classId === 'grand_justiciar') ? '🕊️' : (h.classId === 'mage' ? '🔮' : ((h.classId === 'ranger' || h.classId === 'beastmaster' || h.classId === 'deadeye_sniper' || h.classId === 'primal_apex_lord' || h.classId === 'celestial_sharpshooter') ? '🏹' : (h.classId === 'rogue' ? '🗡️' : '🛡️'))));
 
                 return `
 
@@ -79038,7 +79495,7 @@ function generateRecruit(tier = 'standard') {
 
 
 
-    const classes = ['warrior', 'mage', 'rogue'];
+    const classes = ['warrior', 'mage', 'rogue', 'ranger', 'cleric'];
 
 
 
@@ -79119,6 +79576,8 @@ function generateRecruit(tier = 'standard') {
 
 
     else if (classId === 'rogue') starterSkills = ['Quick Slash', 'Smoke Screen'];
+    else if (classId === 'ranger') starterSkills = ['Aimed Shot', 'Marked Prey'];
+    else if (classId === 'cleric') starterSkills = ['Holy Light', 'Purify'];
 
 
 
@@ -79182,14 +79641,9 @@ function generateRecruit(tier = 'standard') {
 
 
 
-        rogue:   { hp: 90,  maxHp: 90,  mp: 50, maxMp: 50, atk: 11, def: 6, matk: 8,  mdef: 6, spd: 16, crit: 10 }
-
-
-
-
-
-
-
+        rogue:   { hp: 90,  maxHp: 90,  mp: 50, maxMp: 50, atk: 11, def: 6, matk: 8,  mdef: 6, spd: 16, crit: 10 },
+        ranger:  { hp: 95,  maxHp: 95,  mp: 50, maxMp: 50, atk: 13, def: 7, matk: 7,  mdef: 6, spd: 15, crit: 12 },
+        cleric:  { hp: 100, maxHp: 100, mp: 70, maxMp: 70, atk: 7,  def: 8, matk: 12, mdef: 11, spd: 11, crit: 5 }
     };
 
 
@@ -79438,7 +79892,7 @@ function generateRecruit(tier = 'standard') {
 
 
 
-        row: (classId === 'mage') ? 'back' : 'front'
+        row: (classId === 'mage' || classId === 'ranger' || classId === 'cleric') ? 'back' : 'front'
 
 
 
@@ -79455,6 +79909,9 @@ function generateRecruit(tier = 'standard') {
 
 
 }
+window.generateRecruit = generateRecruit;
+window.generateRecruitHero = generateRecruit;
+
 
 
 
@@ -87076,6 +87533,12 @@ function renderBarracksUI(targetId = 'mercenary-modal-content') {
                         <option value="assassin" ${window.barracksFilter.classId === 'assassin' ? 'selected' : ''}>Assassin</option>
 
                         <option value="shadowblade" ${window.barracksFilter.classId === 'shadowblade' ? 'selected' : ''}>Shadowblade</option>
+                        <option value="ranger" ${window.barracksFilter.classId === 'ranger' ? 'selected' : ''}>Ranger</option>
+                        <option value="beastmaster" ${window.barracksFilter.classId === 'beastmaster' ? 'selected' : ''}>Beastmaster</option>
+                        <option value="deadeye_sniper" ${window.barracksFilter.classId === 'deadeye_sniper' ? 'selected' : ''}>Deadeye Sniper</option>
+                        <option value="cleric" ${window.barracksFilter.classId === 'cleric' ? 'selected' : ''}>Cleric</option>
+                        <option value="high_priest" ${window.barracksFilter.classId === 'high_priest' ? 'selected' : ''}>High Priest</option>
+                        <option value="inquisitor" ${window.barracksFilter.classId === 'inquisitor' ? 'selected' : ''}>Inquisitor</option>
 
                     </select>
 

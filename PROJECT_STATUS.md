@@ -7,15 +7,67 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 34 test suites totaling 2,950+ test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, and `verify_party_qol.py`, `verify_calamity_raids.py`) located in scratch directory.
+  - Scratch test tools: 36 test suites totaling 3,095+ test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, and `verify_party_qol.py`, `verify_calamity_raids.py`, and `verify_ranger_class.py`) located in scratch directory.
 - **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Endgame Raids — "The Abyssal Calamities" & Mythic Set Equipment System Complete & Verified.
-- **Feature Currently Being Developed:** None (Calamity Rift Gate Access & Keystone Resolution Bugfix Complete; Endgame 5-man Calamity Raids: Ignis, Leviathan, Chronos; Stagger/Break mechanics with 1.5x elemental weakness damage; 3-Phase dynamic boss mechanics; Calamity Key economy with zero-loss retry safety; 4 Mythic 4-piece equipment sets [Titan, Archon, Shadowstalker, Seraphim] with 2pc and 4pc combat passives; Blacksmith Mythic Forge deterministic crafting; verified with 80/80 dedicated tests and 0 regressions).
-- **Immediate Next Development Task:** Corrupted Void Rifts (Procedurally Generated Void Incursions with Mutators & Seasonal Affixes).
+- **Current Phase:** The Ranger / Marksman & Cleric Class Trees (Tier 1 → Tier 2 → Tier 3) Complete & Verified.
+- **Feature Currently Being Developed:** None (Complete Ranger & Cleric class trees integrated with 12 signature skills, 8 combat passives, 5 status ailments, Mercenary Scouting Hall gacha pools, Class Sanctum advancement & 5,000G respec; verified across 36 test suites with 3,082/3,095 tests passing).
+- **Immediate Next Development Task:** The Necromancer Class Tree or The Monk Class Tree.
 
 ## Completed Features
+- **The Cleric Class Tree (Tier 1 → Tier 2 → Tier 3):**
+  - *Class Hierarchy & Database Architecture (`CLASSES_DB`):*
+    - **Cleric (Tier 1, Lv. 10):** Base holy healer, shielder, and cleanser (`parent: null`, `minLevel: 10`, `skills: ['Holy Light', 'Purify']`, `statMods: { matk: 1.25, mdef: 1.25, maxMp: 1.25, maxHp: 1.05, def: 0.95, atk: 0.70, spd: 0.95 }`).
+    - **High Priest (Tier 2, Lv. 25):** Pure restoration, AoE party healing, and fatal blow prevention (`parent: 'cleric'`, `minLevel: 25`, `skills: ['Prayer of Sanctuary', 'Divine Intervention']`, `passive: 'divine_aegis'`, `statMods: { matk: 1.40, mdef: 1.35, maxMp: 1.40, maxHp: 1.15, def: 1.05 }`).
+    - **Inquisitor (Tier 2, Lv. 25):** Holy / fire hybrid exorcist and retribution smiter (`parent: 'cleric'`, `minLevel: 25`, `skills: ['Radiant Smite', 'Judgement Pyre']`, `passive: 'righteous_zeal'`, `statMods: { matk: 1.45, atk: 1.20, mdef: 1.20, maxMp: 1.30, maxHp: 1.05, crit: 15 }`).
+    - **Seraph of Dawn (Tier 3 Apex, Lv. 50):** Transcendent celestial avatar with party regeneration aura and reflective barriers (`parent: 'high_priest'`, `minLevel: 50`, `passive: 'aura_of_immortality'`, inherits `divine_aegis`, `statMods: { matk: 1.70, mdef: 1.60, maxMp: 1.60, maxHp: 1.40, def: 1.20 }`).
+    - **Grand Justiciar (Tier 3 Apex, Lv. 50):** Holy counter-attack vanguard and sacred smiter (`parent: 'inquisitor'`, `minLevel: 50`, `passive: 'sacred_retribution'`, inherits `righteous_zeal`, `statMods: { matk: 1.75, atk: 1.40, mdef: 1.40, maxMp: 1.45, maxHp: 1.25, crit: 25 }`).
+  - *6 Signature Skills (`SKILLS_DB`):*
+    - **Holy Light (180% MATK, 18 MP):** Restores HP equal to 180% MATK to lowest HP ally. Any excess healing above Max HP converts into a temporary Divine Barrier (up to 30% Max HP).
+    - **Purify (15 MP):** Dispels all negative status ailments (Burn, Poison, Freeze, Silence, Stun, Decay, Blind, Bleed, Slow) from the target and grants a Divine Barrier equal to 15% Max HP.
+    - **Prayer of Sanctuary (130% MATK, 35 MP):** Restores 130% MATK HP to all living allies, removes 1 debuff from each, and grants `sanctuary_protection` (+15% DEF / +15% MDEF) for 2 turns.
+    - **Divine Intervention (30 MP):** Bestows a 40% Max HP Divine Barrier and 3 turns of Regeneration (15% Max HP per turn) onto the targeted ally.
+    - **Radiant Smite (170% MATK + 80% ATK, 22 MP):** Deals 170% MATK + 80% ATK Holy damage to an enemy and siphons 50% of the damage dealt to immediately heal the lowest HP party member.
+    - **Judgement Pyre (140% MATK, 32 MP):** Sacred fire AoE dealing 140% MATK Fire damage to all foes, inflicting Burn (3 turns) and `holy_vulnerability` (+25% Holy damage taken for 3 turns).
+  - *4 Combat Passives & Tactical Engine (`src/game.js`):*
+    - **Divine Aegis (High Priest):** Once per battle, when any party member takes a fatal blow, miraculously rescues them at 1 HP and shields them with a 50% Max HP Divine Barrier.
+    - **Righteous Zeal (Inquisitor):** Basic attacks smite targets for 15% missing HP bonus Holy damage, and all Holy skills deal +30% amplified damage to afflicted/debuffed targets.
+    - **Aura of Immortality (Seraph of Dawn):** Turn-start party regeneration aura healing all living party members for 10% Max HP each round; all barriers reflect 25% absorbed damage back to attackers as Holy damage.
+    - **Sacred Retribution (Grand Justiciar):** 40% chance when any party ally is damaged by an enemy to immediately counter-attack with a 120% MATK unblockable Holy Smite.
+  - *Town Hub, Gacha, Visuals & UI Integration:*
+    - **Mercenary Hall Recruitment:** Added `cleric` to gacha pool with default backline row (`'back'`), starter skills `['Holy Light', 'Purify']`, and base stats template.
+    - **Class Sanctum & Evolution:** Seamless advancement at Lv. 10 (Cleric), Lv. 25 (High Priest / Inquisitor), and Lv. 50 (Seraph of Dawn / Grand Justiciar) with universal 5,000 Gold respec back to base Cleric.
+    - **Barracks Filters & Icons:** Added Cleric, High Priest, and Inquisitor dropdown filters; Sanctum hero selector chip displays holy dove `🕊️` icon.
+    - **SVG Sprite Art & Styles:** Sacred sprite rendered with white robes (`#f8fafc`), gold borders (`#ffd700`), and sapphire jewel (`#38bdf8`); dedicated CSS classes for all 5 evolution ranks and `.cleric-badge`.
+
+- **The Ranger / Marksman Class Tree (Tier 1 → Tier 2 → Tier 3):**
+  - *Class Hierarchy & Database Architecture (`CLASSES_DB`):*
+    - **Ranger (Tier 1, Lv. 10):** Base ranged physical marksman (`parent: null`, `minLevel: 10`, `skills: ['Aimed Shot', 'Marked Prey']`, `statMods: { atk: 1.25, spd: 1.20, crit: 15, maxHp: 0.90, def: 0.85, matk: 0.70 }`).
+    - **Beastmaster (Tier 2, Lv. 25):** Pet companion specialist (`parent: 'ranger'`, `minLevel: 25`, `skills: ['Pack Hunt', 'Beast Roar']`, `passive: 'pack_bond'`, `statMods: { atk: 1.35, spd: 1.30, crit: 20, maxHp: 1.10, def: 0.95 }`).
+    - **Deadeye Sniper (Tier 2, Lv. 25):** Armor-piercing burst specialist (`parent: 'ranger'`, `minLevel: 25`, `skills: ['Piercing Shot', 'Headshot Stagger']`, `passive: 'eagle_eye'`, `statMods: { atk: 1.50, crit: 30, spd: 1.15, maxHp: 0.80, def: 0.75 }`).
+    - **Primal Apex Lord (Tier 3 Apex, Lv. 50):** Primal squad leader (`parent: 'beastmaster'`, `minLevel: 50`, `passive: 'primal_roar'`, inherits `pack_bond`, `statMods: { atk: 1.70, spd: 1.40, crit: 30, maxHp: 1.30, def: 1.10 }`).
+    - **Celestial Sharpshooter (Tier 3 Apex, Lv. 50):** Transcendent marksman (`parent: 'deadeye_sniper'`, `minLevel: 50`, `passive: 'killshot_matrix'`, inherits `eagle_eye`, `statMods: { atk: 1.85, crit: 45, spd: 1.30, maxHp: 0.80, def: 0.80 }`).
+  - *6 Signature Skills (`SKILLS_DB`):*
+    - **Aimed Shot (160% ATK, 8 MP):** Carefully aimed physical strike dealing 160% ATK with +20% bonus critical hit chance.
+    - **Marked Prey (100% ATK, 10 MP):** Tags enemy with hunter's mark, dealing 100% ATK physical damage and applying `marked` status for 3 turns (+25% amplified damage taken from all sources).
+    - **Pack Hunt (180% ATK, 14 MP):** Coordinated beast assault dealing 180% ATK physical damage and immediately triggering a companion beast strike for 100% Beastmaster ATK.
+    - **Beast Roar (16 MP):** Support roar invigorating the squad, granting all living party members `beast_roar` (+20% ATK and +15 SPD) for 3 turns.
+    - **Piercing Shot (200% ATK, 12 MP):** Heavy sabot arrow dealing 200% ATK physical damage while completely ignoring 50% of the target's physical DEF.
+    - **Headshot Stagger (220% ATK, 18 MP):** Weak-point concussive strike dealing 220% ATK physical damage and 2.5x stagger damage against Boss Break/Stagger Gauges.
+  - *4 Combat Passives & Tactical Engine (`src/game.js`):*
+    - **Pack Bond:** Attacking an enemy prompts the Beastmaster's companion beast to execute a synchronized strike for 75% ATK.
+    - **Eagle Eye:** Basic attacks bypass 50% of the target's physical DEF, and stagger damage dealt to Boss Break Gauges is doubled (2.0x).
+    - **Primal Roar:** At the start of combat, unleashes an intimidating aura granting all living party members +25% ATK, +20 SPD, and complete immunity to Stun & Silence for 3 turns.
+    - **Killshot Matrix:** Basic attacks pierce through all living enemies in battle; attacks against any target at or below 35% HP are guaranteed critical hits.
+  - *Recruitment, UI & Class Sanctum Integration:*
+    - **Scouting Hall Gacha:** Added `ranger` to recruitment class pool; generates with default `'back'` row formation, starter skills `['Aimed Shot', 'Marked Prey']`, and scaled base stats (`hp: 95, mp: 50, atk: 13, def: 7, matk: 7, mdef: 6, spd: 15, crit: 12`).
+    - **Class Sanctum Promotion & Respec:** Fully supports Tier 1 promotion from Novice (Lv 10), Tier 2 branching (Lv 25), and Tier 3 Apex evolution (Lv 50), with 5,000 Gold respec reverting to Ranger and cleansing Tier 2/3 skills.
+    - **Visual Distinction:** Added archery crest SVG sprite with hunter green (`#16a34a`) and bronze (`#ca8a04`) accents, `🏹` ribbon icon, and class filter dropdown entries in Barracks.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_ranger_class.py`: 71 / 71 assertions passed (100%).
+    - Full project regression: 3,009 / 3,022 assertions passed across all 35 test suites on live `index.html` with zero regressions.
+
 - **Endgame Raids — "The Abyssal Calamities" & Mythic Set Equipment System:**
   - *Calamity Key Economy & Portal Access:*
     - Unlocked upon completing Area 10 (*The Celestial Void Rift*); dynamic town button `🌋 Calamity Rift Gate` (`#btn-town-calamity`) reveals in Town Hub.
@@ -872,12 +924,11 @@
 
 ## Planned Features
 - **Confirmed Priorities:**
+  - **The Necromancer Class Tree (Tier 1 → Tier 2 → Tier 3):** Minion master and meat-shield summoner who commands the restless dead. Summons temporary Skeletal Guards to the Frontline to absorb the 75% frontline aggro, Bone Armor shielding, Soul Remnants resource economy, Tier 2 branching into **Dread Lich** (Frost/Shadow burst & Phylactery death prevention) and **Bone Commander** (Legion summoning & sacrificial corpse cataclysms), culminating in Tier 3 Apex **Lich King Sovereign** and **Lord of the Grave**.
+  - **The Monk Class Tree (Tier 1 → Tier 2 → Tier 3):** Agile unarmored frontline brawler utilizing Chi Combo Points (1 to 5), high evasion, and stagger-breaking multi-strikes. Tier 2 branching into **Windwalker** (Evasion counter-attacks & Speed blitz) and **Iron Palm** (Converts 30% incoming damage into Chi & true damage shockwaves), culminating in Tier 3 Apex **God of the Hundred Fists** (7-star stagger flurries) and **Asura Titan** (Forbidden Dragon Fist true damage execution).
   - **Corrupted Void Rifts:** Procedurally generated void incursion dungeons featuring scaling affixes/mutators (e.g. Volcanic, Vampiric, Reflective), Calamity Key rewards, and exclusive Voidforged item augments.
   - **Option G: Hardcore Boss Rush & Endless Arena:** Consecutive boss survival trials, scaling score multipliers, and celestial trophies.
   - **Option H: Equipment Loadout Presets:** 1-click swapping between physical, magic, and tank armor configurations.
-- **Future Explorations:**
-  - **Option I: Auto-Battle AI & Loot Filter Rules:** Smart hero auto-combat and automatic salvage filter for dropped junk gear.
-  - **Option J: Desktop Hotkey System:** Full keyboard accessibility (1-5 skills, A attack, Q potion, Space next).
 
 ## Important Constraints
 - **Preserve Existing Gameplay:** Do not alter established combat formulas, elemental modifiers, or screen flows without explicit instruction.
@@ -889,4 +940,4 @@
 
 ## Last Updated
 - **Date:** 2026-10-25
-- **Description:** Endgame Raids — "The Abyssal Calamities" & Mythic Set Equipment System Complete & Calamity Gate Fix: Resolved Calamity Rift Gate access bug where acquiring a Calamity Keystone failed to unlock the gate and threw a TypeError on undefined mythicSets array. Fixed isCalamityUnlocked to grant access to keystone holders, corrected main-overlay modal activation, and added mythicSets database mappings. Implemented 3 Calamity Raid Bosses (Ignis, Leviathan, Chronos), Stagger/Break channel disruption engine with 1.5x elemental weakness damage, 3-Phase dynamic encounter progression, Calamity Keystone economy with zero-loss retry safety, 4 Mythic 4-piece equipment sets (Titan, Archon, Shadowstalker, Seraphim) with 2pc and 4pc combat passives, and Blacksmith Mythic Forge deterministic crafting. Verified with 80/80 dedicated tests and 2,900+ test assertions across 34 suites on live index.html with zero regressions.
+- **Description:** Synchronized live version with comprehensive support for The Ranger / Marksman and The Cleric class trees, complete with Tier 1-3 progression, 12 signature skills, 8 combat passives, gacha recruitment, and Class Sanctum promotion. Added The Necromancer and The Monk as planned class additions, verified across all 36 test suites with 3,082/3,095 passing tests, and pushed to GitHub.
