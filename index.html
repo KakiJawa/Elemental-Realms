@@ -190,7 +190,7 @@
 
                             <div id="battle-player-bars" style="width: 100%;">
 
-                                <div class="bar-container"><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
+                                <div class="bar-container hp-bar-container"><div class="bar-ghost" id="battle-player-hp-ghost"></div><div class="bar-fill hp-fill" id="battle-player-hp-bar"></div><div class="bar-text" id="battle-player-hp-txt">100/100</div></div>
 
                                 <div class="bar-container"><div class="bar-fill mp-fill" id="battle-player-mp-bar"></div><div class="bar-text" id="battle-player-mp-txt">50/50</div></div>
 
@@ -240,7 +240,7 @@
 
                         <div class="inspector-hp-wrap">
 
-                            <div class="inspector-hp-bar"><div id="inspector-hp-fill" class="inspector-hp-fill"></div></div>
+                            <div class="inspector-hp-bar"><div class="bar-ghost" id="inspector-hp-ghost"></div><div id="inspector-hp-fill" class="inspector-hp-fill"></div></div>
 
                             <div id="inspector-hp-text" class="inspector-hp-text">0 / 0 HP</div>
 
@@ -274,7 +274,17 @@
 
         <div id="battle-ui">
 
-            <div id="combat-log"></div>
+            <!-- Integrated Bottom Hero Squad Dock -->
+            <div id="hero-squad-dock" class="hero-squad-dock"></div>
+
+            <!-- Retractable Floating Combat Ticker & Action Drawer -->
+            <div id="combat-log-container" class="combat-log-container">
+                <div class="combat-log-header">
+                    <span class="combat-log-ticker-label">📜 COMBAT LOG</span>
+                    <button id="btn-toggle-combat-log" class="btn-toggle-log" onclick="toggleCombatLogDrawer()" title="Toggle full / compact combat log">📜 Log: Compact / Full</button>
+                </div>
+                <div id="combat-log"></div>
+            </div>
 
             <div id="battle-commands">
 
@@ -282,13 +292,13 @@
 
                 <div id="cmd-main" class="cmd-grid">
 
-                    <button class="btn" onclick="onAttackClicked()">Attack</button>
+                    <button class="btn btn-cmd-ruby" id="btn-cmd-attack" onclick="onAttackClicked()">⚔️ Attack</button>
 
-                    <button class="btn" onclick="openBattleSkills()">Skills</button>
+                    <button class="btn btn-cmd-sapphire" id="btn-cmd-skills" onclick="openBattleSkills()">✨ Skills</button>
 
-                    <button class="btn" onclick="openBattleItems()">Items</button>
+                    <button class="btn btn-cmd-emerald" id="btn-cmd-items" onclick="openBattleItems()">🎒 Items</button>
 
-                    <button class="btn" onclick="attemptFlee()">Flee</button>
+                    <button class="btn btn-cmd-slate" id="btn-cmd-flee" onclick="attemptFlee()">🏃 Flee</button>
 
                     <button class="btn" id="btn-quick-potion" style="grid-column: span 2; color: #4ade80; border-color: #4ade80; font-size: 12px; font-weight: bold; background: rgba(74, 222, 128, 0.08);" onclick="useQuickPotion()">🧪 Quick Heal: None</button>
 
@@ -488,6 +498,8 @@
 
         <div class="modal-header">Quests <span class="close-btn" onclick="closeAllModals()">×</span></div>
 
+        <div id="quest-category-pills" class="quest-category-pills-bar"></div>
+
         <div id="quests-list"></div>
 
     </div>
@@ -501,6 +513,8 @@
         <div class="modal-header">Achievements <span class="close-btn" onclick="closeAllModals()">×</span></div>
 
         <div style="margin-bottom: 15px; color: #ccc; font-size: 13px;">Unlock permanent passive stat bonuses and character titles by achieving lifetime milestones.</div>
+
+        <div id="ach-category-pills" class="ach-category-pills-bar"></div>
 
         <div id="achievements-list"></div>
 

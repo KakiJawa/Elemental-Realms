@@ -280,24 +280,36 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
 
 
 
-#modal-skilltree { max-width: 900px; width: 95%; }
+#modal-skilltree {
+    max-width: 900px;
+    width: 95%;
+    max-height: 85vh;
+    overflow: hidden !important;
+}
 
+#modal-skilltree.active {
+    display: flex !important;
+    flex-direction: column !important;
+}
 
+#modal-skilltree .modal-header {
+    flex-shrink: 0;
+}
+
+#st-branch-pills {
+    flex-shrink: 0;
+}
 
 #st-content {
-
     display: grid;
-
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-
     gap: 12px;
-
-    max-height: 75vh;
-
+    flex: 1;
+    min-height: 0;
     overflow-y: auto;
-
     padding-right: 4px;
-
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 
@@ -576,7 +588,82 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
 
         .quest-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 8px; }
 
-        .quest-rewards-text { font-size: 12px; color: #ffd700; font-weight: 500; }
+        .quest-rewards-text { font-size: 12px; color: #ffd700; font-weight: 500; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+        /* Quest Category Pills & Badges */
+        .quest-category-pills-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 2px 10px 2px;
+            margin-bottom: 12px;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+            border-bottom: 1px solid #333;
+        }
+        .quest-category-pills-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .quest-category-pills-bar::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 2px;
+        }
+        .quest-pill-btn {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            color: #aaa;
+            border-radius: 18px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .quest-pill-btn:hover {
+            border-color: #38bdf8;
+            color: #fff;
+            background: #282828;
+        }
+        .quest-pill-btn.active {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+        .quest-reward-marks {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(234, 179, 8, 0.15);
+            border: 1px solid #eab308;
+            color: #fde047;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            #modal-quests {
+                width: 96%;
+                max-height: 90vh;
+                padding: 10px;
+            }
+            .quest-card {
+                padding: 10px;
+                gap: 6px;
+            }
+            .quest-title {
+                font-size: 13.5px;
+            }
+            .quest-desc {
+                font-size: 12px;
+            }
+            .quest-pill-btn {
+                padding: 4px 10px;
+                font-size: 11px;
+            }
+        }
 
 
 
@@ -610,7 +697,116 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
 
         .ach-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; flex-wrap: wrap; gap: 8px; font-size: 12px; }
 
-        .ach-rewards-text { font-size: 12px; }
+        .ach-rewards-text { font-size: 12px; width: 100%; }
+
+        /* Achievement Category Pills & Badges */
+        .ach-category-pills-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 4px 2px 10px 2px;
+            margin-bottom: 12px;
+            scrollbar-width: thin;
+            -webkit-overflow-scrolling: touch;
+            border-bottom: 1px solid #333;
+        }
+        .ach-category-pills-bar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .ach-category-pills-bar::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 2px;
+        }
+        .ach-pill-btn {
+            background: #1e1e1e;
+            border: 1px solid #444;
+            color: #aaa;
+            border-radius: 18px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .ach-pill-btn:hover {
+            border-color: #c084fc;
+            color: #fff;
+            background: #282828;
+        }
+        .ach-pill-btn.active {
+            background: #7e22ce;
+            border-color: #c084fc;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+        }
+        .title-equipped-badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .btn-equip-title {
+            background: #261938;
+            border: 1px solid #c084fc;
+            color: #ffd700;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .btn-equip-title:hover {
+            background: #7e22ce;
+            color: #fff;
+        }
+        .ach-stat-chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .ach-stat-chip {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(234, 179, 8, 0.12);
+            border: 1px solid rgba(234, 179, 8, 0.4);
+            color: #facc15;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            #modal-achievements {
+                width: 96%;
+                max-height: 90vh;
+                padding: 10px;
+            }
+            .achievement-card {
+                padding: 10px;
+                gap: 6px;
+            }
+            .ach-title {
+                font-size: 13.5px;
+            }
+            .ach-desc {
+                font-size: 12px;
+            }
+            .ach-pill-btn {
+                padding: 4px 10px;
+                font-size: 11px;
+            }
+        }
 
 
 
@@ -3705,15 +3901,23 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
     }
 
     /* Skill Tree Mobile Stack */
-
-    #st-content {
-
+    #modal-skilltree {
+        max-height: 90vh !important;
+        overflow: hidden !important;
+    }
+    #modal-skilltree.active {
         display: flex !important;
-
         flex-direction: column !important;
-
+    }
+    #st-content {
+        display: flex !important;
+        flex-direction: column !important;
         gap: 14px !important;
-
+        flex: 1 !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
     }
 
     .st-branch, .skill-branch {
@@ -5450,6 +5654,30 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
 
     }
 
+    #toast-container {
+        top: 10px !important;
+        right: 10px !important;
+        max-width: 270px !important;
+        gap: 6px !important;
+    }
+    .toast-item {
+        padding: 6px 10px !important;
+        font-size: 11px !important;
+        border-radius: 6px !important;
+    }
+    .toast-title {
+        font-size: 12px !important;
+    }
+    .toast-msg {
+        font-size: 11px !important;
+        max-height: 34px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+    }
+
 }
 
 
@@ -6886,4 +7114,703 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+
+
+/* ==========================================================================
+   MODERN JRPG / GACHA DOCK BATTLE UI OVERHAUL
+   ========================================================================== */
+
+/* 1. Dynamic Zone-Themed Arena Backdrops */
+#battle-arena {
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s ease;
+}
+
+#battle-arena.arena-theme-area_1 {
+    background: radial-gradient(circle at 50% 30%, rgba(22, 101, 52, 0.45) 0%, rgba(6, 40, 23, 0.85) 65%, #02140b 100%), linear-gradient(180deg, #062817 0%, #02140b 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_2 {
+    background: radial-gradient(circle at 50% 30%, rgba(14, 116, 144, 0.45) 0%, rgba(3, 23, 38, 0.85) 65%, #020b12 100%), linear-gradient(180deg, #031726 0%, #020b12 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_3 {
+    background: radial-gradient(circle at 50% 30%, rgba(185, 28, 28, 0.45) 0%, rgba(36, 6, 6, 0.85) 65%, #140202 100%), linear-gradient(180deg, #240606 0%, #140202 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_4 {
+    background: radial-gradient(circle at 50% 30%, rgba(99, 102, 241, 0.4) 0%, rgba(22, 17, 44, 0.85) 65%, #0b0918 100%), linear-gradient(180deg, #16112c 0%, #0b0918 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_5 {
+    background: radial-gradient(circle at 50% 30%, rgba(139, 92, 246, 0.4) 0%, rgba(24, 18, 38, 0.85) 65%, #0c0814 100%), linear-gradient(180deg, #181226 0%, #0c0814 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_6 {
+    background: radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.45) 0%, rgba(12, 36, 56, 0.85) 65%, #071520 100%), linear-gradient(180deg, #0c2438 0%, #071520 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_7 {
+    background: radial-gradient(circle at 50% 30%, rgba(168, 85, 247, 0.45) 0%, rgba(31, 20, 61, 0.85) 65%, #0d081c 100%), linear-gradient(180deg, #1f143d 0%, #0d081c 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_8 {
+    background: radial-gradient(circle at 50% 30%, rgba(30, 58, 138, 0.45) 0%, rgba(3, 15, 28, 0.85) 65%, #01060d 100%), linear-gradient(180deg, #030f1c 0%, #01060d 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_9 {
+    background: radial-gradient(circle at 50% 30%, rgba(234, 179, 8, 0.4) 0%, rgba(45, 32, 8, 0.85) 65%, #140e03 100%), linear-gradient(180deg, #2d2008 0%, #140e03 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-area_10 {
+    background: radial-gradient(circle at 50% 30%, rgba(192, 38, 211, 0.4) 0%, rgba(22, 5, 43, 0.85) 65%, #080112 100%), linear-gradient(180deg, #16052b 0%, #080112 100%) !important;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.85);
+}
+#battle-arena.arena-theme-calamity {
+    background: radial-gradient(circle at 50% 30%, rgba(220, 38, 38, 0.5) 0%, rgba(53, 4, 10, 0.9) 65%, #1a0104 100%), linear-gradient(180deg, #35040a 0%, #1a0104 100%) !important;
+    box-shadow: inset 0 0 75px rgba(239, 68, 68, 0.4);
+}
+
+/* 2. Damage Ghost HP Bar System */
+.bar-container {
+    position: relative;
+    overflow: hidden;
+}
+.bar-ghost {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #facc15;
+    transition: width 0.4s ease-out 0.25s;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+}
+.hp-fill {
+    position: relative;
+    z-index: 2;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bar-text {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 10px;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px #000;
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* 3. Battle UI Grid & Integrated Bottom Hero Squad Dock */
+#battle-ui {
+    display: grid !important;
+    grid-template-rows: auto 1fr !important;
+    grid-template-columns: 1fr 380px !important;
+    grid-template-areas:
+        "dock dock"
+        "log cmds" !important;
+    height: 255px !important;
+    max-height: 40vh !important;
+    background: #0f172a !important;
+    border-top: 2px solid #334155 !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+    min-height: 0;
+}
+
+.hero-squad-dock {
+    grid-area: dock !important;
+    display: flex;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(15, 23, 42, 0.92);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    align-items: center;
+    min-height: 68px;
+    flex-shrink: 0;
+    scrollbar-width: thin;
+}
+
+.squad-dock-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(30, 41, 59, 0.88);
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 5px 8px;
+    min-width: 160px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+}
+.squad-dock-card:hover {
+    border-color: #38bdf8;
+    background: rgba(30, 41, 59, 1);
+}
+.squad-dock-card.turn-active-glow {
+    border-color: #fbbf24;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.6), inset 0 0 6px rgba(251, 191, 36, 0.25);
+    animation: dockBeacon 1.5s infinite ease-in-out;
+}
+@keyframes dockBeacon {
+    0%, 100% { box-shadow: 0 0 8px rgba(251, 191, 36, 0.5); }
+    50% { box-shadow: 0 0 16px rgba(251, 191, 36, 0.85), inset 0 0 8px rgba(251, 191, 36, 0.35); }
+}
+.squad-dock-card.dock-dead {
+    opacity: 0.45;
+    filter: grayscale(80%);
+}
+
+.dock-avatar-disc {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #0f172a;
+    border: 2px solid #64748b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+.dock-crown {
+    position: absolute;
+    top: -8px;
+    left: -4px;
+    font-size: 13px;
+    filter: drop-shadow(0 0 2px #000);
+}
+.dock-lvl-tag {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: #0284c7;
+    color: #fff;
+    font-size: 8.5px;
+    font-weight: bold;
+    padding: 0 3px;
+    border-radius: 4px;
+    line-height: 11px;
+}
+.dock-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+}
+.dock-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+}
+.dock-hero-name {
+    font-size: 11px;
+    font-weight: bold;
+    color: #f1f5f9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+}
+.dock-class-badge {
+    font-size: 8px;
+    color: #94a3b8;
+    background: rgba(0,0,0,0.4);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+.dock-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+}
+.dock-bar {
+    height: 9px !important;
+    margin-bottom: 0 !important;
+}
+.dock-bar .bar-text {
+    font-size: 7.5px !important;
+    line-height: 9px !important;
+}
+.dock-status-tray {
+    display: flex;
+    gap: 2px;
+    min-height: 8px;
+    margin-top: 1px;
+}
+
+/* 4. Retractable Floating Combat Ticker & Action Drawer */
+.combat-log-container {
+    grid-area: log !important;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: #111;
+    border-right: 2px solid #333;
+    position: relative;
+    overflow: hidden;
+}
+.combat-log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 10px;
+    background: #18181b;
+    border-bottom: 1px solid #27272a;
+    flex-shrink: 0;
+}
+.combat-log-ticker-label {
+    font-size: 10px;
+    font-weight: bold;
+    color: #71717a;
+    letter-spacing: 0.5px;
+}
+.btn-toggle-log {
+    background: transparent;
+    border: 1px solid #3f3f46;
+    color: #a1a1aa;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-toggle-log:hover {
+    color: #e4e4e7;
+    border-color: #71717a;
+    background: rgba(255, 255, 255, 0.05);
+}
+#combat-log {
+    flex: 1;
+    min-width: 0;
+    padding: 8px 12px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    transition: all 0.25s ease;
+}
+.combat-log-container.combat-log-expanded {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60%;
+    height: 235px;
+    z-index: 70;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.8);
+    border: 1px solid #3b82f6;
+    background: rgba(15, 23, 42, 0.96);
+}
+@keyframes logSlideIn {
+    0% { opacity: 0; transform: translateY(4px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.log-entry.anim-slide-in {
+    animation: logSlideIn 0.2s ease-out;
+}
+
+/* 5. Tactile Command Deck */
+#battle-commands {
+    grid-area: cmds !important;
+}
+.btn-cmd-ruby {
+    background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important;
+    border-color: #ef4444 !important;
+    color: #fecaca !important;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.25);
+    font-weight: bold;
+}
+.btn-cmd-ruby:hover:not(:disabled) {
+    background: linear-gradient(135deg, #991b1b 0%, #b91c1c 100%) !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    transform: translateY(-1px);
+}
+.btn-cmd-sapphire {
+    background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%) !important;
+    border-color: #3b82f6 !important;
+    color: #dbeafe !important;
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+    font-weight: bold;
+}
+.btn-cmd-sapphire:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%) !important;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    transform: translateY(-1px);
+}
+.btn-cmd-emerald {
+    background: linear-gradient(135deg, #064e3b 0%, #047857 100%) !important;
+    border-color: #10b981 !important;
+    color: #d1fae5 !important;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+    font-weight: bold;
+}
+.btn-cmd-emerald:hover:not(:disabled) {
+    background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    transform: translateY(-1px);
+}
+.btn-cmd-slate {
+    background: linear-gradient(135deg, #334155 0%, #475569 100%) !important;
+    border-color: #64748b !important;
+    color: #f1f5f9 !important;
+    box-shadow: 0 2px 6px rgba(100, 116, 139, 0.2);
+    font-weight: bold;
+}
+.btn-cmd-slate:hover:not(:disabled) {
+    background: linear-gradient(135deg, #475569 0%, #64748b 100%) !important;
+    box-shadow: 0 0 8px rgba(148, 163, 184, 0.4);
+    transform: translateY(-1px);
+}
+
+/* 6. Rich 2-Column Elemental Skill Cards Grid */
+.skills-grid-2col {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+    width: 100%;
+}
+.skill-card-tactile {
+    display: flex !important;
+    flex-direction: column !important;
+    background: rgba(30, 41, 59, 0.88) !important;
+    border: 1px solid #475569 !important;
+    border-radius: 6px !important;
+    padding: 6px 8px !important;
+    text-align: left !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+    position: relative !important;
+    margin: 0 !important;
+    min-height: 54px !important;
+}
+.skill-card-tactile:hover:not(:disabled) {
+    border-color: #38bdf8 !important;
+    background: rgba(30, 41, 59, 1) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25) !important;
+}
+.skill-card-tactile:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+.skill-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.skill-card-name {
+    font-size: 11.5px;
+    font-weight: bold;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+.skill-mp-pill {
+    font-size: 9.5px;
+    font-weight: bold;
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+}
+.skill-mp-pill.mp-insufficient {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.35);
+}
+.skill-card-meta {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    margin-top: 3px;
+    font-size: 9px;
+    flex-wrap: wrap;
+}
+.skill-elem-badge {
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 8.5px;
+    font-weight: bold;
+}
+.skill-elem-Fire { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
+.skill-elem-Water { background: rgba(56, 189, 248, 0.25); color: #7dd3fc; }
+.skill-elem-Wind { background: rgba(168, 85, 247, 0.25); color: #d8b4fe; }
+.skill-elem-Earth { background: rgba(234, 179, 8, 0.25); color: #fde047; }
+.skill-elem-Light { background: rgba(251, 191, 36, 0.25); color: #fef08a; }
+.skill-elem-Dark { background: rgba(168, 85, 247, 0.35); color: #c084fc; }
+.skill-elem-Physical { background: rgba(148, 163, 184, 0.25); color: #cbd5e1; }
+.skill-power-pill, .skill-target-pill {
+    background: rgba(0, 0, 0, 0.35);
+    color: #94a3b8;
+    padding: 1px 3px;
+    border-radius: 3px;
+}
+
+/* 7. Live Elemental Weakness Targeting Reticle */
+.target-focus-ring {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.7), inset 0 0 8px rgba(56, 189, 248, 0.35) !important;
+    animation: targetPulse 1.2s infinite ease-in-out;
+    cursor: crosshair !important;
+    position: relative;
+}
+@keyframes targetPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+    50% { transform: scale(1.03); box-shadow: 0 0 18px rgba(56, 189, 248, 0.95), inset 0 0 10px rgba(56, 189, 248, 0.4); }
+}
+.reticle-badge {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 20;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+.reticle-weak {
+    background: rgba(220, 38, 38, 0.95);
+    color: #fff;
+    border: 1px solid #f87171;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+    animation: reticleBounce 1s infinite alternate ease-in-out;
+}
+.reticle-resist {
+    background: rgba(71, 85, 105, 0.95);
+    color: #cbd5e1;
+    border: 1px solid #94a3b8;
+}
+@keyframes reticleBounce {
+    0% { transform: translateX(-50%) translateY(0); }
+    100% { transform: translateX(-50%) translateY(-3px); }
+}
+
+/* 8. Circular Turn Order Timeline Nodes */
+.turn-order-ribbon {
+    display: flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.92);
+    border-bottom: 1px solid #334155;
+    padding: 4px 12px;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    min-height: 48px;
+    z-index: 40;
+}
+.turn-order-track {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.turn-node {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #1e293b;
+    border: 2px solid #475569;
+    font-size: 16px;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    cursor: default;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.turn-node .chip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.turn-node .chip-name {
+    display: none;
+}
+.turn-node.is-hero {
+    border-color: #38bdf8;
+    background: rgba(56, 189, 248, 0.15);
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
+}
+.turn-node.is-enemy {
+    border-color: #f87171;
+    background: rgba(239, 68, 68, 0.15);
+}
+.turn-node.is-boss {
+    border-color: #fbbf24;
+    background: rgba(251, 191, 36, 0.2);
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+.turn-node.is-active {
+    transform: scale(1.18);
+    border-color: #fbbf24;
+    box-shadow: 0 0 14px #fbbf24, inset 0 0 8px #f59e0b;
+    animation: turnBeacon 1.2s infinite ease-in-out;
+    z-index: 5;
+}
+@keyframes turnBeacon {
+    0%, 100% { box-shadow: 0 0 10px #fbbf24; }
+    50% { box-shadow: 0 0 18px #fbbf24, inset 0 0 10px #f59e0b; }
+}
+
+/* 9. Mobile Responsive Layout Overrides */
+@media (max-width: 600px) {
+    #battle-ui {
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        height: auto !important;
+        max-height: 52vh !important;
+    }
+    #battle-commands {
+        order: 1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    #combat-log-container {
+        order: 2 !important;
+        width: 100% !important;
+        border-right: none !important;
+        border-bottom: 1px solid #334155 !important;
+    }
+    #hero-squad-dock {
+        order: 3 !important;
+        width: 100% !important;
+        border-bottom: 1px solid #334155 !important;
+        min-height: 64px !important;
+        padding: 4px 8px !important;
+    }
+    .combat-log-container.combat-log-expanded {
+        width: 100% !important;
+        height: 180px !important;
+    }
+}
+
+
+
+/* Dedicated Responsive 2-Column Skill Grid Container */
+.skills-grid-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding-right: 4px;
+    align-content: start;
+}
+@media (max-width: 600px) {
+    .skills-grid-container {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* 10. PC & Desktop Battle UI Overhaul (@media (min-width: 769px)) */
+@media (min-width: 769px) {
+    .turn-node {
+        width: auto !important;
+        min-width: 44px !important;
+        max-width: 160px !important;
+        height: 34px !important;
+        border-radius: 17px !important;
+        padding: 2px 10px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        overflow: hidden !important;
+    }
+    .turn-node .chip-name {
+        display: inline-block !important;
+        font-size: 11.5px !important;
+        font-weight: 600 !important;
+        max-width: 95px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        color: #f1f5f9 !important;
+    }
+    .turn-node.is-active {
+        transform: scale(1.06) !important;
+        border-color: #fbbf24 !important;
+        box-shadow: 0 0 14px #fbbf24, inset 0 0 8px #f59e0b !important;
+        animation: turnBeacon 1.2s infinite ease-in-out !important;
+    }
+
+    #battle-ui {
+        display: grid !important;
+        grid-template-rows: auto 1fr !important;
+        grid-template-columns: minmax(520px, 1.4fr) minmax(320px, 0.8fr) !important;
+        grid-template-areas:
+            "dock dock"
+            "cmds log" !important;
+        height: 280px !important;
+        max-height: 42vh !important;
+    }
+    #battle-ui.log-collapsed {
+        grid-template-columns: 1fr !important;
+        grid-template-areas:
+            "dock"
+            "cmds" !important;
+    }
+    #battle-ui.log-collapsed .combat-log-container {
+        position: absolute !important;
+        bottom: 8px !important;
+        right: 12px !important;
+        width: auto !important;
+        min-width: 140px !important;
+        height: 32px !important;
+        z-index: 50 !important;
+        border-radius: 6px !important;
+        border: 1px solid #475569 !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+        background: rgba(15, 23, 42, 0.95) !important;
+    }
+    #battle-ui.log-collapsed #combat-log {
+        display: none !important;
+    }
+    #battle-ui.log-collapsed .combat-log-header {
+        border-bottom: none !important;
+        padding: 4px 8px !important;
+    }
+    #battle-ui.log-collapsed .combat-log-ticker-label {
+        display: none !important;
+    }
+    #battle-commands {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-right: 2px solid #334155 !important;
+        padding: 10px 16px !important;
+    }
+    .combat-log-container {
+        border-right: none !important;
+        border-left: 2px solid #1e293b !important;
+    }
+    #combat-log {
+        width: 100% !important;
+        font-size: 11.5px !important;
+    }
 }

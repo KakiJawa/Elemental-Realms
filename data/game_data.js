@@ -1122,11 +1122,11 @@
         'Radiant Smite': { name: 'Radiant Smite', category: 'offense', type: 'magic', element: ELEMENTS.Light, power: 170, mp: 22, target: 'enemy_single', desc: 'Deals 170% MATK + 80% ATK Holy damage. 50% of the damage dealt is immediately restored to the lowest HP party member.' },
         'Judgement Pyre': { name: 'Judgement Pyre', category: 'offense', type: 'magic', element: ELEMENTS.Fire, power: 140, mp: 32, target: 'enemy_all', desc: 'Engulfs all enemies in sacred fire dealing 140% MATK damage, inflicting Burn (3 turns) and Holy Vulnerability (targets take +25% Holy damage for 3 turns).' },
         // Necromancer & Evolutions
-        'Raise Skeleton': { name: 'Raise Skeleton', category: 'summon', type: 'magic', element: ELEMENTS.Dark, power: 0, mp: 20, target: 'self', desc: 'Summons a Skeletal Vanguard to the Frontline (HP: 35% Summoner Max HP, ATK: 70% MATK, DEF: 80% DEF). Skeletal minions intercept frontline enemy attacks. Max 2 minions (3 for Lord of the Grave).' },
+        'Raise Skeleton': { name: 'Raise Skeleton', category: 'utility', type: 'magic', element: ELEMENTS.Dark, power: 0, mp: 20, target: 'self', desc: 'Summons a Skeletal Vanguard to the Frontline (HP: 35% Summoner Max HP, ATK: 70% MATK, DEF: 80% DEF). Skeletal minions intercept frontline enemy attacks. Max 2 minions (3 for Lord of the Grave).' },
         'Bone Spear': { name: 'Bone Spear', category: 'offense', type: 'magic', element: ELEMENTS.Dark, power: 160, mp: 12, target: 'enemy_single', desc: 'Hurls a sharp calcified spike of bone. Deals 160% MATK Dark damage, ignores 25% of the target DEF, and generates 1 Soul Remnant.' },
         'Grave Chill': { name: 'Grave Chill', category: 'offense', type: 'magic', element: ELEMENTS.Water, power: 180, mp: 18, target: 'enemy_single', desc: 'Blasts the target with abyssal frost. Deals 180% MATK Cold damage, inflicts Slow (-30% SPD, 3 turns). If target is already debuffed, also inflicts Freeze for 1 turn.' },
         'Corpse Explosion': { name: 'Corpse Explosion', category: 'offense', type: 'magic', element: ELEMENTS.Dark, power: 220, mp: 25, target: 'enemy_all', desc: 'Detonates a fallen minion or soul remnant with catastrophic force. Deals 220% MATK Dark damage to all enemies. Can also detonate an active minion if no remnants exist.' },
-        'Legion Vanguard': { name: 'Legion Vanguard', category: 'summon', type: 'magic', element: ELEMENTS.Dark, power: 0, mp: 35, target: 'self', desc: 'Summons 2 armored Skeletal Vanguards to the frontline, each reinforced with a Bone Shield equal to 20% of their Max HP.' },
+        'Legion Vanguard': { name: 'Legion Vanguard', category: 'utility', type: 'magic', element: ELEMENTS.Dark, power: 0, mp: 35, target: 'self', desc: 'Summons 2 armored Skeletal Vanguards to the frontline, each reinforced with a Bone Shield equal to 20% of their Max HP.' },
         'Bone Armor': { name: 'Bone Armor', category: 'defense', type: 'buff', element: ELEMENTS.Dark, power: 0, mp: 20, target: 'ally_single', desc: 'Encase an ally in a ribcage shield granting a barrier equal to 35% of the Necromancer Max HP for 3 turns. When broken, retaliates with 100% MATK physical damage to all enemies.' },
     };
 
@@ -2288,548 +2288,848 @@
 
 
     const QUESTS_DB = {
-
-        // Level Chain
-
+        // Starter Level Chain (category: 'combat')
         growing_power: {
-
             id: 'growing_power',
-
             title: 'Growing Power',
-
             desc: 'Reach character Level 2.',
-
             type: 'reach_level',
-
             target: 2,
-
+            category: 'combat',
             reward: { exp: 30, gold: 50, item: 'Ether', qty: 1 }
-
         },
-
         rising_hero: {
-
             id: 'rising_hero',
-
             title: 'Rising Hero',
-
             desc: 'Reach character Level 3.',
-
             type: 'reach_level',
-
             target: 3,
-
             prereqQuestId: 'growing_power',
-
+            category: 'combat',
             reward: { exp: 120, gold: 150, item: 'Bronze Sword', qty: 1 }
-
         },
-
         veteran_hero: {
-
             id: 'veteran_hero',
-
             title: 'Veteran Hero',
-
             desc: 'Reach character Level 5.',
-
             type: 'reach_level',
-
             target: 5,
-
             prereqQuestId: 'rising_hero',
-
+            category: 'combat',
             reward: { exp: 200, gold: 200, item: 'Hi-Potion', qty: 2 }
-
         },
-
         realm_champion: {
-
             id: 'realm_champion',
-
             title: 'Realm Champion',
-
             desc: 'Reach character Level 8.',
-
             type: 'reach_level',
-
             target: 8,
-
             prereqQuestId: 'veteran_hero',
-
+            category: 'combat',
             reward: { exp: 350, gold: 350, item: 'Iron Sword', qty: 1 }
-
         },
-
         ascended_master: {
-
             id: 'ascended_master',
-
             title: 'Ascended Master',
-
             desc: 'Reach character Level 12.',
-
             type: 'reach_level',
-
             target: 12,
-
             prereqQuestId: 'realm_champion',
-
+            category: 'combat',
             reward: { exp: 600, gold: 600, item: 'Ring of Vigor', qty: 1 }
-
         },
 
-
-
-        // Monster Slayer Chain
-
+        // Starter Monster Slayer Chain (category: 'combat')
         first_hunt: {
-
             id: 'first_hunt',
-
             title: 'First Hunt',
-
             desc: 'Defeat 3 enemies in battle.',
-
             type: 'defeat_enemies',
-
             target: 3,
-
+            category: 'combat',
             reward: { exp: 40, gold: 30, item: 'Potion', qty: 1 }
-
         },
-
         monster_slayer: {
-
             id: 'monster_slayer',
-
             title: 'Monster Slayer',
-
             desc: 'Defeat 10 enemies in battle.',
-
             type: 'defeat_enemies',
-
             target: 10,
-
             prereqQuestId: 'first_hunt',
-
+            category: 'combat',
             reward: { exp: 100, gold: 120, item: 'Hi-Potion', qty: 1 }
-
         },
-
         beast_purger: {
-
             id: 'beast_purger',
-
             title: 'Beast Purger',
-
             desc: 'Defeat 25 enemies in battle.',
-
             type: 'defeat_enemies',
-
             target: 25,
-
             prereqQuestId: 'monster_slayer',
-
+            category: 'combat',
             reward: { exp: 220, gold: 200, item: 'Ether', qty: 2 }
-
         },
-
         calamity_hunter: {
-
             id: 'calamity_hunter',
-
             title: 'Calamity Hunter',
-
             desc: 'Defeat 50 enemies in battle.',
-
             type: 'defeat_enemies',
-
             target: 50,
-
             prereqQuestId: 'beast_purger',
-
+            category: 'combat',
             reward: { exp: 450, gold: 450, item: 'Iron Armor', qty: 1 }
-
         },
 
-
-
-        // Boss Slayer Chain
-
+        // Starter Boss Slayer Chain (category: 'combat')
         boss_challenger: {
-
             id: 'boss_challenger',
-
             title: 'Boss Challenger',
-
             desc: 'Defeat 1 Boss monster.',
-
             type: 'bosses_defeated',
-
             target: 1,
-
             prereqQuestId: 'first_hunt',
-
+            category: 'combat',
             reward: { exp: 250, gold: 300, item: 'Hi-Potion', qty: 2 }
-
         },
-
         titan_slayer: {
-
             id: 'titan_slayer',
-
             title: 'Titan Slayer',
-
             desc: 'Defeat 3 Boss monsters.',
-
             type: 'bosses_defeated',
-
             target: 3,
-
             prereqQuestId: 'boss_challenger',
-
+            category: 'combat',
             reward: { exp: 500, gold: 600, item: 'Speed Boots', qty: 1 }
-
         },
 
-
-
-        // Economy & Supplies Chain
-
+        // Starter Economy Chain (category: 'economy')
         prepared_adventurer: {
-
             id: 'prepared_adventurer',
-
             title: 'Prepared Adventurer',
-
             desc: 'Have at least 4 Potions in your inventory.',
-
             type: 'have_item',
-
             item: 'Potion',
-
             target: 4,
-
+            category: 'economy',
             reward: { exp: 40, gold: 60 }
-
         },
-
         potion_stockpile: {
-
             id: 'potion_stockpile',
-
             title: 'Potion Stockpile',
-
             desc: 'Have at least 8 Potions in your inventory.',
-
             type: 'have_item',
-
             item: 'Potion',
-
             target: 8,
-
             prereqQuestId: 'prepared_adventurer',
-
+            category: 'economy',
             reward: { exp: 120, gold: 150, item: 'Hi-Potion', qty: 2 }
-
         },
-
         wealthy_pocket: {
-
             id: 'wealthy_pocket',
-
             title: 'Wealthy Pocket',
-
             desc: 'Hold at least 500 Gold in inventory.',
-
             type: 'gold_held',
-
             target: 500,
-
+            category: 'economy',
             reward: { exp: 150, gold: 0, item: 'Ether', qty: 2 }
-
         },
 
-
-
-        // Skill Mastery Chain
-
+        // Starter Skill Mastery Chain (category: 'squad')
         skill_apprentice: {
-
             id: 'skill_apprentice',
-
             title: 'Skill Apprentice',
-
             desc: 'Unlock at least 3 total skill node ranks.',
-
             type: 'skill_ranks',
-
             target: 3,
-
+            category: 'squad',
             reward: { exp: 100, gold: 100 }
-
         },
-
         skill_master: {
-
             id: 'skill_master',
-
             title: 'Skill Master',
-
             desc: 'Unlock at least 8 total skill node ranks.',
-
             type: 'skill_ranks',
-
             target: 8,
-
             prereqQuestId: 'skill_apprentice',
-
+            category: 'squad',
             reward: { exp: 300, gold: 300, item: 'Hi-Potion', qty: 2 }
+        },
 
-        }
-
-    };
-
-
-
-    const ACHIEVEMENTS_DB = {
-
-        // Battles Won
-
-        first_victory: {
-
-            id: 'first_victory',
-
-            title: 'First Steps',
-
-            desc: 'Win 1 battle.',
-
-            type: 'battles_won',
-
+        // Story & Zone Conquest Chain (category: 'story')
+        conquer_woods: {
+            id: 'conquer_woods',
+            title: 'Conquer the Woods',
+            desc: 'Defeat Area 1 Boss (Elder Treant).',
+            type: 'conquer_area',
+            areaId: 'area_1',
             target: 1,
-
-            reward: { title: 'Novice Adventurer', stats: { maxHp: 5 } }
-
+            category: 'story',
+            reward: { exp: 350, gold: 300, marks: 5, item: 'Iron Sword', qty: 1 }
         },
-
-        veteran_fighter: {
-
-            id: 'veteran_fighter',
-
-            title: 'Arena Veteran',
-
-            desc: 'Win 10 battles.',
-
-            type: 'battles_won',
-
-            target: 10,
-
-            reward: { title: 'Gladiator', stats: { maxHp: 10, atk: 2 } }
-
-        },
-
-        master_gladiator: {
-
-            id: 'master_gladiator',
-
-            title: 'Arena Champion',
-
-            desc: 'Win 25 battles.',
-
-            type: 'battles_won',
-
-            target: 25,
-
-            reward: { title: 'Arena Champion', stats: { maxHp: 15, atk: 3, spd: 1 } }
-
-        },
-
-        warlord: {
-
-            id: 'warlord',
-
-            title: 'Warlord',
-
-            desc: 'Win 50 battles.',
-
-            type: 'battles_won',
-
-            target: 50,
-
-            reward: { title: 'Warlord', stats: { maxHp: 25, atk: 5, def: 3 } }
-
-        },
-
-
-
-        // Bosses Slain
-
-        boss_slayer: {
-
-            id: 'boss_slayer',
-
-            title: 'Apex Predator',
-
-            desc: 'Defeat any Boss monster.',
-
-            type: 'bosses_defeated',
-
+        conquer_caverns: {
+            id: 'conquer_caverns',
+            title: 'Depths of the Caverns',
+            desc: 'Defeat Area 2 Boss (Leviathan Drake).',
+            prereqQuestId: 'conquer_woods',
+            type: 'conquer_area',
+            areaId: 'area_2',
             target: 1,
-
-            reward: { title: 'Dragon Slayer', stats: { atk: 3, matk: 3 } }
-
+            category: 'story',
+            reward: { exp: 800, gold: 600, marks: 5, item: 'Hi-Potion', qty: 3 }
+        },
+        conquer_summit: {
+            id: 'conquer_summit',
+            title: 'Ascend the Summit',
+            desc: 'Defeat Area 3 Boss (Tempest Wyvern).',
+            prereqQuestId: 'conquer_caverns',
+            type: 'conquer_area',
+            areaId: 'area_3',
+            target: 1,
+            category: 'story',
+            reward: { exp: 1600, gold: 1200, marks: 8, item: 'Speed Boots', qty: 1 }
+        },
+        conquer_caldera: {
+            id: 'conquer_caldera',
+            title: 'Heart of the Caldera',
+            desc: 'Defeat Area 4 Boss (Infernal Dragon).',
+            prereqQuestId: 'conquer_summit',
+            type: 'conquer_area',
+            areaId: 'area_4',
+            target: 1,
+            category: 'story',
+            reward: { exp: 3000, gold: 2000, marks: 10, item: 'Ether', qty: 3 }
+        },
+        conquer_void: {
+            id: 'conquer_void',
+            title: 'Silence the Void',
+            desc: 'Defeat Area 5 Boss (Void Guardian).',
+            prereqQuestId: 'conquer_caldera',
+            type: 'conquer_area',
+            areaId: 'area_5',
+            target: 1,
+            category: 'story',
+            reward: { exp: 5000, gold: 3500, marks: 15, item: 'Ring of Vigor', qty: 1 }
+        },
+        conquer_celestial: {
+            id: 'conquer_celestial',
+            title: 'Celestial Transcendence',
+            desc: 'Conquer Area 10 (Chronos, The Void Sovereign).',
+            prereqQuestId: 'conquer_void',
+            type: 'conquer_area',
+            areaId: 'area_10',
+            target: 1,
+            category: 'story',
+            reward: { exp: 15000, gold: 10000, marks: 25, item: 'Mega-Potion', qty: 3 }
         },
 
-        titan_conqueror: {
-
-            id: 'titan_conqueror',
-
-            title: 'Apex Titan',
-
-            desc: 'Defeat 3 Boss monsters.',
-
-            type: 'bosses_defeated',
-
+        // Hero Sanctum & Squad Building Chain (category: 'squad')
+        recruit_ally: {
+            id: 'recruit_ally',
+            title: 'Recruit an Ally',
+            desc: 'Recruit your 1st mercenary hero at the Mercenary Hall.',
+            type: 'recruit_mercenaries',
+            target: 1,
+            category: 'squad',
+            reward: { exp: 300, gold: 400 }
+        },
+        full_vanguard: {
+            id: 'full_vanguard',
+            title: 'Full Vanguard',
+            desc: 'Assemble a full 4-hero combat formation.',
+            prereqQuestId: 'recruit_ally',
+            type: 'active_squad_size',
+            target: 4,
+            category: 'squad',
+            reward: { exp: 1000, gold: 1000, marks: 5, item: 'Hi-Potion', qty: 2 }
+        },
+        first_specialization: {
+            id: 'first_specialization',
+            title: 'First Specialization',
+            desc: 'Advance any hero to a Tier 2 Specialization (Lv. 25+).',
+            type: 'hero_tier',
+            target: 2,
+            category: 'squad',
+            reward: { exp: 2500, gold: 2000, marks: 10, skillOrbs: 2 }
+        },
+        apex_transcendence: {
+            id: 'apex_transcendence',
+            title: 'Apex Transcendence',
+            desc: 'Reach Tier 3 Apex Evolution on any hero (Lv. 50).',
+            prereqQuestId: 'first_specialization',
+            type: 'hero_tier',
             target: 3,
-
-            reward: { title: 'Apex Titan', stats: { atk: 5, matk: 5, crit: 2 } }
-
+            category: 'squad',
+            reward: { exp: 8000, gold: 5000, marks: 25, skillOrbs: 5 }
         },
 
-
-
-        // Wealth
-
-        wealthy_hoarder: {
-
-            id: 'wealthy_hoarder',
-
-            title: 'Deep Pockets',
-
-            desc: 'Hold at least 300 Gold in inventory.',
-
-            type: 'gold_held',
-
-            target: 300,
-
-            reward: { title: 'Merchant', stats: { def: 2, mdef: 2 } }
-
-        },
-
-        wealthy_tycoon: {
-
-            id: 'wealthy_tycoon',
-
-            title: 'Tycoon',
-
-            desc: 'Hold at least 1,000 Gold in inventory.',
-
-            type: 'gold_held',
-
-            target: 1000,
-
-            reward: { title: 'Tycoon', stats: { def: 4, mdef: 4, maxHp: 20 } }
-
-        },
-
-
-
-        // Skill Mastery
-
-        master_of_skills: {
-
-            id: 'master_of_skills',
-
-            title: 'Path of Mastery',
-
-            desc: 'Purchase at least 5 total skill node ranks across any skill trees.',
-
-            type: 'skill_ranks',
-
+        // Blacksmith Workshop Chain (category: 'forge')
+        scrap_harvester: {
+            id: 'scrap_harvester',
+            title: 'Scrap Harvester',
+            desc: 'Salvage 5 pieces of equipment for crafting materials.',
+            type: 'salvage_equipment',
             target: 5,
-
-            reward: { title: 'Adept', stats: { maxMp: 10, spd: 1 } }
-
+            category: 'forge',
+            reward: { exp: 400, gold: 300, scrap: 15 }
         },
-
-        paragon_of_power: {
-
-            id: 'paragon_of_power',
-
-            title: 'Paragon',
-
-            desc: 'Unlock at least 10 skill node ranks across any skill trees.',
-
-            type: 'skill_ranks',
-
-            target: 10,
-
-            reward: { title: 'Paragon', stats: { maxMp: 20, matk: 3, spd: 1 } }
-
-        },
-
-
-
-        // Quest Mastery
-
-        quest_veteran: {
-
-            id: 'quest_veteran',
-
-            title: 'Town Hero',
-
-            desc: 'Complete and claim at least 3 quests.',
-
-            type: 'quests_claimed',
-
+        tempered_steel: {
+            id: 'tempered_steel',
+            title: 'Tempered Steel',
+            desc: 'Have any piece of equipment upgraded to +3.',
+            type: 'blacksmith_upgrade',
             target: 3,
-
-            reward: { title: 'Hero of the Realm', stats: { atk: 2, def: 2, crit: 2 } }
-
+            category: 'forge',
+            reward: { exp: 1200, gold: 800, marks: 5, dust: 5 }
+        },
+        masterwork_armament: {
+            id: 'masterwork_armament',
+            title: 'Masterwork Armament',
+            desc: 'Have any piece of equipment upgraded to the max +5 cap.',
+            prereqQuestId: 'tempered_steel',
+            type: 'blacksmith_upgrade',
+            target: 5,
+            category: 'forge',
+            reward: { exp: 4000, gold: 3000, marks: 15, shard: 2 }
         },
 
-        quest_legend: {
-
-            id: 'quest_legend',
-
-            title: 'Grand Sovereign',
-
-            desc: 'Complete and claim at least 8 quests.',
-
-            type: 'quests_claimed',
-
-            target: 8,
-
-            reward: { title: 'Grand Sovereign', stats: { atk: 4, def: 4, crit: 3, maxHp: 15 } }
-
-        },
-
-
-
-        // Level Mastery
-
-        level_ascendant: {
-
-            id: 'level_ascendant',
-
-            title: 'Ascendant',
-
-            desc: 'Reach character Level 10.',
-
-            type: 'reach_level',
-
+        // The Infinite Spire Gauntlet Chain (category: 'endgame')
+        spire_challenger: {
+            id: 'spire_challenger',
+            title: 'Spire Challenger',
+            desc: 'Reach Floor 10 in The Infinite Spire.',
+            type: 'spire_floor',
             target: 10,
+            category: 'endgame',
+            reward: { exp: 1500, gold: 1200, marks: 5, item: 'Hi-Potion', qty: 2 }
+        },
+        tower_ascendant: {
+            id: 'tower_ascendant',
+            title: 'Tower Ascendant',
+            desc: 'Reach Floor 25 in The Infinite Spire.',
+            prereqQuestId: 'spire_challenger',
+            type: 'spire_floor',
+            target: 25,
+            category: 'endgame',
+            reward: { exp: 4500, gold: 3500, marks: 15, item: 'Ether', qty: 3 }
+        },
+        spire_sovereign: {
+            id: 'spire_sovereign',
+            title: 'Spire Sovereign',
+            desc: 'Reach Floor 50 in The Infinite Spire.',
+            prereqQuestId: 'tower_ascendant',
+            type: 'spire_floor',
+            target: 50,
+            category: 'endgame',
+            reward: { exp: 12000, gold: 8000, marks: 25, item: 'Mega-Potion', qty: 2 }
+        },
 
-            reward: { title: 'Ascendant', stats: { maxHp: 20, maxMp: 10, atk: 2, def: 2, matk: 2, mdef: 2, spd: 2 } }
+        // Endgame Calamity Raids Chain (category: 'endgame')
+        calamity_keyholder: {
+            id: 'calamity_keyholder',
+            title: 'Calamity Keyholder',
+            desc: 'Acquire your first Calamity Keystone.',
+            type: 'calamity_keystones',
+            target: 1,
+            category: 'endgame',
+            reward: { exp: 2500, gold: 2000, marks: 5 }
+        },
+        calamity_vanquisher: {
+            id: 'calamity_vanquisher',
+            title: 'Calamity Vanquisher',
+            desc: 'Vanquish any Calamity Raid Boss (Ignis, Leviathan, or Chronos).',
+            prereqQuestId: 'calamity_keyholder',
+            type: 'calamity_raid_wins',
+            target: 1,
+            category: 'endgame',
+            reward: { exp: 15000, gold: 10000, marks: 30, item: 'Elixir', qty: 2 }
+        },
 
+        // Extended Milestone Chains
+        // Level Milestone Extensions (category: 'combat')
+        hero_adept: {
+            id: 'hero_adept',
+            title: 'Hero Adept',
+            desc: 'Reach character Level 20.',
+            type: 'reach_level',
+            target: 20,
+            prereqQuestId: 'ascended_master',
+            category: 'combat',
+            reward: { exp: 1200, gold: 800, marks: 5 }
+        },
+        realm_paragon: {
+            id: 'realm_paragon',
+            title: 'Realm Paragon',
+            desc: 'Reach character Level 35.',
+            type: 'reach_level',
+            target: 35,
+            prereqQuestId: 'hero_adept',
+            category: 'combat',
+            reward: { exp: 4000, gold: 2500, marks: 10 }
+        },
+        cosmic_legend: {
+            id: 'cosmic_legend',
+            title: 'Cosmic Legend',
+            desc: 'Reach character Level 50.',
+            type: 'reach_level',
+            target: 50,
+            prereqQuestId: 'realm_paragon',
+            category: 'combat',
+            reward: { exp: 10000, gold: 6000, marks: 20 }
+        },
+
+        // Monster Slayer Milestone Extensions (category: 'combat')
+        legion_bane: {
+            id: 'legion_bane',
+            title: 'Legion Bane',
+            desc: 'Defeat 100 enemies in battle.',
+            type: 'defeat_enemies',
+            target: 100,
+            prereqQuestId: 'calamity_hunter',
+            category: 'combat',
+            reward: { exp: 800, gold: 600, marks: 5 }
+        },
+        scourge_of_darkness: {
+            id: 'scourge_of_darkness',
+            title: 'Scourge of Darkness',
+            desc: 'Defeat 250 enemies in battle.',
+            type: 'defeat_enemies',
+            target: 250,
+            prereqQuestId: 'legion_bane',
+            category: 'combat',
+            reward: { exp: 2500, gold: 1500, marks: 10 }
+        },
+        annihilator: {
+            id: 'annihilator',
+            title: 'Annihilator',
+            desc: 'Defeat 500 enemies in battle.',
+            type: 'defeat_enemies',
+            target: 500,
+            prereqQuestId: 'scourge_of_darkness',
+            category: 'combat',
+            reward: { exp: 6000, gold: 4000, marks: 20 }
+        },
+
+        // Boss Slayer Milestone Extensions (category: 'combat')
+        boss_vanquisher: {
+            id: 'boss_vanquisher',
+            title: 'Boss Vanquisher',
+            desc: 'Defeat 5 Boss monsters.',
+            type: 'bosses_defeated',
+            target: 5,
+            prereqQuestId: 'titan_slayer',
+            category: 'combat',
+            reward: { exp: 1200, gold: 1000, marks: 8 }
+        },
+        grand_inquisitor: {
+            id: 'grand_inquisitor',
+            title: 'Grand Inquisitor',
+            desc: 'Defeat 10 Boss monsters.',
+            type: 'bosses_defeated',
+            target: 10,
+            prereqQuestId: 'boss_vanquisher',
+            category: 'combat',
+            reward: { exp: 3000, gold: 2500, marks: 15 }
+        },
+        godslayer: {
+            id: 'godslayer',
+            title: 'Godslayer',
+            desc: 'Defeat 20 Boss monsters.',
+            type: 'bosses_defeated',
+            target: 20,
+            prereqQuestId: 'grand_inquisitor',
+            category: 'combat',
+            reward: { exp: 7500, gold: 5000, marks: 25 }
+        },
+
+        // Economy Milestone Extensions (category: 'economy')
+        gold_baron: {
+            id: 'gold_baron',
+            title: 'Gold Baron',
+            desc: 'Hold at least 2,500 Gold in inventory.',
+            type: 'gold_held',
+            target: 2500,
+            prereqQuestId: 'wealthy_pocket',
+            category: 'economy',
+            reward: { exp: 600, marks: 5 }
+        },
+        kingdom_treasurer: {
+            id: 'kingdom_treasurer',
+            title: 'Kingdom Treasurer',
+            desc: 'Hold at least 10,000 Gold in inventory.',
+            type: 'gold_held',
+            target: 10000,
+            prereqQuestId: 'gold_baron',
+            category: 'economy',
+            reward: { exp: 2000, marks: 15 }
         }
-
     };
 
+        const ACHIEVEMENTS_DB = {
+        // Starter Combat Achievements (category: 'combat')
+        first_victory: {
+            id: 'first_victory',
+            title: 'First Steps',
+            desc: 'Win 1 battle.',
+            type: 'battles_won',
+            target: 1,
+            category: 'combat',
+            reward: { title: 'Novice Adventurer', stats: { maxHp: 5 } }
+        },
+        veteran_fighter: {
+            id: 'veteran_fighter',
+            title: 'Arena Veteran',
+            desc: 'Win 10 battles.',
+            type: 'battles_won',
+            target: 10,
+            category: 'combat',
+            reward: { title: 'Gladiator', stats: { maxHp: 10, atk: 2 } }
+        },
+        master_gladiator: {
+            id: 'master_gladiator',
+            title: 'Arena Champion',
+            desc: 'Win 25 battles.',
+            type: 'battles_won',
+            target: 25,
+            category: 'combat',
+            reward: { title: 'Arena Champion', stats: { maxHp: 15, atk: 3, spd: 1 } }
+        },
+        warlord: {
+            id: 'warlord',
+            title: 'Warlord',
+            desc: 'Win 50 battles.',
+            type: 'battles_won',
+            target: 50,
+            category: 'combat',
+            reward: { title: 'Warlord', stats: { maxHp: 25, atk: 5, def: 3 } }
+        },
 
+        // Starter Boss Slayer & Conquest (category: 'conquest')
+        boss_slayer: {
+            id: 'boss_slayer',
+            title: 'Apex Predator',
+            desc: 'Defeat any Boss monster.',
+            type: 'bosses_defeated',
+            target: 1,
+            category: 'conquest',
+            reward: { title: 'Dragon Slayer', stats: { atk: 3, matk: 3 } }
+        },
+        titan_conqueror: {
+            id: 'titan_conqueror',
+            title: 'Apex Titan',
+            desc: 'Defeat 3 Boss monsters.',
+            type: 'bosses_defeated',
+            target: 3,
+            category: 'conquest',
+            reward: { title: 'Apex Titan', stats: { atk: 5, matk: 5, crit: 2 } }
+        },
 
-    // =========================================================================
+        // Starter Wealth (category: 'milestones')
+        wealthy_hoarder: {
+            id: 'wealthy_hoarder',
+            title: 'Deep Pockets',
+            desc: 'Hold at least 300 Gold in inventory.',
+            type: 'gold_held',
+            target: 300,
+            category: 'milestones',
+            reward: { title: 'Merchant', stats: { def: 2, mdef: 2 } }
+        },
+        wealthy_tycoon: {
+            id: 'wealthy_tycoon',
+            title: 'Tycoon',
+            desc: 'Hold at least 1,000 Gold in inventory.',
+            type: 'gold_held',
+            target: 1000,
+            category: 'milestones',
+            reward: { title: 'Tycoon', stats: { def: 4, mdef: 4, maxHp: 20 } }
+        },
+
+        // Starter Skill Mastery (category: 'milestones')
+        master_of_skills: {
+            id: 'master_of_skills',
+            title: 'Path of Mastery',
+            desc: 'Purchase at least 5 total skill node ranks across any skill trees.',
+            type: 'skill_ranks',
+            target: 5,
+            category: 'milestones',
+            reward: { title: 'Adept', stats: { maxMp: 10, spd: 1 } }
+        },
+        paragon_of_power: {
+            id: 'paragon_of_power',
+            title: 'Paragon',
+            desc: 'Unlock at least 10 skill node ranks across any skill trees.',
+            type: 'skill_ranks',
+            target: 10,
+            category: 'milestones',
+            reward: { title: 'Paragon', stats: { maxMp: 20, matk: 3, spd: 1 } }
+        },
+
+        // Starter Quest Mastery (category: 'milestones')
+        quest_veteran: {
+            id: 'quest_veteran',
+            title: 'Town Hero',
+            desc: 'Complete and claim at least 3 quests.',
+            type: 'quests_claimed',
+            target: 3,
+            category: 'milestones',
+            reward: { title: 'Hero of the Realm', stats: { atk: 2, def: 2, crit: 2 } }
+        },
+        quest_legend: {
+            id: 'quest_legend',
+            title: 'Grand Sovereign',
+            desc: 'Complete and claim at least 8 quests.',
+            type: 'quests_claimed',
+            target: 8,
+            category: 'milestones',
+            reward: { title: 'Grand Sovereign', stats: { atk: 4, def: 4, crit: 3, maxHp: 15 } }
+        },
+
+        // Starter Level Mastery (category: 'milestones')
+        level_ascendant: {
+            id: 'level_ascendant',
+            title: 'Ascendant',
+            desc: 'Reach character Level 10.',
+            type: 'reach_level',
+            target: 10,
+            category: 'milestones',
+            reward: { title: 'Ascendant', stats: { maxHp: 20, maxMp: 10, atk: 2, def: 2, matk: 2, mdef: 2, spd: 2 } }
+        },
+
+        // A. Zone Conquest & Story (category: 'conquest')
+        woods_stalker: {
+            id: 'woods_stalker',
+            title: 'Woods Stalker',
+            desc: 'Defeat Area 1 Boss (Elder Treant).',
+            type: 'conquer_area',
+            areaId: 'area_1',
+            target: 1,
+            category: 'conquest',
+            reward: { title: 'Woods Stalker', stats: { maxHp: 15, atk: 2 } }
+        },
+        stormstrider: {
+            id: 'stormstrider',
+            title: 'Stormstrider',
+            desc: 'Defeat Area 3 Boss (Tempest Wyvern).',
+            type: 'conquer_area',
+            areaId: 'area_3',
+            target: 1,
+            category: 'conquest',
+            reward: { title: 'Stormstrider', stats: { maxHp: 20, spd: 3 } }
+        },
+        void_cleaver: {
+            id: 'void_cleaver',
+            title: 'Void Cleaver',
+            desc: 'Defeat Area 5 Boss (Void Guardian).',
+            type: 'conquer_area',
+            areaId: 'area_5',
+            target: 1,
+            category: 'conquest',
+            reward: { title: 'Void Cleaver', stats: { maxHp: 30, matk: 4, crit: 2 } }
+        },
+        glacial_sovereign: {
+            id: 'glacial_sovereign',
+            title: 'Glacial Sovereign',
+            desc: 'Defeat Area 8 Boss (Frost Empress Glacia).',
+            type: 'conquer_area',
+            areaId: 'area_8',
+            target: 1,
+            category: 'conquest',
+            reward: { title: 'Glacial Sovereign', stats: { maxHp: 45, def: 5, mdef: 5 } }
+        },
+        conqueror_of_time: {
+            id: 'conqueror_of_time',
+            title: 'Conqueror of Time',
+            desc: 'Defeat Area 10 Boss (Chronos, The Void Sovereign).',
+            type: 'conquer_area',
+            areaId: 'area_10',
+            target: 1,
+            category: 'conquest',
+            reward: { title: 'Conqueror of Time', stats: { maxHp: 60, atk: 8, matk: 8, crit: 4, spd: 3 } }
+        },
+
+        // B. Class Mastery & Formations (category: 'class')
+        specialist: {
+            id: 'specialist',
+            title: 'Specialist',
+            desc: 'Advance any hero to a Tier 2 Specialization (Lv. 25+).',
+            type: 'hero_tier',
+            target: 2,
+            category: 'class',
+            reward: { title: 'Specialist', stats: { maxHp: 20, maxMp: 15, atk: 3, matk: 3 } }
+        },
+        apex_avatar: {
+            id: 'apex_avatar',
+            title: 'Apex Avatar',
+            desc: 'Evolve any hero to their Tier 3 Apex Class (Lv. 50).',
+            type: 'hero_tier',
+            target: 3,
+            category: 'class',
+            reward: { title: 'Apex Avatar', stats: { maxHp: 60, maxMp: 30, atk: 6, matk: 6, crit: 3 } }
+        },
+        commander: {
+            id: 'commander',
+            title: 'Commander',
+            desc: 'Form a full 4-hero combat formation.',
+            type: 'active_squad_size',
+            target: 4,
+            category: 'class',
+            reward: { title: 'Commander', stats: { maxHp: 30, def: 4, mdef: 4 } }
+        },
+        guildmaster: {
+            id: 'guildmaster',
+            title: 'Guildmaster',
+            desc: 'Recruit 5 total companions into your roster.',
+            type: 'recruit_mercenaries',
+            target: 5,
+            category: 'class',
+            reward: { title: 'Guildmaster', stats: { maxHp: 40, atk: 5, def: 5 } }
+        },
+
+        // C. Blacksmith Workshop & Crafting (category: 'forge')
+        journeyman_smith: {
+            id: 'journeyman_smith',
+            title: 'Journeyman Smith',
+            desc: 'Upgrade any equipment piece to +3 at the Blacksmith.',
+            type: 'blacksmith_upgrade',
+            target: 3,
+            category: 'forge',
+            reward: { title: 'Journeyman Smith', stats: { atk: 3, matk: 3 } }
+        },
+        grand_master_smith: {
+            id: 'grand_master_smith',
+            title: 'Grand Master Smith',
+            desc: 'Upgrade any equipment piece to the max +5 cap.',
+            type: 'blacksmith_upgrade',
+            target: 5,
+            category: 'forge',
+            reward: { title: 'Grand Master Smith', stats: { atk: 8, matk: 8, def: 6, mdef: 6 } }
+        },
+        salvage_king: {
+            id: 'salvage_king',
+            title: 'Salvage King',
+            desc: 'Salvage 25 items for crafting materials.',
+            type: 'salvage_equipment',
+            target: 25,
+            category: 'forge',
+            reward: { title: 'Salvage King', stats: { def: 5, mdef: 5 } }
+        },
+
+        // D. The Infinite Spire Gauntlet (category: 'endgame')
+        tower_initiate: {
+            id: 'tower_initiate',
+            title: 'Tower Initiate',
+            desc: 'Clear Floor 10 in The Infinite Spire.',
+            type: 'spire_floor',
+            target: 10,
+            category: 'endgame',
+            reward: { title: 'Tower Initiate', stats: { maxHp: 20, atk: 2, matk: 2 } }
+        },
+        spire_climber: {
+            id: 'spire_climber',
+            title: 'Spire Climber',
+            desc: 'Clear Floor 25 in The Infinite Spire.',
+            type: 'spire_floor',
+            target: 25,
+            category: 'endgame',
+            reward: { title: 'Spire Climber', stats: { maxHp: 40, atk: 5, matk: 5, spd: 2 } }
+        },
+        spire_sovereign: {
+            id: 'spire_sovereign',
+            title: 'Spire Sovereign',
+            desc: 'Clear Floor 50 in The Infinite Spire.',
+            type: 'spire_floor',
+            target: 50,
+            category: 'endgame',
+            reward: { title: 'Spire Sovereign', stats: { maxHp: 80, atk: 10, matk: 10, crit: 5 } }
+        },
+        relic_hunter: {
+            id: 'relic_hunter',
+            title: 'Relic Hunter',
+            desc: 'Discover and hold 3 Ancient Relics.',
+            type: 'relics_possessed',
+            target: 3,
+            category: 'endgame',
+            reward: { title: 'Relic Hunter', stats: { maxMp: 30, matk: 5, mdef: 4 } }
+        },
+
+        // E. Endgame Calamity Raids (category: 'endgame')
+        calamity_vanquisher: {
+            id: 'calamity_vanquisher',
+            title: 'Calamity Vanquisher',
+            desc: 'Vanquish any Calamity Raid Boss (Ignis, Leviathan, or Chronos).',
+            type: 'calamity_raid_wins',
+            target: 1,
+            category: 'endgame',
+            reward: { title: 'Calamity Vanquisher', stats: { maxHp: 50, atk: 8, matk: 8, def: 6, mdef: 6 } }
+        },
+        stagger_breaker: {
+            id: 'stagger_breaker',
+            title: 'Stagger Breaker',
+            desc: 'Trigger a Stagger Break on a Calamity Raid Boss.',
+            type: 'stagger_breaks',
+            target: 1,
+            category: 'endgame',
+            reward: { title: 'Stagger Breaker', stats: { atk: 5, matk: 5, spd: 3 } }
+        },
+        avatar_of_extinction: {
+            id: 'avatar_of_extinction',
+            title: 'Avatar of Extinction',
+            desc: 'Vanquish Chronos, Cosmic Void-Incarnate in Calamity Raids.',
+            type: 'calamity_boss_defeated',
+            bossName: 'Chronos, Cosmic Void-Incarnate',
+            target: 1,
+            category: 'endgame',
+            reward: { title: 'Avatar of Extinction', stats: { maxHp: 100, atk: 12, matk: 12, crit: 6, spd: 4 } }
+        },
+
+        // F. Extended Lifetime Milestones (category: 'milestones')
+        adept_hero: {
+            id: 'adept_hero',
+            title: 'Adept Hero',
+            desc: 'Reach character Level 25.',
+            type: 'reach_level',
+            target: 25,
+            category: 'milestones',
+            reward: { title: 'Adept Hero', stats: { maxHp: 35, maxMp: 20, atk: 3, def: 3, matk: 3, mdef: 3 } }
+        },
+        cosmic_ascendant: {
+            id: 'cosmic_ascendant',
+            title: 'Cosmic Ascendant',
+            desc: 'Reach character Level 50 (Maximum Level Cap).',
+            type: 'reach_level',
+            target: 50,
+            category: 'milestones',
+            reward: { title: 'Cosmic Ascendant', stats: { maxHp: 100, maxMp: 50, atk: 10, def: 10, matk: 10, mdef: 10, spd: 5, crit: 5 } }
+        },
+        immortal_champion: {
+            id: 'immortal_champion',
+            title: 'Immortal Champion',
+            desc: 'Win 250 battles.',
+            type: 'battles_won',
+            target: 250,
+            category: 'milestones',
+            reward: { title: 'Immortal Champion', stats: { maxHp: 75, atk: 8, def: 6 } }
+        },
+        godslayer: {
+            id: 'godslayer',
+            title: 'Godslayer',
+            desc: 'Defeat 25 bosses.',
+            type: 'bosses_defeated',
+            target: 25,
+            category: 'milestones',
+            reward: { title: 'Godslayer', stats: { atk: 15, matk: 15, crit: 5 } }
+        },
+        plutocrat: {
+            id: 'plutocrat',
+            title: 'Plutocrat',
+            desc: 'Hold at least 25,000 Gold in inventory.',
+            type: 'gold_held',
+            target: 25000,
+            category: 'milestones',
+            reward: { title: 'Plutocrat', stats: { def: 10, mdef: 10, maxHp: 50 } }
+        }
+    };
+
+        // =========================================================================
 
     // ANCIENT RELICS & THE INFINITE SPIRE
 

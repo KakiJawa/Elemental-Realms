@@ -7,15 +7,136 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 37 test suites totaling 3,170 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, `verify_party_qol.py`, `verify_calamity_raids.py`, `verify_ranger_class.py`, `verify_cleric_class.py`, and `verify_necromancer_class.py`) located in scratch directory.
+  - Scratch test tools: 42 test suites totaling 3,418 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, `verify_party_qol.py`, `verify_calamity_raids.py`, `verify_ranger_class.py`, `verify_cleric_class.py`, `verify_necromancer_class.py`, `verify_qol_and_bugfixes.py`, `verify_quest_expansion.py`, `verify_achievements_expansion.py`, `verify_battle_ui_overhaul.py`, and `verify_pc_battle_ui.py`) located in scratch directory.
 - **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** The Necromancer Class Tree (Tier 1 → Tier 2 → Tier 3) Complete & Verified.
-- **Feature Currently Being Developed:** None (Complete Necromancer, Cleric & Ranger class trees integrated with Frontline Minion Interception, 18 signature skills, 12 combat passives, 9 status ailments, Mercenary Scouting Hall gacha pools, Class Sanctum advancement & 5,000G respec; verified across 37 test suites with 3,156/3,170 tests passing).
+- **Current Phase:** PC & Desktop Battle UI Overhaul Complete & Verified.
+- **Feature Currently Being Developed:** None (Pill-badge timeline nodes with name ellipsis, desktop command deck dominance >= 500px, 2-column tactile skill cards with live targeting indicator, and collapsible combat log drawer verified across 42 suites with 3,402/3,418 assertions passing).
 - **Immediate Next Development Task:** The Monk Class Tree or The Paladin Class Tree.
 
 ## Completed Features
+- **PC & Desktop Battle UI Overhaul (Turn Ribbon, Command Deck & Compact Log):**
+  - *Turn Ribbon Timeline Formatting (`css/style.css` & `src/game.js`):*
+    - Mobile & Compact mode (`< 768px`): `.turn-node` operates as a compact 38px circle with `.chip-name` hidden, centered icon, and tooltip title (`chip.title`).
+    - Desktop mode (`@media (min-width: 769px)`): `.turn-node` transforms into an inline-flex pill badge (`height: 34px`, `border-radius: 17px`, `padding: 2px 10px`, `max-width: 160px`). Truncates `.chip-name` with clean ellipsis (`max-width: 95px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;`), ensuring long unit names ("Archmage Zephyr of the Storm", "Infernal Nether Colossus Boss") never overflow the badge bounds. Active node scales (`transform: scale(1.06)`) with glowing golden border.
+  - *Desktop Battle UI Rebalance (`css/style.css`):*
+    - Under `@media (min-width: 769px)`: `#battle-ui` uses CSS grid with `grid-template-columns: minmax(520px, 1.4fr) minmax(320px, 0.8fr) !important;` and `grid-template-areas: "dock dock" "cmds log" !important; height: 280px !important;`.
+    - Guarantees `#battle-commands` receives primary dominance (60–65% width, `>= 500px`), preventing cramming and comfortably fitting 2-column tactile skill grids and action cards.
+  - *Responsive 2-Column Skill Grid & Targeting Feedback (`src/game.js` & `css/style.css`):*
+    - Modern 2-column CSS grid `.skills-grid-container` (`grid-template-columns: repeat(2, 1fr); gap: 8px;`, collapsing to `1fr` on screens `<= 600px`).
+    - Exposes `window.showSkillsMenu = showSkillsMenu` alias for cross-module compatibility.
+    - Active targeting feedback in `#target-prompt`: renders `Casting: <b>${skill.name}</b>` or `⚔️ <b>Basic Attack</b>`, guidance prompt `Click an enemy above to strike`, and cancel button `<button class="btn btn-cmd-slate" onclick="cancelTargeting()">Cancel</button>`.
+  - *Collapsible Combat Log Footprint (`css/style.css` & `src/game.js`):*
+    - Restricts `#combat-log` on desktop to `width: 100%; font-size: 11.5px; line-height: 1.4;`.
+    - Button `[📜 Log: Compact / Full]` in `.combat-log-header` smoothly toggles between compact and expanded states (`toggleCombatLogDrawer()`).
+    - When collapsed (`#battle-ui.log-collapsed`), `#battle-commands` expands to 100% full width (`grid-template-columns: 1fr !important; grid-template-areas: "dock" "cmds" !important;`), while `.combat-log-container` docks as a compact toggle pill.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_pc_battle_ui.py`: 32 / 32 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,402 / 3,418 assertions passed across all 42 test suites with zero regressions.
+- **Modern JRPG / Gacha Dock Battle UI Overhaul:**
+  - *Dynamic Zone-Themed Arena Backdrops (`css/style.css` & `src/game.js`):*
+    - Automatically sets `arena-theme-area_1` through `arena-theme-area_10` and `arena-theme-calamity` on `#battle-arena` in `setupBattle()`.
+    - Features zone-specific ambient gradients, vignettes, and glow effects across Area 1 (Verdant Woods) to Area 10 (Celestial Void) and Calamity Raids.
+  - *Integrated Bottom Hero Squad Dock (`#hero-squad-dock`):*
+    - Compact modern bottom dock rendering all active party heroes and summoned minions with avatar discs, level tags, leader crown (`👑`), live dual HP/MP gauges with numeric labels (`750/750 HP`), and status mini-trays.
+    - Golden pulsing active-turn highlight (`.turn-active-glow`) for the acting hero, grayed-out dead state (`.dock-dead`), and interactive ally targeting via `onSquadDockHeroClick` / `selectPartyTarget(heroId)`.
+  - *Tactile Command Deck & Rich 2-Column Elemental Skill Cards (`#cmd-main` & `#battle-sub-menu`):*
+    - `#cmd-main`: 4 colored cards (Ruby `⚔️ Attack`, Sapphire `✨ Skills (count)`, Emerald `🎒 Items (count)`, Slate `🏃 Flee`) plus embedded Quick-Heal pill `#btn-quick-potion`.
+    - `#battle-sub-menu`: Modern 2-column grid of rich Elemental Skill Cards with elemental badges (🔥 Fire, 💧 Water, ⚡ Wind, 🪨 Earth, ✨ Light, 💀 Dark, ⚔️ Physical), MP cost pills (`💧 15 MP`), power ratios (`⚔️ x1.5`), targeting badges (`Single`, `All Foes`, `Allies`), and disabled states for insufficient MP.
+  - *Retractable Floating Combat Ticker (`#combat-log-container` & `#combat-log`):*
+    - Floating 1-line Action Ticker at the arena bottom with smooth slide-in animations for recent events (`.anim-slide-in`).
+    - Expandable semi-transparent drawer toggle `[📜 Log ▾]` / `[📜 Log ▴]` (`toggleCombatLogDrawer()`), preserving `#combat-log` DOM ID and full log history.
+  - *Smooth "Damage Ghost" HP Bars (`.bar-ghost`):*
+    - Underlying `.bar-ghost` element behind `.hp-fill` across all party cards, minions, and enemy cards, transitioning with a 0.25s delay and 0.4s ease-out in `#facc15` to visually dramatize burst damage.
+  - *Live Elemental Weakness Targeting Reticle (`openTargeting`):*
+    - Pulsing focus ring (`.target-focus-ring`) with live affinity reticle badges (`💥 WEAK (1.5x)`, `🛡️ RESIST (0.5x)`) calculated against the selected skill's element.
+  - *Circular Turn Order Timeline (`#turn-order-ribbon`):*
+    - Circular initiative nodes (`.turn-node`) with alliance rings (`.is-hero`, `.is-enemy`, `.is-boss`), unit tooltips, and enlarged active unit node with `turnBeacon` pulsing animation.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_battle_ui_overhaul.py`: 62 / 62 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,370 / 3,386 assertions passed across all 41 test suites with zero regressions.
+
+- **Comprehensive Achievement System Expansion & Title Mastery:**
+  - *Database Expansion (`data/game_data.js` -> `ACHIEVEMENTS_DB`):*
+    - **37 Total Milestone Achievements:** All 13 starter achievements retained with original IDs and stats, categorized into `combat`, `conquest`, and `milestones`.
+    - **Zone Conquest & Story (`category: 'conquest'`):** 5 boss conquest milestones (`woods_stalker`, `stormstrider`, `void_cleaver`, `glacial_sovereign`, `conqueror_of_time`) awarding titles and massive multi-stat permanent bonuses.
+    - **Class Mastery & Formations (`category: 'class'`):** 4 squad progression achievements (`specialist`, `apex_avatar`, `commander`, `guildmaster`) rewarding Tier 2/3 advancements, 4-hero vanguard assembly, and roster recruitment.
+    - **Blacksmith Workshop & Crafting (`category: 'forge'`):** 3 crafting achievements (`journeyman_smith` +3, `grand_master_smith` +5 cap, `salvage_king` 25 items salvaged).
+    - **The Infinite Spire Gauntlet (`category: 'endgame'`):** 4 endless gauntlet milestones (`tower_initiate` Floor 10, `spire_climber` Floor 25, `spire_sovereign` Floor 50, `relic_hunter` 3 relics possessed).
+    - **Endgame Calamity Raids (`category: 'endgame'`):** 3 raid mastery achievements (`calamity_vanquisher` 1 win, `stagger_breaker` 1 stagger break, `avatar_of_extinction` defeating Chronos, Cosmic Void-Incarnate).
+    - **Extended Lifetime Milestones (`category: 'milestones'`):** 5 grand milestones (`adept_hero` Lv. 25, `cosmic_ascendant` Lv. 50, `immortal_champion` 250 wins, `godslayer` 25 bosses, `plutocrat` 25,000 Gold).
+  - *Unified Progress Engine & In-Place Title Mastery (`src/game.js`):*
+    - `getAchievementProgress(achievement)` handles all 17 achievement types with accurate progression calculation.
+    - **One-Click Title Equipping (`equipTitle(titleName)`):** Players can dynamically equip any title from an unlocked achievement at any time. Updates `player.activeTitle`, synchronizes top header `#hdr-title`, renders `👑 Equipped` status badge, and announces via toast.
+    - **Permanent Stat Stacking (`computeStats()`):** Automatically aggregates all unlocked achievement stat rewards (`maxHp`, `maxMp`, `atk`, `def`, `matk`, `mdef`, `spd`, `crit`) into character `pStats`.
+  - *Interactive Achievement Log UI with Category Tabs (`src/game.js` & `css/style.css`):*
+    - **Responsive Category Ribbon:** `#ach-category-pills` provides instant filtering across 6 tabs (`[All]`, `[⚔️ Conquest]`, `[👑 Class & Squad]`, `[🔨 Forge]`, `[🗼 Spire & Raids]`, `[⭐ Milestones]`).
+    - **Gilded Stat Chips:** Displays permanent passive stat rewards in `.ach-stat-chip` containers (`+X STAT`).
+    - **Equip Action Buttons & Badges:** Displays `.btn-equip-title` on unlocked cards and `.title-equipped-badge` (`👑 Equipped`) on the active title.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_achievements_expansion.py`: 62 / 62 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,308 / 3,324 assertions passed across all 40 test suites with zero regressions.
+
+- **Comprehensive Quest System Expansion & System Synchronization:**
+  - *Database Architecture & Category Expansion (`data/game_data.js` -> `QUESTS_DB`):*
+    - **45 Total Quests Defined:** All 16 starter quests preserved intact with category tags (`combat`, `squad`, `economy`) and zero breaking changes.
+    - **Story & Zone Conquest Chain (`category: 'story'`):** 6 sequential quests tracking conquest of Area 1 to Area 10 bosses (`conquer_woods`, `conquer_caverns`, `conquer_summit`, `conquer_caldera`, `conquer_void`, `conquer_celestial`).
+    - **Hero Sanctum & Squad Building Chain (`category: 'squad'`):** 4 progression quests rewarding party recruitment, full 4-hero vanguard assembly, Tier 2 specialization (Lv. 25+), and Tier 3 Apex evolution (Lv. 50) (`recruit_ally`, `full_vanguard`, `first_specialization`, `apex_transcendence`).
+    - **Blacksmith Workshop Chain (`category: 'forge'`):** 3 crafting mastery quests for dismantling gear and upgrading pieces to +3 and +5 cap (`scrap_harvester`, `tempered_steel`, `masterwork_armament`).
+    - **The Infinite Spire Gauntlet Chain (`category: 'endgame'`):** 3 endless dungeon gauntlet milestones reaching Floor 10, Floor 25, and Floor 50 (`spire_challenger`, `tower_ascendant`, `spire_sovereign`).
+    - **Endgame Calamity Raids Chain (`category: 'endgame'`):** 2 raid progression quests for keystone acquisition and raid boss conquest (`calamity_keyholder`, `calamity_vanquisher`).
+    - **Extended Milestone Chains (`category: 'combat'` & `'economy'`):** Level Milestones (`hero_adept` Lv. 20, `realm_paragon` Lv. 35, `cosmic_legend` Lv. 50), Monster Slayer Milestones (`legion_bane` 100 kills, `scourge_of_darkness` 250 kills, `annihilator` 500 kills), Boss Slayer Milestones (`boss_vanquisher` 5 bosses, `grand_inquisitor` 10 bosses, `godslayer` 20 bosses), and Economy Milestones (`gold_baron` 2,500G, `kingdom_treasurer` 10,000G).
+  - *Unified Progress Engine & Multi-System Synchronization (`src/game.js`):*
+    - Enhanced `getQuestProgress(quest)` with handlers for all new quest types:
+      - `conquer_area`: Evaluates `player.defeatedAreaBosses` and `player.unlockedAreas`.
+      - `recruit_mercenaries`: Counts non-main heroes in `player.roster`.
+      - `active_squad_size`: Inspects `player.activeParty.length`.
+      - `hero_tier`: Scans roster for highest class tier in `CLASSES_DB`.
+      - `salvage_equipment`: Tracks items dismantled in `salvageItem` and `salvageAllCommonUncommon` via `player.blacksmithStats.itemsSalvaged`.
+      - `blacksmith_upgrade`: Finds max upgrade level on equipped gear and inventory equipment.
+      - `spire_floor`: Inspects `player.spire.highestFloor`.
+      - `calamity_keystones`: Evaluates current keystones held and used.
+      - `calamity_raid_wins`: Sums total raid victories across all Calamities in `player.calamityVictories`.
+  - *Multi-Currency Claiming & Economy Integration (`src/game.js`):*
+    - `claimQuest(questId)` seamlessly credits and announces EXP, Gold, Rare/Consumable items, **Bounty Marks (`player.bountyMarks`)**, **Skill Orbs (`player.skillOrbs`)**, and crafting materials (**Scrap**, **Dust**, **Shards** in `player.materials` and `player.blacksmith`).
+  - *Interactive Quest Log UI with Category Tabs (`src/game.js` & `css/style.css`):*
+    - **Responsive Category Ribbon:** `#quest-category-pills` features 7 scrollable pills (`[All]`, `[📖 Story]`, `[⚔️ Combat]`, `[👑 Squad]`, `[🔨 Forge]`, `[🗼 Endgame]`, `[💰 Economy]`) with active highlights and zero page reload.
+    - **Visual Distinction & Badges:** Dedicated yellow badge `.quest-reward-marks` (`🏷️ +X Marks`) highlighted on quest cards alongside Gold, EXP, and materials.
+    - **Adaptive Progress Labels:** Clear progress displays (`${current} / ${target}`) adapted per type (`Floor X / Y`, `Tier X / Y`, `+X / +Y`, `Conquered ✓`).
+    - **Mobile Responsive Design:** Clean layout on viewports `<= 600px` with touch-friendly pills and compact cards.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_quest_expansion.py`: 59 / 59 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,247 / 3,262 assertions passed across all 39 test suites with zero regressions.
+
+- **Mobile QoL & Combat Progression Improvements (5 Key Fixes):**
+  - *Skill Tree In-Place DOM Updates & Zero-Reset Mobile Architecture (`src/game.js` & `css/style.css`):*
+    - Replaced destructive `innerHTML` re-rendering on point allocation with `updateSkillTreeUI()`. Allocating skill orbs via `buySkillUpgrade(key)` updates existing DOM node badges, ranks, action buttons, locked state hints, and orb counters in-place with zero element destruction or recreation.
+    - Eliminated competing nested scrollbars in `css/style.css`: `#modal-skilltree` enforces `overflow: hidden !important;` and applies `display: flex !important; flex-direction: column !important;` strictly when `.active` (preventing ID specificity from overriding `.modal { display: none; }` on page load and keeping the main menu unobstructed), while `#st-content` functions as the sole scroll container with `-webkit-overflow-scrolling: touch` and `overscroll-behavior: contain`.
+    - Added persistent branch filter state (`window.activeSkillTreeBranch`), preventing branch resets and layout reflow jumping.
+    - Full scroll restoration on `renderSkillTree()` runs synchronously, on `requestAnimationFrame()`, and via delayed frame check (`setTimeout(..., 40)`).
+    - Verified in real Chromium engine via `scratch/verify_skill_tree_scroll_fixed.py` (21/21 assertions passed).
+  - *Shop Tier Progression Gated by Area Boss Defeats (`src/game.js` & `data/game_data.js`):*
+    - Persistent tracking via `player.defeatedAreaBosses` array, updated upon boss defeat in `winBattle()`.
+    - Shop Tier 1 unlocked by default; Tier N strictly gated by defeat of `area_${N-1}` boss (e.g. Tier 2 strictly requires Area 1 Boss `Elder Treant` defeat).
+    - Removed player level bypass; locked shop tiers display aesthetic banner `🔒 Locked — Defeat Area [X] Boss ([Boss Name]) to unlock Tier [Y] Equipment!`.
+    - Mystery box equipment pools strictly obey the same boss-gated unlock invariant.
+  - *Full Hero Class Path Freedom (Tier 1 → Tier 3) (`src/game.js`):*
+    - Class Sanctum (`renderClassAdvancement()`) now displays a clean Tier 1 Base Class Selection grid with all 6 foundational classes (Warrior 🛡️, Mage 🔮, Rogue 🗡️, Ranger 🏹, Cleric 🕊️, Necromancer 💀).
+    - `switchHeroBaseClass(heroId, targetClassId)` cleanly switches base classes (free for novices/initial choice, 5,000 Gold for established heroes), reconfigures starter skills, and unlocks that class's Tier 2 specializations.
+    - Tier 2 Specializations (Lv. 25+) and Tier 3 Apex Evolutions (Lv. 50+) seamlessly branch from the active base class.
+    - Universal class respec (`respecHeroClass`) supports reverting to root base class or switching to any other Tier 1 discipline.
+  - *Compact Mobile Toasts with Concurrency Cap (`src/game.js` & `css/style.css`):*
+    - In `showToast()`, enforces a concurrency cap of max 3 toasts on desktop and max 2 toasts on mobile screens (`window.innerWidth <= 600`), gracefully evicting the oldest element.
+    - In `css/style.css`, `@media (max-width: 600px)` tightens `#toast-container` to `max-width: 270px; top: 10px; right: 10px; gap: 6px;`, restricts padding/font-size, and clamps toast message to 2 lines (`-webkit-line-clamp: 2`).
+  - *Utility & Defense Combat Sub-Menu Filtering (`data/game_data.js` & `src/game.js`):*
+    - Updated `Raise Skeleton` and `Legion Vanguard` to `category: 'utility'` in `SKILLS_DB`.
+    - Broadened `renderSkillButtons(category)` so `defense` includes `category === 'defense'`, `heal`, or `type === 'buff'`, and `utility` includes `utility`, `summon`, `buff`, `defense`, `heal`, and `support`.
+    - Guarantees Bone Commander skills (`Legion Vanguard` and `Bone Armor`) appear under the Utility and Defense battle sub-menus.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_qol_and_bugfixes.py`: 33 / 33 assertions passed (100%).
+    - Full regression run: 3,188 / 3,203 assertions passed across all 38 test suites with zero regressions.
+
 - **The Necromancer Class Tree (Tier 1 → Tier 2 → Tier 3):**
   - *Class Hierarchy & Database Architecture (`CLASSES_DB`):*
     - **Necromancer (Tier 1, Lv. 10):** Base occult summoner and soul harvester (`parent: null`, `minLevel: 10`, `skills: ['Raise Skeleton', 'Bone Spear']`, `passive: 'soul_harvest'`, `statMods: { matk: 1.25, mdef: 1.20, maxMp: 1.25, maxHp: 0.95, def: 0.85, atk: 0.70, spd: 0.95 }`).
@@ -972,5 +1093,5 @@
 - **Incremental Changes:** Changes should be isolated and test-verified before advancing to subsequent phases; avoid wholesale rewrites.
 
 ## Last Updated
-- **Date:** 2026-10-25
-- **Description:** Complete implementation of The Necromancer Class Tree (Tier 1 -> Tier 2 -> Tier 3), introducing the Frontline Minion Interception System, compact companion minion cards, Soul Remnants resource economy, Dread Lich (phylactery rebirth & corpse explosions), and Bone Commander (meat-shield damage redirection & bone armor). Verified with 75/75 dedicated tests and 3,157 passing test assertions across all 37 test suites on live index.html with zero regressions, and pushed to GitHub.
+- **Date:** 2026-10-26
+- **Description:** Complete visual and ergonomic overhaul of the combat screen into a Modern JRPG / Gacha Dock Architecture (`index.html`, `css/style.css`, `src/game.js`). Features dynamic zone-themed arena backdrops (Areas 1–10 + Calamity), integrated bottom hero squad dock with live dual HP/MP gauges and leader crown, tactile Ruby/Sapphire/Emerald/Slate command deck cards, 2-column rich Elemental Skill Cards with elemental badges and MP pills, retractable floating combat ticker with toggleable drawer, smooth golden damage ghost HP bars, live elemental weakness targeting reticles (WEAK 1.5x / RESIST 0.5x), and circular turn order timeline with pulsing turnBeacon initiative nodes. Verified with 62/62 dedicated tests and 3,370 passing assertions across all 41 test suites on live index.html with zero regressions. (Tier 1 -> Tier 2 -> Tier 3), introducing the Frontline Minion Interception System, compact companion minion cards, Soul Remnants resource economy, Dread Lich (phylactery rebirth & corpse explosions), and Bone Commander (meat-shield damage redirection & bone armor). Verified with 75/75 dedicated tests and 3,157 passing test assertions across all 37 test suites on live index.html with zero regressions, and pushed to GitHub.

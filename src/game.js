@@ -6121,44 +6121,14 @@ if (typeof window !== 'undefined') {
 
 
         toast.onclick = () => {
-
-
-
-
-
-
-
             toast.classList.add('toast-hide');
-
-
-
-
-
-
-
             setTimeout(() => toast.remove(), 300);
-
-
-
-
-
-
-
         };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        const maxToasts = (typeof window !== 'undefined' && window.innerWidth <= 600) ? 2 : 3;
+        while (container.children.length >= maxToasts) {
+            container.firstElementChild.remove();
+        }
 
         container.appendChild(toast);
 
@@ -8602,6 +8572,9 @@ if (typeof window !== 'undefined') {
 
 
 
+        if (!player.blacksmithStats) player.blacksmithStats = {};
+        player.blacksmithStats.itemsSalvaged = (player.blacksmithStats.itemsSalvaged || 0) + 1;
+
         showToast('Item Salvaged', `${item.name} dismantled: ${parts.join(', ')}`, 'info');
 
 
@@ -8913,6 +8886,9 @@ if (typeof window !== 'undefined') {
 
 
 
+
+        if (!player.blacksmithStats) player.blacksmithStats = {};
+        player.blacksmithStats.itemsSalvaged = (player.blacksmithStats.itemsSalvaged || 0) + matching.length;
 
         showToast('Bulk Salvage Complete', `Dismantled ${matching.length} items for +${totalScrap} Scraps, +${totalGold} Gold.`, 'info');
 
@@ -14668,6 +14644,8 @@ if (typeof window !== 'undefined') {
 
 
                     player.questStats.bossesDefeated = (player.questStats.bossesDefeated || 0) + 1;
+                    if (!player.defeatedBosses) player.defeatedBosses = [];
+                    if (!player.defeatedBosses.includes(entity.name)) player.defeatedBosses.push(entity.name);
 
 
 
@@ -17479,6 +17457,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
 
             unlockedAreas: ['area_1'],
+            defeatedAreaBosses: [],
 
 
 
@@ -18154,6 +18133,7 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
 
 
+            if(!player.defeatedAreaBosses) player.defeatedAreaBosses = [];
             if(typeof player.activeTitle === 'undefined') player.activeTitle = 'Novice';
 
 
@@ -27326,1109 +27306,243 @@ ${setInfoHtml}
 
 
 
-    function renderSkillTree() {
-
-
-
-
-
-
-
+        function renderSkillTree() {
         if (!player) return;
-
-
-
-
-
-
-
+        const modalEl = document.getElementById('modal-skilltree');
+        const contentEl = document.getElementById('st-content');
+        const savedModalScroll = modalEl ? modalEl.scrollTop : 0;
+        const savedContentScroll = contentEl ? contentEl.scrollTop : 0;
         const orbsEl = document.getElementById('st-orbs');
-
-
-
-
-
-
-
         if (orbsEl) orbsEl.innerText = player.skillOrbs || 0;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         const respecBtn = document.getElementById('btn-st-respec');
-
-
-
-
-
-
-
         if (respecBtn) {
-
-
-
-
-
-
-
             respecBtn.innerText = player.hasRespecced ? '🔄 Respec Tree (200G)' : '🔄 Respec Tree (Free)';
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         const branchDefs = [
-
-
-
-
-
-
-
             { name: 'Damage', icon: '⚔️' },
-
-
-
-
-
-
-
             { name: 'Sustain', icon: '🛡️' },
-
-
-
-
-
-
-
             { name: 'Arcana', icon: '🔮' },
-
-
-
-
-
-
-
             { name: 'General', icon: '🌟' }
-
-
-
-
-
-
-
         ];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         let fullHtml = '';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        const curBranch = (typeof window !== 'undefined' && window.activeSkillTreeBranch) || 'all';
 
         branchDefs.forEach(({ name: bName, icon: bIcon }) => {
-
-
-
-
-
-
-
             let bPts = getBranchPoints(bName);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             // Group nodes by tier (1, 2, 3)
-
-
-
-
-
-
-
             let tierNodes = { 1: [], 2: [], 3: [] };
-
-
-
-
-
-
-
             for (let key in SKILL_TREE_DB) {
-
-
-
-
-
-
-
                 let node = SKILL_TREE_DB[key];
-
-
-
-
-
-
-
                 if (node.branch === bName) {
-
-
-
-
-
-
-
                     let t = node.tier || 1;
-
-
-
-
-
-
-
                     if (!tierNodes[t]) tierNodes[t] = [];
-
-
-
-
-
-
-
                     tierNodes[t].push({ key, ...node });
-
-
-
-
-
-
-
                 }
-
-
-
-
-
-
-
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             let branchCardsHtml = '';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             [1, 2, 3].forEach(tierNum => {
-
-
-
-
-
-
-
                 let nodes = tierNodes[tierNum] || [];
-
-
-
-
-
-
-
                 if (nodes.length === 0) return;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 let tierLabel = tierNum === 1 ? 'Tier 1 • Novice' : (tierNum === 2 ? 'Tier 2 • Adept (5+ Pts)' : 'Tier 3 • Keystones (10+ Pts)');
-
-
-
-
-
-
-
                 branchCardsHtml += `<div class="tier-divider">${tierLabel}</div>`;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 nodes.forEach(node => {
-
-
-
-
-
-
-
                     let currentRank = (player.skillTree && player.skillTree[node.key]) || 0;
-
-
-
-
-
-
-
                     let isMaxed = currentRank >= node.max;
-
-
-
-
-
-
-
                     let isLocked = bPts < (node.reqBranchPts || 0);
-
-
-
-
-
-
-
                     let canAfford = (player.skillOrbs || 0) >= node.cost;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     let otherKeystoneActive = false;
-
-
-
-
-
-
-
                     if (node.type === 'keystone' && currentRank === 0) {
-
-
-
-
-
-
-
                         for (let otherKey in SKILL_TREE_DB) {
-
-
-
-
-
-
-
                             if (otherKey !== node.key) {
-
-
-
-
-
-
-
                                 let otherNode = SKILL_TREE_DB[otherKey];
-
-
-
-
-
-
-
                                 if (otherNode.branch === bName && otherNode.type === 'keystone' && (player.skillTree && player.skillTree[otherKey] > 0)) {
-
-
-
-
-
-
-
                                     otherKeystoneActive = true;
-
-
-
-
-
-
-
                                     break;
-
-
-
-
-
-
-
                                 }
-
-
-
-
-
-
-
                             }
-
-
-
-
-
-
-
                         }
-
-
-
-
-
-
-
                     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     let cardClasses = 'skill-node';
-
-
-
-
-
-
-
                     if (node.type === 'keystone') cardClasses += ' keystone-node';
-
-
-
-
-
-
-
                     if (isLocked) cardClasses += ' node-locked';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    if (isMaxed) cardClasses += ' node-maxed';
 
                     let statusText = isMaxed ? 'MAXED' : (isLocked ? `🔒 Req ${node.reqBranchPts} Pts` : (otherKeystoneActive ? 'Locked (1 Keystone Max)' : `Cost: ${node.cost} Orb${node.cost > 1 ? 's' : ''}`));
-
-
-
-
-
-
-
                     let statusColor = isMaxed ? '#55ff55' : (isLocked ? '#94a3b8' : (otherKeystoneActive ? '#94a3b8' : (canAfford ? '#ffd700' : '#ff5555')));
-
-
-
-
-
-
-
                     let canBuy = !isMaxed && !isLocked && !otherKeystoneActive && canAfford;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     branchCardsHtml += `
-
-
-
-
-
-
-
-                        <div class="${cardClasses}">
-
-
-
-
-
-
-
+                        <div class="${cardClasses}" id="st-node-${node.key}" data-skill-node="${node.key}">
                             ${node.type === 'keystone' ? '<div class="keystone-badge">KEYSTONE</div>' : ''}
-
-
-
-
-
-
-
                             <div class="skill-node-header">
-
-
-
-
-
-
-
                                 <span>${node.name}</span>
-
-
-
-
-
-
-
-                                <span>${currentRank}/${node.max}</span>
-
-
-
-
-
-
-
+                                <span id="st-rank-${node.key}">${currentRank}/${node.max}</span>
                             </div>
-
-
-
-
-
-
-
                             <div class="skill-node-desc">${node.desc}</div>
-
-
-
-
-
-
-
-                            ${isLocked ? `<div class="node-locked-hint">🔒 Requires ${node.reqBranchPts} points in ${node.branch}</div>` : ''}
-
-
-
-
-
-
-
+                            <div class="node-locked-hint" id="st-locked-${node.key}" style="display: ${isLocked ? 'block' : 'none'};">🔒 Requires ${node.reqBranchPts} points in ${node.branch}</div>
                             <div class="skill-node-actions">
-
-
-
-
-
-
-
-                                <span style="font-size: 11px; color: ${statusColor}; font-weight: bold;">${statusText}</span>
-
-
-
-
-
-
-
-                                <button class="btn" style="padding: 2px 8px; font-size: 11px;" 
-
-
-
-
-
-
-
+                                <span id="st-status-${node.key}" style="font-size: 11px; color: ${statusColor}; font-weight: bold;">${statusText}</span>
+                                <button class="btn" id="st-btn-${node.key}" style="padding: 2px 8px; font-size: 11px;" 
                                     ${!canBuy ? 'disabled' : ''} 
-
-
-
-
-
-
-
                                     onclick="buySkillUpgrade('${node.key}')">Upgrade</button>
-
-
-
-
-
-
-
                             </div>
-
-
-
-
-
-
-
                         </div>
-
-
-
-
-
-
-
                     `;
-
-
-
-
-
-
-
                 });
-
-
-
-
-
-
-
             });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             fullHtml += `
-
-
-
-
-
-
-
-                <div class="skill-branch st-branch">
-
-
-
-
-
-
-
+                <div class="skill-branch st-branch" data-branch="${bName}" style="display: ${curBranch === 'all' || curBranch === bName ? 'flex' : 'none'};">
                     <div class="branch-header st-branch-header">
-
-
-
-
-
-
-
                         <div class="branch-title st-branch-title">${bIcon} ${bName}</div>
-
-
-
-
-
-
-
-                        <div class="branch-points-badge">${bPts} Pts Invested</div>
-
-
-
-
-
-
-
+                        <div class="branch-points-badge" id="st-pts-${bName}">${bPts} Pts Invested</div>
                     </div>
-
-
-
-
-
-
-
                     ${branchCardsHtml}
-
-
-
-
-
-
-
                 </div>
-
-
-
-
-
-
-
             `;
-
-
-
-
-
-
-
         });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        const contentEl = document.getElementById('st-content');
-
-
-
-
-
-
 
         if (contentEl) {
-
-
-
-
-
-
-
             let branchTabsHtml = `
-
-
-
-
-
-
-
-                <div id="st-branch-pills" style="display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;">
-
-
-
-
-
-
-
-                    <button class="btn st-pill-btn active" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('all')">All</button>
-
-
-
-
-
-
-
-                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Damage')">⚔️ Damage</button>
-
-
-
-
-
-
-
-                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Sustain')">🛡️ Sustain</button>
-
-
-
-
-
-
-
-                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Arcana')">🔮 Arcana</button>
-
-
-
-
-
-
-
-                    <button class="btn st-pill-btn" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('General')">⚡ General</button>
-
-
-
-
-
-
-
+                <div id="st-branch-pills" style="display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-shrink: 0;">
+                    <button class="btn st-pill-btn ${curBranch === 'all' ? 'active' : ''}" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('all')">All</button>
+                    <button class="btn st-pill-btn ${curBranch === 'Damage' ? 'active' : ''}" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Damage')">⚔️ Damage</button>
+                    <button class="btn st-pill-btn ${curBranch === 'Sustain' ? 'active' : ''}" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Sustain')">🛡️ Sustain</button>
+                    <button class="btn st-pill-btn ${curBranch === 'Arcana' ? 'active' : ''}" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('Arcana')">🔮 Arcana</button>
+                    <button class="btn st-pill-btn ${curBranch === 'General' ? 'active' : ''}" style="flex:1; padding: 4px 6px; font-size: 11px; margin: 0;" onclick="filterSkillTreeBranch('General')">🌟 General</button>
                 </div>
-
-
-
-
-
-
-
             `;
-
-
-
-
-
-
-
             let pillsEl = document.getElementById('st-branch-pills');
-
-
-
-
-
-
-
             if (!pillsEl) {
-
-
-
-
-
-
-
                 contentEl.insertAdjacentHTML('beforebegin', branchTabsHtml);
-
-
-
-
-
-
-
+            } else {
+                pillsEl.querySelectorAll('.st-pill-btn').forEach(p => {
+                    p.classList.toggle('active', (curBranch === 'all' && p.innerText === 'All') || p.innerText.includes(curBranch));
+                });
             }
-
-
-
-
-
-
-
             contentEl.innerHTML = fullHtml;
+            if (modalEl) modalEl.scrollTop = savedModalScroll;
+            if (contentEl) contentEl.scrollTop = savedContentScroll;
+            requestAnimationFrame(() => {
+                if (modalEl) modalEl.scrollTop = savedModalScroll;
+                if (contentEl) contentEl.scrollTop = savedContentScroll;
+                setTimeout(() => {
+                    if (modalEl) modalEl.scrollTop = savedModalScroll;
+                    if (contentEl) contentEl.scrollTop = savedContentScroll;
+                }, 40);
+            });
+        }
+    }
 
+    function updateSkillTreeUI() {
+        if (!player) return;
+        const modalEl = document.getElementById('modal-skilltree');
+        const contentEl = document.getElementById('st-content');
+        const savedModalScroll = modalEl ? modalEl.scrollTop : 0;
+        const savedContentScroll = contentEl ? contentEl.scrollTop : 0;
 
+        const orbsEl = document.getElementById('st-orbs');
+        if (orbsEl) orbsEl.innerText = player.skillOrbs || 0;
 
-
-
-
-
+        const respecBtn = document.getElementById('btn-st-respec');
+        if (respecBtn) {
+            respecBtn.innerText = player.hasRespecced ? '🔄 Respec Tree (200G)' : '🔄 Respec Tree (Free)';
         }
 
-
-
-
-
-
-
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    function filterSkillTreeBranch(branchName) {
-
-
-
-
-
-
-
-        const branches = document.querySelectorAll('#st-content .st-branch, #st-content .skill-branch');
-
-
-
-
-
-
-
-        const pills = document.querySelectorAll('#st-branch-pills .st-pill-btn');
-
-
-
-
-
-
-
-        pills.forEach(p => {
-
-
-
-
-
-
-
-            p.classList.toggle('active', (branchName === 'all' && p.innerText === 'All') || p.innerText.includes(branchName));
-
-
-
-
-
-
-
+        const branchNames = ['Damage', 'Sustain', 'Arcana', 'General'];
+        branchNames.forEach(bName => {
+            const bPts = getBranchPoints(bName);
+            const badgeEl = document.getElementById(`st-pts-${bName}`);
+            if (badgeEl) badgeEl.innerText = `${bPts} Pts Invested`;
         });
 
+        for (let key in SKILL_TREE_DB) {
+            const node = SKILL_TREE_DB[key];
+            const currentRank = (player.skillTree && player.skillTree[key]) || 0;
+            const bPts = getBranchPoints(node.branch);
+            const isMaxed = currentRank >= node.max;
+            const isLocked = bPts < (node.reqBranchPts || 0);
+            const canAfford = (player.skillOrbs || 0) >= node.cost;
 
-
-
-
-
-
-        branches.forEach(b => {
-
-
-
-
-
-
-
-            if (branchName === 'all') {
-
-
-
-
-
-
-
-                b.style.display = 'flex';
-
-
-
-
-
-
-
-            } else {
-
-
-
-
-
-
-
-                const titleEl = b.querySelector('.st-branch-title, .branch-title');
-
-
-
-
-
-
-
-                b.style.display = (titleEl && titleEl.innerText.includes(branchName)) ? 'flex' : 'none';
-
-
-
-
-
-
-
+            let otherKeystoneActive = false;
+            if (node.type === 'keystone' && currentRank === 0) {
+                for (let otherKey in SKILL_TREE_DB) {
+                    if (otherKey !== key) {
+                        let otherNode = SKILL_TREE_DB[otherKey];
+                        if (otherNode.branch === node.branch && otherNode.type === 'keystone' && (player.skillTree && player.skillTree[otherKey] > 0)) {
+                            otherKeystoneActive = true;
+                            break;
+                        }
+                    }
+                }
             }
 
+            const canBuy = !isMaxed && !isLocked && !otherKeystoneActive && canAfford;
+            const statusText = isMaxed ? 'MAXED' : (isLocked ? `🔒 Req ${node.reqBranchPts} Pts` : (otherKeystoneActive ? 'Locked (1 Keystone Max)' : `Cost: ${node.cost} Orb${node.cost > 1 ? 's' : ''}`));
+            const statusColor = isMaxed ? '#55ff55' : (isLocked ? '#94a3b8' : (otherKeystoneActive ? '#94a3b8' : (canAfford ? '#ffd700' : '#ff5555')));
 
+            const nodeEl = document.getElementById(`st-node-${key}`);
+            if (nodeEl) {
+                nodeEl.classList.toggle('node-locked', isLocked);
+                nodeEl.classList.toggle('node-maxed', isMaxed);
+            }
 
+            const rankEl = document.getElementById(`st-rank-${key}`);
+            if (rankEl) rankEl.innerText = `${currentRank}/${node.max}`;
 
+            const lockedEl = document.getElementById(`st-locked-${key}`);
+            if (lockedEl) lockedEl.style.display = isLocked ? 'block' : 'none';
 
+            const statusEl = document.getElementById(`st-status-${key}`);
+            if (statusEl) {
+                statusEl.innerText = statusText;
+                statusEl.style.color = statusColor;
+            }
 
+            const btnEl = document.getElementById(`st-btn-${key}`);
+            if (btnEl) {
+                btnEl.disabled = !canBuy;
+            }
+        }
 
-        });
-
-
-
-
-
-
-
+        // Maintain scroll invariants in case of mobile browser focus drift
+        if (modalEl && savedModalScroll > 0) modalEl.scrollTop = savedModalScroll;
+        if (contentEl && savedContentScroll > 0) contentEl.scrollTop = savedContentScroll;
     }
 
-
-
-
-
-
+    function filterSkillTreeBranch(branchName) {
+        if (typeof window !== 'undefined') window.activeSkillTreeBranch = branchName;
+        const branches = document.querySelectorAll('#st-content .st-branch, #st-content .skill-branch');
+        const pills = document.querySelectorAll('#st-branch-pills .st-pill-btn');
+        pills.forEach(p => {
+            p.classList.toggle('active', (branchName === 'all' && p.innerText === 'All') || p.innerText.includes(branchName));
+        });
+        branches.forEach(b => {
+            if (branchName === 'all') {
+                b.style.display = 'flex';
+            } else {
+                const bBranch = b.getAttribute('data-branch');
+                const titleEl = b.querySelector('.st-branch-title, .branch-title');
+                const match = (bBranch && bBranch === branchName) || (titleEl && titleEl.innerText.includes(branchName));
+                b.style.display = match ? 'flex' : 'none';
+            }
+        });
+    }
 
     if (typeof window !== 'undefined') {
-
-
-
-
-
-
-
         window.filterSkillTreeBranch = filterSkillTreeBranch;
-
-
-
-
-
-
-
+        window.updateSkillTreeUI = updateSkillTreeUI;
+        window.renderSkillTree = renderSkillTree;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function buySkillUpgrade(key) {
 
@@ -28775,28 +27889,14 @@ ${setInfoHtml}
 
 
         playSFX('button_click');
-
-
-
-
-
-
-
         computeStats();
 
-
-
-
-
-
-
-        renderSkillTree();
-
-
-
-
-
-
+        const nodeEl = document.getElementById(`st-node-${key}`);
+        if (nodeEl && typeof updateSkillTreeUI === 'function') {
+            updateSkillTreeUI();
+        } else {
+            renderSkillTree();
+        }
 
         updateHeader();
 
@@ -29247,1526 +28347,361 @@ ${setInfoHtml}
 
 
     function getQuestProgress(quest) {
-
-
-
-
-
-
-
+        if (!player) return { current: 0, rawCurrent: 0, target: (quest && quest.target) || 1, isComplete: false, isClaimed: false, isUnlocked: false };
         let current = 0;
 
-
-
-
-
-
-
-        if(quest.type === 'defeat_enemies') {
-
-
-
-
-
-
-
+        if (quest.type === 'defeat_enemies') {
             current = (player.questStats && player.questStats.enemiesDefeated) || 0;
-
-
-
-
-
-
-
-        } else if(quest.type === 'reach_level') {
-
-
-
-
-
-
-
+        } else if (quest.type === 'reach_level') {
             current = player.level || 1;
-
-
-
-
-
-
-
-        } else if(quest.type === 'have_item') {
-
-
-
-
-
-
-
-            current = (player.inventory && player.inventory[quest.item]) || 0;
-
-
-
-
-
-
-
-        } else if(quest.type === 'bosses_defeated') {
-
-
-
-
-
-
-
+        } else if (quest.type === 'have_item') {
+            current = (player.inventory && player.inventory[quest.item]) ||
+                      (player.inventory && player.inventory.consumables && player.inventory.consumables[quest.item]) || 0;
+        } else if (quest.type === 'bosses_defeated') {
             current = (player.questStats && player.questStats.bossesDefeated) || 0;
-
-
-
-
-
-
-
-        } else if(quest.type === 'gold_held') {
-
-
-
-
-
-
-
+        } else if (quest.type === 'gold_held') {
             current = player.gold || 0;
-
-
-
-
-
-
-
-        } else if(quest.type === 'skill_ranks') {
-
-
-
-
-
-
-
+        } else if (quest.type === 'skill_ranks') {
             current = typeof getTotalSkillRanks === 'function' ? getTotalSkillRanks() : 0;
-
-
-
-
-
-
-
+        } else if (quest.type === 'conquer_area') {
+            const areaNum = parseInt((quest.areaId || '').replace('area_', '')) || 0;
+            const nextAreaId = 'area_' + (areaNum + 1);
+            const isDefeated = (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(quest.areaId)) ||
+                               (player.unlockedAreas && player.unlockedAreas.includes(nextAreaId));
+            current = isDefeated ? 1 : 0;
+        } else if (quest.type === 'recruit_mercenaries') {
+            current = (player.roster && player.roster.filter(h => !h.isMain && h.id !== 'hero_main' && h !== player).length) || 0;
+        } else if (quest.type === 'active_squad_size') {
+            current = (player.activeParty && player.activeParty.length) || 1;
+        } else if (quest.type === 'hero_tier') {
+            let maxTier = 0;
+            const rosterList = (player.roster && player.roster.length > 0) ? player.roster : [player];
+            rosterList.forEach(h => {
+                const clsId = h.classId || h.currentClass || (h.isMain ? player.currentClass : null) || (h === player ? player.currentClass : null);
+                const cls = (typeof CLASSES_DB !== 'undefined' && clsId) ? CLASSES_DB[clsId] : null;
+                const tier = cls ? (cls.tier || 0) : 0;
+                if (tier > maxTier) maxTier = tier;
+            });
+            current = maxTier;
+        } else if (quest.type === 'salvage_equipment') {
+            current = (player.blacksmithStats && player.blacksmithStats.itemsSalvaged) ||
+                      (player.blacksmith && player.blacksmith.salvagedCount) ||
+                      player.itemsSalvaged || 0;
+        } else if (quest.type === 'blacksmith_upgrade') {
+            let maxUpgrade = 0;
+            if (player.equipment) {
+                Object.values(player.equipment).forEach(eq => {
+                    if (eq && eq.upgradeLevel && eq.upgradeLevel > maxUpgrade) maxUpgrade = eq.upgradeLevel;
+                });
+            }
+            if (player.roster) {
+                player.roster.forEach(h => {
+                    if (h && h.equipment) {
+                        Object.values(h.equipment).forEach(eq => {
+                            if (eq && eq.upgradeLevel && eq.upgradeLevel > maxUpgrade) maxUpgrade = eq.upgradeLevel;
+                        });
+                    }
+                });
+            }
+            if (player.inventory && player.inventory.equipment && Array.isArray(player.inventory.equipment)) {
+                player.inventory.equipment.forEach(eq => {
+                    if (eq && eq.upgradeLevel && eq.upgradeLevel > maxUpgrade) maxUpgrade = eq.upgradeLevel;
+                });
+            }
+            current = maxUpgrade;
+        } else if (quest.type === 'spire_floor') {
+            current = (player.spire && player.spire.highestFloor) || player.spireHighestFloor || player.spireFloor || (player.spire && player.spire.floor) || 0;
+        } else if (quest.type === 'calamity_keystones') {
+            current = (player.calamityKeys || 0) + (player.calamityKeysUsed || 0) || (player.calamityUnlocked ? 1 : 0);
+        } else if (quest.type === 'calamity_raid_wins') {
+            let raidWins = 0;
+            if (player.calamityVictories) {
+                Object.values(player.calamityVictories).forEach(v => { raidWins += (v || 0); });
+            }
+            if (player.calamityRaidWins) {
+                raidWins = Math.max(raidWins, player.calamityRaidWins);
+            }
+            current = raidWins;
         }
 
-
-
-
-
-
-
-        let target = quest.target;
-
-
-
-
-
-
-
+        let target = quest.target || 1;
         let isComplete = current >= target;
-
-
-
-
-
-
-
         let isClaimed = !!(player.quests && player.quests[quest.id] && player.quests[quest.id].claimed);
-
-
-
-
-
-
-
         let isUnlocked = !quest.prereqQuestId || !!(player.quests && player.quests[quest.prereqQuestId] && player.quests[quest.prereqQuestId].claimed);
 
-
-
-
-
-
-
         return {
-
-
-
-
-
-
-
             current: Math.min(current, target),
-
-
-
-
-
-
-
             rawCurrent: current,
-
-
-
-
-
-
-
             target: target,
-
-
-
-
-
-
-
             isComplete: isComplete,
-
-
-
-
-
-
-
             isClaimed: isClaimed,
-
-
-
-
-
-
-
             isUnlocked: isUnlocked
-
-
-
-
-
-
-
         };
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function getClaimableQuestCount() {
-
-
-
-
-
-
-
-        if(!player || !player.quests) return 0;
-
-
-
-
-
-
-
+        if (!player || !player.quests) return 0;
         let count = 0;
-
-
-
-
-
-
-
-        for(let key in QUESTS_DB) {
-
-
-
-
-
-
-
+        for (let key in QUESTS_DB) {
             let prog = getQuestProgress(QUESTS_DB[key]);
-
-
-
-
-
-
-
-            if(prog.isUnlocked && prog.isComplete && !prog.isClaimed) count++;
-
-
-
-
-
-
-
+            if (prog.isUnlocked && prog.isComplete && !prog.isClaimed) count++;
         }
-
-
-
-
-
-
-
         return count;
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function updateTownQuestButton() {
-
-
-
-
-
-
-
         const questBtn = document.getElementById('btn-town-quests');
-
-
-
-
-
-
-
-        if(!questBtn) return;
-
-
-
-
-
-
-
+        if (!questBtn) return;
         let claimable = getClaimableQuestCount();
-
-
-
-
-
-
-
-        if(claimable > 0) {
-
-
-
-
-
-
-
+        if (claimable > 0) {
             questBtn.innerHTML = `Quests<br><span style="color:#55ff55; font-size:12px;">● ${claimable} Ready!</span>`;
-
-
-
-
-
-
-
             questBtn.style.borderColor = '#38bdf8';
-
-
-
-
-
-
-
         } else {
-
-
-
-
-
-
-
             questBtn.innerHTML = 'Quests';
-
-
-
-
-
-
-
             questBtn.style.borderColor = '#666';
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
     }
 
+    window.activeQuestCategory = window.activeQuestCategory || 'all';
 
-
-
-
-
-
-
-
-
-
-
-
-
+    function filterQuestCategory(category) {
+        window.activeQuestCategory = category || 'all';
+        renderQuests();
+    }
+    window.filterQuestCategory = filterQuestCategory;
 
     function renderQuests() {
-
-
-
-
-
-
-
         const container = document.getElementById('quests-list');
+        if (!container) return;
 
+        // Render Category Tabs Ribbon
+        let pillsContainer = document.getElementById('quest-category-pills');
+        if (!pillsContainer && container.parentElement) {
+            pillsContainer = document.createElement('div');
+            pillsContainer.id = 'quest-category-pills';
+            pillsContainer.className = 'quest-category-pills-bar';
+            container.parentElement.insertBefore(pillsContainer, container);
+        }
 
+        if (pillsContainer) {
+            const categories = [
+                { id: 'all', label: 'All' },
+                { id: 'story', label: '📖 Story' },
+                { id: 'combat', label: '⚔️ Combat' },
+                { id: 'squad', label: '👑 Squad' },
+                { id: 'forge', label: '🔨 Forge' },
+                { id: 'endgame', label: '🗼 Endgame' },
+                { id: 'economy', label: '💰 Economy' }
+            ];
 
-
-
-
-
-        if(!container) return;
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
+            pillsContainer.innerHTML = categories.map(cat => `
+                <button class="quest-pill-btn ${window.activeQuestCategory === cat.id ? 'active' : ''}" onclick="filterQuestCategory('${cat.id}')">
+                    ${cat.label}
+                </button>
+            `).join('');
+        }
 
         let activeHtml = '';
-
-
-
-
-
-
-
         let claimedHtml = '';
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-        for(let key in QUESTS_DB) {
-
-
-
-
-
-
-
+        for (let key in QUESTS_DB) {
             const quest = QUESTS_DB[key];
-
-
-
-
-
-
-
             const prog = getQuestProgress(quest);
 
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
             // Hide locked tiers whose prerequisites have not yet been claimed
-
-
-
-
-
-
-
-            if(!prog.isUnlocked && !prog.isClaimed) continue;
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
-            let statusBadge = '';
-
-
-
-
-
-
-
-            let cardClass = 'quest-card';
-
-
-
-
-
-
-
-            let actionBtn = '';
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
-            if(prog.isClaimed) {
-
-
-
-
-
-
-
-                cardClass += ' claimed';
-
-
-
-
-
-
-
-                statusBadge = '<span class="quest-status-badge quest-badge-claimed">Claimed ✓</span>';
-
-
-
-
-
-
-
-                actionBtn = '<button class="btn" disabled style="padding: 4px 12px; font-size: 12px;">Claimed</button>';
-
-
-
-
-
-
-
-            } else if(prog.isComplete) {
-
-
-
-
-
-
-
-                cardClass += ' ready';
-
-
-
-
-
-
-
-                statusBadge = '<span class="quest-status-badge quest-badge-ready">Ready to Claim!</span>';
-
-
-
-
-
-
-
-                actionBtn = `<button class="btn" style="padding: 4px 12px; font-size: 12px; color: #55ff55; border-color: #55ff55;" onclick="claimQuest('${quest.id}')">Claim Reward</button>`;
-
-
-
-
-
-
-
-            } else {
-
-
-
-
-
-
-
-                statusBadge = '<span class="quest-status-badge quest-badge-progress">In Progress</span>';
-
-
-
-
-
-
-
-                actionBtn = '<button class="btn" disabled style="padding: 4px 12px; font-size: 12px;">In Progress</button>';
-
-
-
-
-
-
-
+            if (!prog.isUnlocked && !prog.isClaimed) continue;
+
+            // Filter by active category
+            if (window.activeQuestCategory && window.activeQuestCategory !== 'all') {
+                if (quest.category !== window.activeQuestCategory) continue;
             }
 
+            let statusBadge = '';
+            let cardClass = 'quest-card';
+            let actionBtn = '';
 
-
-
-
-
-
-            
-
-
-
-
-
-
+            if (prog.isClaimed) {
+                cardClass += ' claimed';
+                statusBadge = '<span class="quest-status-badge quest-badge-claimed">Claimed ✓</span>';
+                actionBtn = '<button class="btn" disabled style="padding: 4px 12px; font-size: 12px;">Claimed</button>';
+            } else if (prog.isComplete) {
+                cardClass += ' ready';
+                statusBadge = '<span class="quest-status-badge quest-badge-ready">Ready to Claim!</span>';
+                actionBtn = `<button class="btn" style="padding: 4px 12px; font-size: 12px; color: #55ff55; border-color: #55ff55;" onclick="claimQuest('${quest.id}')">Claim Reward</button>`;
+            } else {
+                statusBadge = '<span class="quest-status-badge quest-badge-progress">In Progress</span>';
+                actionBtn = '<button class="btn" disabled style="padding: 4px 12px; font-size: 12px;">In Progress</button>';
+            }
 
             let percent = Math.min(100, Math.floor((prog.rawCurrent / prog.target) * 100));
 
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
             let rewardItems = [];
-
-
-
-
-
-
-
-            if(quest.reward.exp) rewardItems.push(`+${quest.reward.exp} EXP`);
-
-
-
-
-
-
-
-            if(quest.reward.gold) rewardItems.push(`+${quest.reward.gold} Gold`);
-
-
-
-
-
-
-
-            if(quest.reward.item) rewardItems.push(`+${quest.reward.item}${quest.reward.qty > 1 ? ' x' + quest.reward.qty : ''}`);
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
+            if (quest.reward.exp) rewardItems.push(`+${quest.reward.exp} EXP`);
+            if (quest.reward.gold) rewardItems.push(`+${quest.reward.gold} Gold`);
+            if (quest.reward.marks) rewardItems.push(`<span class="quest-reward-marks">🏷️ +${quest.reward.marks} Marks</span>`);
+            if (quest.reward.skillOrbs) rewardItems.push(`🔮 +${quest.reward.skillOrbs} Skill Orbs`);
+            if (quest.reward.scrap) rewardItems.push(`🔨 +${quest.reward.scrap} Scrap`);
+            if (quest.reward.dust) rewardItems.push(`✨ +${quest.reward.dust} Dust`);
+            if (quest.reward.shard) rewardItems.push(`💎 +${quest.reward.shard} Shard`);
+            if (quest.reward.item) rewardItems.push(`🎁 +${quest.reward.item}${quest.reward.qty > 1 ? ' x' + quest.reward.qty : ''}`);
 
             let progressLabel = `${Math.min(prog.rawCurrent, prog.target)} / ${prog.target}`;
-
-
-
-
-
-
-
-            if(quest.type === 'have_item') progressLabel += ` in inventory`;
-
-
-
-
-
-
-
-            if(quest.type === 'gold_held') progressLabel += ` Gold`;
-
-
-
-
-
-
-
-            if(quest.type === 'skill_ranks') progressLabel += ` Ranks`;
-
-
-
-
-
-
-
-            if(quest.type === 'bosses_defeated') progressLabel += ` Bosses`;
-
-
-
-
-
-
-
-            if(quest.type === 'reach_level') progressLabel += ` Level`;
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
+            if (quest.type === 'have_item') progressLabel += ` in inventory`;
+            else if (quest.type === 'gold_held') progressLabel += ` Gold`;
+            else if (quest.type === 'skill_ranks') progressLabel += ` Ranks`;
+            else if (quest.type === 'bosses_defeated') progressLabel += ` Bosses`;
+            else if (quest.type === 'reach_level') progressLabel += ` Level`;
+            else if (quest.type === 'conquer_area') progressLabel = prog.isComplete ? 'Conquered ✓' : 'Incomplete (0 / 1)';
+            else if (quest.type === 'recruit_mercenaries') progressLabel += ` Mercenaries`;
+            else if (quest.type === 'active_squad_size') progressLabel += ` Heroes`;
+            else if (quest.type === 'hero_tier') progressLabel = `Tier ${Math.min(prog.rawCurrent, prog.target)} / Tier ${prog.target}`;
+            else if (quest.type === 'salvage_equipment') progressLabel += ` Salvaged`;
+            else if (quest.type === 'blacksmith_upgrade') progressLabel = `+${Math.min(prog.rawCurrent, prog.target)} / +${prog.target}`;
+            else if (quest.type === 'spire_floor') progressLabel = `Floor ${Math.min(prog.rawCurrent, prog.target)} / Floor ${prog.target}`;
+            else if (quest.type === 'calamity_keystones') progressLabel += ` Keystones`;
+            else if (quest.type === 'calamity_raid_wins') progressLabel += ` Raids Won`;
 
             let cardMarkup = `
-
-
-
-
-
-
-
                 <div class="${cardClass}">
-
-
-
-
-
-
-
                     <div class="quest-top">
-
-
-
-
-
-
-
                         <span class="quest-title">${quest.title}</span>
-
-
-
-
-
-
-
                         ${statusBadge}
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
                     <div class="quest-desc">${quest.desc}</div>
-
-
-
-
-
-
-
                     <div class="quest-prog-container">
-
-
-
-
-
-
-
                         <div class="quest-prog-text">
-
-
-
-
-
-
-
                             <span>Progress</span>
-
-
-
-
-
-
-
                             <span>${progressLabel} (${percent}%)</span>
-
-
-
-
-
-
-
                         </div>
-
-
-
-
-
-
-
                         <div class="quest-prog-bar-bg">
-
-
-
-
-
-
-
                             <div class="quest-prog-bar-fill" style="width: ${percent}%;"></div>
-
-
-
-
-
-
-
                         </div>
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
                     <div class="quest-bottom">
-
-
-
-
-
-
-
                         <div class="quest-rewards-text">Rewards: ${rewardItems.join(' | ')}</div>
-
-
-
-
-
-
-
                         <div>${actionBtn}</div>
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
                 </div>
-
-
-
-
-
-
-
             `;
 
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
-            if(prog.isClaimed) {
-
-
-
-
-
-
-
+            if (prog.isClaimed) {
                 claimedHtml += cardMarkup;
-
-
-
-
-
-
-
             } else {
-
-
-
-
-
-
-
                 activeHtml += cardMarkup;
-
-
-
-
-
-
-
             }
-
-
-
-
-
-
-
         }
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-        container.innerHTML = activeHtml + claimedHtml;
-
-
-
-
-
-
+        if (!activeHtml && !claimedHtml) {
+            container.innerHTML = `<div style="text-align: center; color: #888; padding: 25px;">No quests available in this category yet.</div>`;
+        } else {
+            container.innerHTML = activeHtml + claimedHtml;
+        }
 
         updateTownQuestButton();
-
-
-
-
-
-
-
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     function claimQuest(questId) {
-
-
-
-
-
-
-
         const quest = QUESTS_DB[questId];
+        if (!quest) return;
 
-
-
-
-
-
-
-        if(!quest) return;
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-        if(!player.quests) player.quests = {};
-
-
-
-
-
-
-
-        if(player.quests[questId] && player.quests[questId].claimed) {
-
-
-
-
-
-
-
+        if (!player.quests) player.quests = {};
+        if (player.quests[questId] && player.quests[questId].claimed) {
             showToast('Quest', 'Reward already claimed!', 'quest');
-
-
-
-
-
-
-
             return;
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
 
         const prog = getQuestProgress(quest);
-
-
-
-
-
-
-
-        if(!prog.isComplete) {
-
-
-
-
-
-
-
+        if (!prog.isComplete) {
             showToast('Quest', 'Quest requirement not yet met!', 'quest');
-
-
-
-
-
-
-
             return;
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
 
         player.quests[questId] = { claimed: true };
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
         let rewardText = [];
 
-
-
-
-
-
-
-        if(quest.reward.exp) {
-
-
-
-
-
-
-
+        if (quest.reward.exp) {
             player.exp += quest.reward.exp;
-
-
-
-
-
-
-
             rewardText.push(`+${quest.reward.exp} EXP`);
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-        if(quest.reward.gold) {
-
-
-
-
-
-
-
+        if (quest.reward.gold) {
             player.gold += quest.reward.gold;
-
-
-
-
-
-
-
             rewardText.push(`+${quest.reward.gold} Gold`);
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-        if(quest.reward.item) {
-
-
-
-
-
-
-
-            let qty = quest.reward.qty || 1;
-
-
-
-
-
-
-
-            let baseItem = ITEMS_DB[quest.reward.item];
-
-
-
-
-
-
-
-            if(baseItem && baseItem.type !== 'consumable') {
-
-
-
-
-
-
-
-                for(let q = 0; q < qty; q++) {
-
-
-
-
-
-
-
-                    let eqInstance = generateItem(quest.reward.item, 'Rare');
-
-
-
-
-
-
-
-                    if(!player.inventory.equipment) player.inventory.equipment = [];
-
-
-
-
-
-
-
-                    player.inventory.equipment.push(eqInstance);
-
-
-
-
-
-
-
+        if (quest.reward.marks) {
+            player.bountyMarks = (player.bountyMarks || 0) + quest.reward.marks;
+            rewardText.push(`+${quest.reward.marks} Bounty Marks`);
+        }
+        if (quest.reward.skillOrbs) {
+            player.skillOrbs = (player.skillOrbs || 0) + quest.reward.skillOrbs;
+            rewardText.push(`+${quest.reward.skillOrbs} Skill Orbs`);
+        }
+        if (quest.reward.scrap || quest.reward.dust || quest.reward.shard) {
+            if (!player.materials) player.materials = { scrap: 0, dust: 0, shard: 0 };
+            if (quest.reward.scrap) {
+                player.materials.scrap = (player.materials.scrap || 0) + quest.reward.scrap;
+                if (player.blacksmith) {
+                    if (!player.blacksmith.materials) player.blacksmith.materials = {};
+                    player.blacksmith.materials.scrap = (player.blacksmith.materials.scrap || 0) + quest.reward.scrap;
+                    player.blacksmith.scrap = (player.blacksmith.scrap || 0) + quest.reward.scrap;
                 }
-
-
-
-
-
-
-
-                rewardText.push(`+${quest.reward.item} (Rare) x${qty}`);
-
-
-
-
-
-
-
-            } else {
-
-
-
-
-
-
-
-                if(!player.inventory.consumables) player.inventory.consumables = {};
-
-
-
-
-
-
-
-                player.inventory.consumables[quest.reward.item] = (player.inventory.consumables[quest.reward.item] || 0) + qty;
-
-
-
-
-
-
-
-                rewardText.push(`+${quest.reward.item} x${qty}`);
-
-
-
-
-
-
-
+                rewardText.push(`+${quest.reward.scrap} Scrap`);
             }
-
-
-
-
-
-
-
+            if (quest.reward.dust) {
+                player.materials.dust = (player.materials.dust || 0) + quest.reward.dust;
+                if (player.blacksmith) {
+                    if (!player.blacksmith.materials) player.blacksmith.materials = {};
+                    player.blacksmith.materials.dust = (player.blacksmith.materials.dust || 0) + quest.reward.dust;
+                    player.blacksmith.dust = (player.blacksmith.dust || 0) + quest.reward.dust;
+                }
+                rewardText.push(`+${quest.reward.dust} Dust`);
+            }
+            if (quest.reward.shard) {
+                player.materials.shard = (player.materials.shard || 0) + quest.reward.shard;
+                if (player.blacksmith) {
+                    if (!player.blacksmith.materials) player.blacksmith.materials = {};
+                    player.blacksmith.materials.shard = (player.blacksmith.materials.shard || 0) + quest.reward.shard;
+                    player.blacksmith.shard = (player.blacksmith.shard || 0) + quest.reward.shard;
+                }
+                rewardText.push(`+${quest.reward.shard} Shard`);
+            }
         }
-
-
-
-
-
-
+        if (quest.reward.item) {
+            let qty = quest.reward.qty || 1;
+            let baseItem = ITEMS_DB[quest.reward.item];
+            if (baseItem && baseItem.type !== 'consumable') {
+                for (let q = 0; q < qty; q++) {
+                    let eqInstance = generateItem(quest.reward.item, 'Rare');
+                    if (!player.inventory.equipment) player.inventory.equipment = [];
+                    player.inventory.equipment.push(eqInstance);
+                }
+                rewardText.push(`+${quest.reward.item} (Rare) x${qty}`);
+            } else {
+                if (!player.inventory.consumables) player.inventory.consumables = {};
+                player.inventory.consumables[quest.reward.item] = (player.inventory.consumables[quest.reward.item] || 0) + qty;
+                rewardText.push(`+${quest.reward.item} x${qty}`);
+            }
+        }
 
         showToast('Quest Complete!', `${quest.title}: ${rewardText.join(', ')}`, 'quest');
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-        if(quest.reward.exp) {
-
-
-
-
-
-
-
+        if (quest.reward.exp) {
             checkLevelUp();
-
-
-
-
-
-
-
         }
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
         computeStats();
-
-
-
-
-
-
-
         updateHeader();
-
-
-
-
-
-
-
         renderQuests();
 
-
-
-
-
-
-
-        if(typeof checkAchievements === 'function') checkAchievements();
-
-
-
-
-
-
-
+        if (typeof checkAchievements === 'function') checkAchievements();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /* =========================================================================
-
-
-
-
-
-
-
-       ACHIEVEMENT SYSTEM
-
-
-
-
-
-
-
-       ========================================================================= */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    function getTotalSkillRanks() {
+    window.getQuestProgress = getQuestProgress;
+    window.claimQuest = claimQuest;
+    window.renderQuests = renderQuests;
+    window.getClaimableQuestCount = getClaimableQuestCount;
+    window.updateTownQuestButton = updateTownQuestButton;
+function getTotalSkillRanks() {
 
 
 
@@ -30911,1238 +28846,356 @@ ${setInfoHtml}
 
 
     function getAchievementProgress(achievement) {
-
-
-
-
-
-
-
+        if (!player) return { current: 0, rawCurrent: 0, target: (achievement && achievement.target) || 1, isUnlocked: false, percent: 0 };
         let current = 0;
 
-
-
-
-
-
-
-        if(achievement.type === 'battles_won') {
-
-
-
-
-
-
-
-            current = (player.questStats && player.questStats.battlesWon) || 0;
-
-
-
-
-
-
-
-        } else if(achievement.type === 'bosses_defeated') {
-
-
-
-
-
-
-
-            current = (player.questStats && player.questStats.bossesDefeated) || 0;
-
-
-
-
-
-
-
-        } else if(achievement.type === 'gold_held') {
-
-
-
-
-
-
-
+        if (achievement.type === 'battles_won') {
+            current = (player.questStats && player.questStats.battlesWon) || player.battlesWon || 0;
+        } else if (achievement.type === 'bosses_defeated') {
+            current = (player.questStats && player.questStats.bossesDefeated) || player.bossesDefeated || 0;
+        } else if (achievement.type === 'gold_held') {
             current = player.gold || 0;
-
-
-
-
-
-
-
-        } else if(achievement.type === 'skill_ranks') {
-
-
-
-
-
-
-
-            current = getTotalSkillRanks();
-
-
-
-
-
-
-
-        } else if(achievement.type === 'quests_claimed') {
-
-
-
-
-
-
-
-            current = getClaimedQuestCount();
-
-
-
-
-
-
-
-        } else if(achievement.type === 'reach_level') {
-
-
-
-
-
-
-
+        } else if (achievement.type === 'skill_ranks') {
+            current = typeof getTotalSkillRanks === 'function' ? getTotalSkillRanks() : 0;
+        } else if (achievement.type === 'quests_claimed') {
+            current = typeof getClaimedQuestCount === 'function' ? getClaimedQuestCount() : 0;
+        } else if (achievement.type === 'reach_level') {
             current = player.level || 1;
-
-
-
-
-
-
-
+        } else if (achievement.type === 'conquer_area') {
+            const areaNum = parseInt((achievement.areaId || '').replace('area_', '')) || 0;
+            const nextAreaId = 'area_' + (areaNum + 1);
+            const isDefeated = (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(achievement.areaId)) ||
+                               (player.unlockedAreas && player.unlockedAreas.includes(nextAreaId));
+            current = isDefeated ? 1 : 0;
+        } else if (achievement.type === 'hero_tier') {
+            let maxTier = 0;
+            const rosterList = (player.roster && player.roster.length > 0) ? player.roster : [player];
+            rosterList.forEach(h => {
+                const clsId = h.classId || h.currentClass || (h.isMain ? player.currentClass : null) || (h === player ? player.currentClass : null);
+                const cls = (typeof CLASSES_DB !== 'undefined' && clsId) ? CLASSES_DB[clsId] : null;
+                const tier = cls ? (cls.tier || 0) : 0;
+                if (tier > maxTier) maxTier = tier;
+            });
+            current = maxTier;
+        } else if (achievement.type === 'active_squad_size') {
+            current = (player.activeParty && player.activeParty.length) || 1;
+        } else if (achievement.type === 'recruit_mercenaries') {
+            current = (player.roster && player.roster.filter(h => !h.isMain && h.id !== 'hero_main' && h !== player).length) || 0;
+        } else if (achievement.type === 'blacksmith_upgrade') {
+            let maxUpgrade = 0;
+            if (player.equipment) {
+                Object.values(player.equipment).forEach(eq => {
+                    if (eq && eq.upgradeLevel && eq.upgradeLevel > maxUpgrade) maxUpgrade = eq.upgradeLevel;
+                });
+            }
+            if (player.roster) {
+                player.roster.forEach(h => {
+                    if (h && h.equipment) {
+                        Object.values(h.equipment).forEach(eq => {
+                            if (eq && eq.upgradeLevel && eq.upgradeLevel > maxUpgrade) maxUpgrade = eq.upgradeLevel;
+                        });
+                    }
+                });
+            }
+            if (player.inventory && player.inventory.equipment && Array.isArray(player.inventory.equipment)) {
+                player.inventory.equipment.forEach(eq => {
+                    if (eq && eq.upgradeLevel && eq.upgradeLevel > maxUpgrade) maxUpgrade = eq.upgradeLevel;
+                });
+            }
+            current = maxUpgrade;
+        } else if (achievement.type === 'salvage_equipment') {
+            current = (player.blacksmithStats && player.blacksmithStats.itemsSalvaged) ||
+                      (player.blacksmith && player.blacksmith.salvagedCount) ||
+                      player.itemsSalvaged || 0;
+        } else if (achievement.type === 'spire_floor') {
+            current = (player.spire && player.spire.highestFloor) || player.spireHighestFloor || player.spireFloor || (player.spire && player.spire.floor) || 0;
+        } else if (achievement.type === 'relics_possessed') {
+            let rCount = 0;
+            if (player.spire && Array.isArray(player.spire.relics)) rCount = Math.max(rCount, player.spire.relics.length);
+            if (player.relics) {
+                rCount = Math.max(rCount, Array.isArray(player.relics) ? player.relics.length : Object.keys(player.relics).length);
+            }
+            current = rCount;
+        } else if (achievement.type === 'calamity_raid_wins') {
+            let raidWins = 0;
+            if (player.calamityVictories) {
+                Object.values(player.calamityVictories).forEach(v => { raidWins += (v || 0); });
+            }
+            if (player.calamityRaidWins) {
+                raidWins = Math.max(raidWins, player.calamityRaidWins);
+            }
+            current = raidWins;
+        } else if (achievement.type === 'stagger_breaks') {
+            current = (player.questStats && player.questStats.staggerBreaks) || player.staggerBreaks || 0;
+        } else if (achievement.type === 'calamity_boss_defeated') {
+            let isDefeated = false;
+            if (player.defeatedBosses && player.defeatedBosses.includes(achievement.bossName)) isDefeated = true;
+            if (player.calamityVictories) {
+                if (player.calamityVictories[achievement.bossName]) isDefeated = true;
+                if (achievement.bossName === 'Chronos, Cosmic Void-Incarnate' && player.calamityVictories['raid_chronos']) isDefeated = true;
+                if (achievement.bossName === 'Ignis, The Living Supernova' && player.calamityVictories['raid_ignis']) isDefeated = true;
+                if (achievement.bossName === 'Leviathan, The Abyssal Sovereign' && player.calamityVictories['raid_leviathan']) isDefeated = true;
+            }
+            current = isDefeated ? 1 : 0;
         }
 
-
-
-
-
-
-
-        let target = achievement.target;
-
-
-
-
-
-
-
+        let target = achievement.target || 1;
         let isUnlocked = !!(player.achievements && player.achievements[achievement.id] && player.achievements[achievement.id].unlocked);
-
-
-
-
-
-
-
         let percent = Math.min(100, Math.floor((current / target) * 100));
 
-
-
-
-
-
-
         return {
-
-
-
-
-
-
-
             current: Math.min(current, target),
-
-
-
-
-
-
-
             rawCurrent: current,
-
-
-
-
-
-
-
             target: target,
-
-
-
-
-
-
-
             isUnlocked: isUnlocked,
-
-
-
-
-
-
-
             percent: percent
-
-
-
-
-
-
-
         };
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function getUnlockedAchievementCount() {
-
-
-
-
-
-
-
-        if(!player || !player.achievements) return 0;
-
-
-
-
-
-
-
+        if (!player || !player.achievements) return 0;
         let count = 0;
-
-
-
-
-
-
-
-        for(let id in ACHIEVEMENTS_DB) {
-
-
-
-
-
-
-
-            if(player.achievements[id] && player.achievements[id].unlocked) count++;
-
-
-
-
-
-
-
+        for (let id in ACHIEVEMENTS_DB) {
+            if (player.achievements[id] && player.achievements[id].unlocked) count++;
         }
-
-
-
-
-
-
-
         return count;
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function updateTownAchievementsButton() {
-
-
-
-
-
-
-
         const achBtn = document.getElementById('btn-town-achievements');
-
-
-
-
-
-
-
-        if(!achBtn) return;
-
-
-
-
-
-
-
+        if (!achBtn) return;
         let unlocked = getUnlockedAchievementCount();
-
-
-
-
-
-
-
-        let total = typeof ACHIEVEMENTS_DB !== 'undefined' ? Object.keys(ACHIEVEMENTS_DB).length : 12;
-
-
-
-
-
-
-
+        let total = typeof ACHIEVEMENTS_DB !== 'undefined' ? Object.keys(ACHIEVEMENTS_DB).length : 37;
         achBtn.innerHTML = `Achievements<br><span style="color:#c084fc; font-size:12px;">★ ${unlocked}/${total} Unlocked</span>`;
-
-
-
-
-
-
-
-        if(unlocked > 0) {
-
-
-
-
-
-
-
+        if (unlocked > 0) {
             achBtn.style.borderColor = '#c084fc';
-
-
-
-
-
-
-
         } else {
-
-
-
-
-
-
-
             achBtn.style.borderColor = '#666';
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function checkAchievements(silent = false) {
-
-
-
-
-
-
-
-        if(!player) return;
-
-
-
-
-
-
-
-        if(!player.achievements) player.achievements = {};
-
-
-
-
-
-
-
-        if(typeof ACHIEVEMENTS_DB === 'undefined') return;
-
-
-
-
-
-
-
+        if (!player) return;
+        if (!player.achievements) player.achievements = {};
+        if (typeof ACHIEVEMENTS_DB === 'undefined') return;
         let anyUnlocked = false;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        for(let id in ACHIEVEMENTS_DB) {
-
-
-
-
-
-
-
+        for (let id in ACHIEVEMENTS_DB) {
             const ach = ACHIEVEMENTS_DB[id];
-
-
-
-
-
-
-
-            if(player.achievements[id] && player.achievements[id].unlocked) continue;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            if (player.achievements[id] && player.achievements[id].unlocked) continue;
 
             const prog = getAchievementProgress(ach);
-
-
-
-
-
-
-
-            if(prog.rawCurrent >= prog.target) {
-
-
-
-
-
-
-
+            if (prog.rawCurrent >= prog.target) {
                 player.achievements[id] = { unlocked: true, unlockedAt: Date.now() };
-
-
-
-
-
-
-
                 anyUnlocked = true;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                if(ach.reward && ach.reward.title) {
-
-
-
-
-
-
-
+                if (ach.reward && ach.reward.title) {
                     player.activeTitle = ach.reward.title;
-
-
-
-
-
-
-
                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                 let statRewards = [];
-
-
-
-
-
-
-
-                if(ach.reward && ach.reward.stats) {
-
-
-
-
-
-
-
-                    for(let s in ach.reward.stats) {
-
-
-
-
-
-
-
+                if (ach.reward && ach.reward.stats) {
+                    for (let s in ach.reward.stats) {
                         statRewards.push(`+${ach.reward.stats[s]} ${s.toUpperCase()}`);
-
-
-
-
-
-
-
                     }
-
-
-
-
-
-
-
                 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                if(typeof battleState !== 'undefined' && battleState.active) {
-
-
-
-
-
-
-
+                if (typeof battleState !== 'undefined' && battleState.active) {
                     logMsg(`★ Achievement Unlocked: ${ach.title}! Title: "${ach.reward.title}"`, "#ffd700");
-
-
-
-
-
-
-
                 }
-
-
-
-
-
-
-
-                if(!silent) {
-
-
-
-
-
-
-
+                if (!silent) {
                     showToast('Achievement Unlocked!', `${ach.title} — Title: "${ach.reward.title}" (${statRewards.join(', ')})`, 'achievement', 4000);
-
-
-
-
-
-
-
                 }
-
-
-
-
-
-
-
             }
-
-
-
-
-
-
-
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if(anyUnlocked) {
-
-
-
-
-
-
-
+        if (anyUnlocked) {
             computeStats();
-
-
-
-
-
-
-
             updateHeader();
-
-
-
-
-
-
-
             updateTownAchievementsButton();
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
     }
 
+    window.activeAchievementCategory = window.activeAchievementCategory || 'all';
 
+    function filterAchievementCategory(category) {
+        window.activeAchievementCategory = category || 'all';
+        renderAchievements();
+    }
+    window.filterAchievementCategory = filterAchievementCategory;
 
+    function equipTitle(titleName) {
+        if (!player) return;
+        let ownsTitle = (titleName === 'Novice');
+        if (player.achievements && typeof ACHIEVEMENTS_DB !== 'undefined') {
+            for (let id in player.achievements) {
+                if (player.achievements[id] && player.achievements[id].unlocked) {
+                    const ach = ACHIEVEMENTS_DB[id];
+                    if (ach && ach.reward && ach.reward.title === titleName) {
+                        ownsTitle = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (player.purchasedTitles && player.purchasedTitles.includes(titleName)) ownsTitle = true;
+        if (player.activeTitle === titleName) ownsTitle = true;
 
+        if (!ownsTitle) {
+            showToast('Title Locked', `Unlock the achievement to equip "${titleName}".`, 'warning');
+            return;
+        }
 
-
-
-
-
-
-
-
-
-
+        player.activeTitle = titleName;
+        updateHeader();
+        renderAchievements();
+        showToast('Title Equipped', `Character title set to "${titleName}"!`, 'achievement', 3000);
+    }
+    window.equipTitle = equipTitle;
 
     function renderAchievements() {
-
-
-
-
-
-
-
         checkAchievements(true);
-
-
-
-
-
-
-
         const container = document.getElementById('achievements-list');
+        if (!container) return;
 
+        // Render Category Tabs Ribbon
+        let pillsContainer = document.getElementById('ach-category-pills');
+        if (!pillsContainer && container.parentElement) {
+            pillsContainer = document.createElement('div');
+            pillsContainer.id = 'ach-category-pills';
+            pillsContainer.className = 'ach-category-pills-bar';
+            container.parentElement.insertBefore(pillsContainer, container);
+        }
 
+        const achCategories = [
+            { id: 'all', label: 'All' },
+            { id: 'conquest', label: '⚔️ Conquest' },
+            { id: 'class', label: '👑 Class & Squad' },
+            { id: 'forge', label: '🔨 Forge' },
+            { id: 'endgame', label: '🗼 Spire & Raids' },
+            { id: 'milestones', label: '⭐ Milestones' }
+        ];
 
-
-
-
-
-        if(!container) return;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        if (pillsContainer) {
+            pillsContainer.innerHTML = achCategories.map(cat => `
+                <button class="ach-pill-btn ${window.activeAchievementCategory === cat.id ? 'active' : ''}" onclick="filterAchievementCategory('${cat.id}')">
+                    ${cat.label}
+                </button>
+            `).join('');
+        }
 
         let html = '';
-
-
-
-
-
-
-
-        for(let key in ACHIEVEMENTS_DB) {
-
-
-
-
-
-
-
+        for (let key in ACHIEVEMENTS_DB) {
             const ach = ACHIEVEMENTS_DB[key];
 
-
-
-
-
-
+            // Category filtering
+            if (window.activeAchievementCategory && window.activeAchievementCategory !== 'all') {
+                const curCat = window.activeAchievementCategory;
+                let match = false;
+                if (curCat === 'conquest' && (ach.category === 'conquest' || ach.category === 'combat')) match = true;
+                else if (curCat === 'class' && (ach.category === 'class' || ach.category === 'squad')) match = true;
+                else if (curCat === 'endgame' && (ach.category === 'endgame' || ach.category === 'spire' || ach.category === 'calamity')) match = true;
+                else if (curCat === ach.category) match = true;
+                if (!match) continue;
+            }
 
             const prog = getAchievementProgress(ach);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             let cardClass = 'achievement-card';
-
-
-
-
-
-
-
             let statusBadge = '';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            if(prog.isUnlocked) {
-
-
-
-
-
-
-
+            if (prog.isUnlocked) {
                 cardClass += ' unlocked';
-
-
-
-
-
-
-
                 statusBadge = '<span class="ach-status-badge ach-badge-unlocked">★ Unlocked</span>';
-
-
-
-
-
-
-
             } else {
-
-
-
-
-
-
-
                 statusBadge = `<span class="ach-status-badge ach-badge-locked">Locked (${prog.percent}%)</span>`;
-
-
-
-
-
-
-
             }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            let statBonuses = [];
-
-
-
-
-
-
-
-            if(ach.reward.stats) {
-
-
-
-
-
-
-
-                for(let s in ach.reward.stats) {
-
-
-
-
-
-
-
-                    statBonuses.push(`+${ach.reward.stats[s]} ${s.toUpperCase()}`);
-
-
-
-
-
-
-
+            let statChips = [];
+            if (ach.reward.stats) {
+                for (let s in ach.reward.stats) {
+                    statChips.push(`<span class="ach-stat-chip">+${ach.reward.stats[s]} ${s.toUpperCase()}</span>`);
                 }
+            }
+            let statChipsHtml = statChips.length > 0 ? `<div class="ach-stat-chips-container">${statChips.join(' ')}</div>` : '';
 
-
-
-
-
-
-
+            let isEquipped = (prog.isUnlocked && ach.reward && ach.reward.title && player.activeTitle === ach.reward.title);
+            let titleAction = '';
+            if (prog.isUnlocked && ach.reward && ach.reward.title) {
+                if (isEquipped) {
+                    titleAction = '<span class="title-equipped-badge">👑 Equipped</span>';
+                } else {
+                    titleAction = `<button class="btn btn-equip-title" onclick="equipTitle('${ach.reward.title}')">Equip Title</button>`;
+                }
             }
 
-
-
-
-
-
-
-            let rewardLabel = `<span style="color:#ffd700;">Title: "${ach.reward.title}"</span> | <span style="color:#55ff55;">${statBonuses.join(', ')}</span>`;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            let progressLabel = `${prog.current} / ${prog.target}`;
-
-
-
-
-
-
-
-            if(ach.type === 'gold_held') progressLabel += ' Gold';
-
-
-
-
-
-
-
-            if(ach.type === 'skill_ranks') progressLabel += ' Ranks';
-
-
-
-
-
-
-
-            if(ach.type === 'quests_claimed') progressLabel += ' Quests';
-
-
-
-
-
-
-
-            if(ach.type === 'battles_won') progressLabel += ' Battles';
-
-
-
-
-
-
-
-            if(ach.type === 'bosses_defeated') progressLabel += ' Bosses';
-
-
-
-
-
-
-
-            if(ach.type === 'reach_level') progressLabel += ' Level';
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            html += `
-
-
-
-
-
-
-
-                <div class="${cardClass}">
-
-
-
-
-
-
-
-                    <div class="ach-top">
-
-
-
-
-
-
-
-                        <span class="ach-title">${ach.title}</span>
-
-
-
-
-
-
-
-                        ${statusBadge}
-
-
-
-
-
-
-
+            let rewardLabel = `
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; width: 100%;">
+                    <div>
+                        <span class="ach-title-name" style="color:#ffd700; font-weight: bold;">Title: "${ach.reward.title}"</span>
+                        ${statChipsHtml}
                     </div>
-
-
-
-
-
-
-
-                    <div class="ach-desc">${ach.desc}</div>
-
-
-
-
-
-
-
-                    <div class="ach-prog-container">
-
-
-
-
-
-
-
-                        <div class="ach-prog-text">
-
-
-
-
-
-
-
-                            <span>Progress</span>
-
-
-
-
-
-
-
-                            <span>${progressLabel}</span>
-
-
-
-
-
-
-
-                        </div>
-
-
-
-
-
-
-
-                        <div class="ach-prog-bar-bg">
-
-
-
-
-
-
-
-                            <div class="ach-prog-bar-fill" style="width: ${prog.percent}%;"></div>
-
-
-
-
-
-
-
-                        </div>
-
-
-
-
-
-
-
-                    </div>
-
-
-
-
-
-
-
-                    <div class="ach-bottom">
-
-
-
-
-
-
-
-                        <div class="ach-rewards-text">Rewards: ${rewardLabel}</div>
-
-
-
-
-
-
-
-                    </div>
-
-
-
-
-
-
-
+                    <div>${titleAction}</div>
                 </div>
-
-
-
-
-
-
-
             `;
 
+            let progressLabel = `${prog.current} / ${prog.target}`;
+            if (ach.type === 'gold_held') progressLabel += ' Gold';
+            else if (ach.type === 'skill_ranks') progressLabel += ' Ranks';
+            else if (ach.type === 'quests_claimed') progressLabel += ' Quests';
+            else if (ach.type === 'battles_won') progressLabel += ' Battles';
+            else if (ach.type === 'bosses_defeated') progressLabel += ' Bosses';
+            else if (ach.type === 'reach_level') progressLabel += ' Level';
+            else if (ach.type === 'conquer_area') progressLabel = prog.isUnlocked ? 'Conquered ✓' : 'Incomplete (0 / 1)';
+            else if (ach.type === 'hero_tier') progressLabel = `Tier ${prog.current} / Tier ${prog.target}`;
+            else if (ach.type === 'active_squad_size') progressLabel += ' Heroes';
+            else if (ach.type === 'recruit_mercenaries') progressLabel += ' Recruits';
+            else if (ach.type === 'blacksmith_upgrade') progressLabel = `+${prog.current} / +${prog.target}`;
+            else if (ach.type === 'salvage_equipment') progressLabel += ' Items';
+            else if (ach.type === 'spire_floor') progressLabel = `Floor ${prog.current} / Floor ${prog.target}`;
+            else if (ach.type === 'relics_possessed') progressLabel += ' Relics';
+            else if (ach.type === 'calamity_raid_wins') progressLabel += ' Raids Won';
+            else if (ach.type === 'stagger_breaks') progressLabel += ' Stagger Breaks';
+            else if (ach.type === 'calamity_boss_defeated') progressLabel = prog.isUnlocked ? 'Vanquished ✓' : 'Incomplete (0 / 1)';
 
-
-
-
-
-
+            html += `
+                <div class="${cardClass}">
+                    <div class="ach-top">
+                        <span class="ach-title">${ach.title}</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="ach-desc">${ach.desc}</div>
+                    <div class="ach-prog-container">
+                        <div class="ach-prog-text">
+                            <span>Progress</span>
+                            <span>${progressLabel}</span>
+                        </div>
+                        <div class="ach-prog-bar-bg">
+                            <div class="ach-prog-bar-fill" style="width: ${prog.percent}%;"></div>
+                        </div>
+                    </div>
+                    <div class="ach-bottom">
+                        <div class="ach-rewards-text">Rewards: ${rewardLabel}</div>
+                    </div>
+                </div>
+            `;
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        container.innerHTML = html;
-
-
-
-
-
-
+        if (!html) {
+            container.innerHTML = `<div style="text-align: center; color: #888; padding: 25px;">No achievements in this category yet.</div>`;
+        } else {
+            container.innerHTML = html;
+        }
 
         updateTownAchievementsButton();
-
-
-
-
-
-
-
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    function useItemOutsideBattle(itemName) {
+    window.getAchievementProgress = getAchievementProgress;
+    window.checkAchievements = checkAchievements;
+    window.renderAchievements = renderAchievements;
+    window.getUnlockedAchievementCount = getUnlockedAchievementCount;
+    window.updateTownAchievementsButton = updateTownAchievementsButton;
+function useItemOutsideBattle(itemName) {
 
 
 
@@ -33399,14 +30452,11 @@ ${setInfoHtml}
 
 
                     let reqMinLevel = (typeof AREAS_DB !== 'undefined' && AREAS_DB[tierKey] && AREAS_DB[tierKey].minLevel) || 1;
-
-
-
-
-
-
-
-                    let isUnlocked = (player.unlockedAreas && player.unlockedAreas.includes(tierKey)) || ((player.level || 1) >= reqMinLevel);
+                    const tierNum = parseInt(tierKey.split('_')[1]) || 1;
+                    const prevAreaId = `area_${tierNum - 1}`;
+                    const isUnlocked = tierNum === 1 || 
+                                       (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId)) ||
+                                       (player.unlockedAreas && player.unlockedAreas.includes(tierKey) && tierNum <= player.unlockedAreas.length);
 
 
 
@@ -33631,77 +30681,15 @@ ${setInfoHtml}
 
 
                         let areaTitle = (typeof AREAS_DB !== 'undefined' && AREAS_DB[tierKey] && AREAS_DB[tierKey].name) || tier.name;
-
-
-
-
-
-
-
+                        let prevBossName = (typeof AREAS_DB !== 'undefined' && AREAS_DB[prevAreaId] && AREAS_DB[prevAreaId].boss && AREAS_DB[prevAreaId].boss.name) || 'Area Boss';
                         html += `
-
-
-
-
-
-
-
                         <div style="margin-bottom:12px; background:rgba(15,23,42,0.3); border:1px dashed #64748b; border-radius:8px; padding:10px 14px; opacity:0.65;">
-
-
-
-
-
-
-
                             <div style="font-size:13px; font-weight:bold; color:#94a3b8;">
-
-
-
-
-
-
-
-                                🔒 Locked (Requires conquering ${areaTitle})
-
-
-
-
-
-
-
+                                🔒 Locked — Defeat Area ${tierNum - 1} Boss (${prevBossName}) to unlock Tier ${tierNum} Equipment!
                             </div>
-
-
-
-
-
-
-
                             <div style="font-size:11px; color:#64748b; margin-top:2px;">
-
-
-
-
-
-
-
-                                Defeat the gatekeeper boss of ${areaTitle} or reach Level ${reqMinLevel} to unlock this regional armory stock.
-
-
-
-
-
-
-
+                                Defeat the gatekeeper boss of Area ${tierNum - 1} (${prevBossName}) to unlock this regional armory stock.
                             </div>
-
-
-
-
-
-
-
                         </div>`;
 
 
@@ -35950,7 +32938,11 @@ ${setInfoHtml}
 
 
 
-                let isUnlocked = (player.unlockedAreas && player.unlockedAreas.includes(a)) || ((player.level || 1) >= (AREAS_DB[a]?.minLevel || 1));
+                let tierNum = parseInt(a.split('_')[1]) || 1;
+                let prevAreaId = `area_${tierNum - 1}`;
+                let isUnlocked = tierNum === 1 || 
+                                 (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId)) ||
+                                 (player.unlockedAreas && player.unlockedAreas.includes(a) && tierNum <= player.unlockedAreas.length);
 
 
 
@@ -36907,6 +33899,299 @@ ${setInfoHtml}
     }
     window.getHeroHealShieldPotency = getHeroHealShieldPotency;
 
+    /* ==========================================================================
+       MODERN JRPG / GACHA DOCK BATTLE UI OVERHAUL FUNCTIONS
+       ========================================================================== */
+
+    function setupBattle(areaId) {
+        const arenaEl = document.getElementById('battle-arena');
+        if (!arenaEl) return 'arena-theme-area_1';
+        
+        arenaEl.className = arenaEl.className.replace(/\barena-theme-[\w-]+\b/g, '').trim();
+        
+        let themeClass = 'arena-theme-area_1';
+        if (areaId) {
+            const aStr = String(areaId).toLowerCase();
+            if (aStr === 'calamity' || aStr.startsWith('calamity') || aStr === 'raid') {
+                themeClass = 'arena-theme-calamity';
+            } else if (aStr === 'spire' || aStr.startsWith('spire')) {
+                themeClass = 'arena-theme-area_10';
+            } else if (aStr.startsWith('area_')) {
+                themeClass = `arena-theme-${aStr}`;
+            } else if (!isNaN(parseInt(aStr))) {
+                themeClass = `arena-theme-area_${parseInt(aStr)}`;
+            }
+        } else if (typeof battleState !== 'undefined' && battleState && battleState.isRaid) {
+            themeClass = 'arena-theme-calamity';
+        } else if (typeof player !== 'undefined' && player && player.currentAreaId) {
+            themeClass = `arena-theme-${player.currentAreaId}`;
+        }
+        arenaEl.classList.add(themeClass);
+        return themeClass;
+    }
+    window.setupBattle = setupBattle;
+
+    function renderHeroSquadDock() {
+        const dockEl = document.getElementById('hero-squad-dock');
+        if (!dockEl) return;
+        
+        let activeHeroes = [];
+        if (typeof player !== 'undefined' && player.activeParty && Array.isArray(player.activeParty) && player.roster) {
+            activeHeroes = player.activeParty.map(id => player.roster.find(h => h.id === id)).filter(Boolean);
+        }
+        if (activeHeroes.length === 0 && typeof player !== 'undefined' && player.roster && player.roster[0]) {
+            activeHeroes = [player.roster[0]];
+        }
+        
+        let livingMinions = (typeof battleState !== 'undefined' && battleState && battleState.minions) 
+            ? battleState.minions.filter(m => m.hp > 0) 
+            : [];
+        
+        let html = activeHeroes.map((h, idx) => {
+            const isMain = !!h.isMain || h.id === 'hero_main' || idx === 0;
+            const hStats = computeHeroStats(h);
+            const curHp = isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || hStats.maxHp));
+            const curMp = isMain ? pStats.mp : (h.mp !== undefined ? h.mp : (h.baseStats?.mp || hStats.maxMp));
+            const isDead = curHp <= 0;
+            const isActive = typeof battleState !== 'undefined' && battleState && battleState.activeHero && battleState.activeHero.id === h.id;
+            const hpPct = Math.max(0, Math.min(100, (curHp / hStats.maxHp) * 100));
+            const mpPct = Math.max(0, Math.min(100, (curMp / hStats.maxMp) * 100));
+            const statusMap = isMain ? ((battleState && battleState.playerStatuses) || player.statuses) : (h.statuses || {});
+            const heroLvl = h.level || (typeof player !== 'undefined' ? player.level : 1) || 1;
+            
+            return `
+                <div class="squad-dock-card ${isActive ? 'turn-active-glow' : ''} ${isDead ? 'dock-dead' : ''}" 
+                     id="dock-hero-${h.id}" 
+                     data-hero-id="${h.id}"
+                     onclick="onSquadDockHeroClick('${h.id}')"
+                     title="${h.name} (${h.rank || 'T1'}-${h.classId || 'Hero'})">
+                    <div class="dock-avatar-disc">
+                        ${isMain ? '<span class="dock-crown">👑</span>' : ''}
+                        <div style="width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;">${getHeroSpriteSvg(h)}</div>
+                        <span class="dock-lvl-tag">Lv.${heroLvl}</span>
+                    </div>
+                    <div class="dock-info">
+                        <div class="dock-header-row">
+                            <span class="dock-hero-name">${h.name}</span>
+                            <span class="dock-class-badge">${(h.classId || 'Hero').toUpperCase()}</span>
+                        </div>
+                        <div class="dock-bar-row">
+                            <div class="bar-container dock-bar hp-bar-container">
+                                <div class="bar-ghost" id="dock-hero-${h.id}-hp-ghost" style="width: ${hpPct}%;"></div>
+                                <div class="bar-fill hp-fill" id="dock-hero-${h.id}-hp-bar" style="width: ${hpPct}%;"></div>
+                                <div class="bar-text" id="dock-hero-${h.id}-hp-txt">${curHp}/${hStats.maxHp} HP</div>
+                            </div>
+                            <div class="bar-container dock-bar mp-bar-container">
+                                <div class="bar-fill mp-fill" id="dock-hero-${h.id}-mp-bar" style="width: ${mpPct}%;"></div>
+                                <div class="bar-text" id="dock-hero-${h.id}-mp-txt">${curMp}/${hStats.maxMp} MP</div>
+                            </div>
+                        </div>
+                        <div class="dock-status-tray" id="dock-statuses-${h.id}">
+                            ${renderStatusBadges(statusMap)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        if (livingMinions.length > 0) {
+            html += livingMinions.map(minion => {
+                const hpPct = Math.max(0, Math.min(100, (minion.hp / minion.maxHp) * 100));
+                return `
+                    <div class="squad-dock-card dock-minion-card" 
+                         id="dock-minion-${minion.id}" 
+                         data-minion-id="${minion.id}"
+                         onclick="onSquadDockHeroClick('${minion.id}')"
+                         title="Minion: ${minion.name}">
+                        <div class="dock-avatar-disc" style="border-color: #a855f7;">
+                            <span style="font-size: 18px;">💀</span>
+                        </div>
+                        <div class="dock-info">
+                            <div class="dock-header-row">
+                                <span class="dock-hero-name" style="color: #d8b4fe;">${minion.name}</span>
+                                <span class="dock-class-badge" style="color: #a855f7;">MINION</span>
+                            </div>
+                            <div class="dock-bar-row">
+                                <div class="bar-container dock-bar hp-bar-container">
+                                    <div class="bar-ghost" id="dock-${minion.id}-hp-ghost" style="width: ${hpPct}%;"></div>
+                                    <div class="bar-fill hp-fill" id="dock-${minion.id}-hp-bar" style="width: ${hpPct}%; background: #a855f7;"></div>
+                                    <div class="bar-text" id="dock-${minion.id}-hp-txt">${minion.hp}/${minion.maxHp} HP</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        dockEl.innerHTML = html;
+    }
+    window.renderHeroSquadDock = renderHeroSquadDock;
+
+    function onSquadDockHeroClick(targetId) {
+        if (!battleState || !battleState.active) return;
+        if (battleState.targetingMode) {
+            const mode = battleState.targetingMode;
+            if (typeof mode === 'object' && mode && (mode.target === 'ally_single' || mode.target === 'self' || mode.target === 'all_allies')) {
+                let hero = player.roster ? player.roster.find(h => h.id === targetId) : null;
+                if (!hero && battleState.minions) hero = battleState.minions.find(m => m.id === targetId);
+                if (hero) {
+                    cancelTargeting();
+                    selectSkill(mode.name || mode.id);
+                    return;
+                }
+            }
+        }
+        if (typeof selectPartyTarget === 'function') {
+            selectPartyTarget(targetId);
+        }
+    }
+    window.onSquadDockHeroClick = onSquadDockHeroClick;
+
+    function updateBattleCommandDeck() {
+        const actingHero = (typeof battleState !== 'undefined' && battleState && battleState.activeHero) 
+            || (typeof player !== 'undefined' && player.roster && player.roster.find(h => h.id === 'hero_main')) 
+            || (typeof player !== 'undefined' && player.roster && player.roster[0]);
+        if (!actingHero) return;
+        const isMain = actingHero.isMain || actingHero.id === 'hero_main';
+        const heroSkills = isMain ? player.skills : (actingHero.skills || (actingHero.classId === 'mage' ? ['Fireball', 'Heal'] : (actingHero.classId === 'rogue' ? ['Quick Slash', 'Smoke Screen'] : ['Power Strike', 'Cleave'])));
+        const skillCount = (heroSkills && Array.isArray(heroSkills)) ? heroSkills.length : 0;
+        
+        let itemCount = 0;
+        if (typeof player !== 'undefined' && player.inventory && player.inventory.consumables) {
+            for (let k in player.inventory.consumables) {
+                itemCount += (player.inventory.consumables[k] || 0);
+            }
+        }
+        
+        const btnSkills = document.getElementById('btn-cmd-skills');
+        const btnItems = document.getElementById('btn-cmd-items');
+        if (btnSkills) btnSkills.innerHTML = `✨ Skills (${skillCount})`;
+        if (btnItems) btnItems.innerHTML = `🎒 Items (${itemCount})`;
+    }
+    window.updateBattleCommandDeck = updateBattleCommandDeck;
+
+    function renderBattleCommands() {
+        updateBattleCommandDeck();
+        if (typeof updateQuickPotionButton === 'function') updateQuickPotionButton();
+    }
+    window.renderBattleCommands = renderBattleCommands;
+
+    function toggleCombatLogDrawer() {
+        const container = document.getElementById('combat-log-container');
+        const btn = document.getElementById('btn-toggle-combat-log');
+        const battleUi = document.getElementById('battle-ui');
+        if (!container) return;
+        
+        const isExpanded = container.classList.toggle('combat-log-expanded');
+        const isCollapsed = !isExpanded;
+        container.classList.toggle('combat-log-collapsed', isCollapsed);
+        
+        if (battleUi) {
+            battleUi.classList.toggle('log-collapsed', isCollapsed);
+            battleUi.classList.toggle('log-expanded', isExpanded);
+        }
+        
+        if (btn) {
+            btn.innerHTML = isExpanded ? '📜 Log ▴' : '📜 Log ▾';
+            btn.title = isExpanded ? 'Collapse combat log' : 'Expand full combat log';
+        }
+        const logEl = document.getElementById('combat-log');
+        if (logEl) logEl.scrollTop = logEl.scrollHeight;
+        return isExpanded;
+    }
+    window.toggleCombatLogDrawer = toggleCombatLogDrawer;
+
+    function openTargeting(skill) {
+        if (skill && skill.name) {
+            const promptEl = document.getElementById('target-prompt');
+            if (promptEl) {
+                promptEl.innerHTML = `
+                    <div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
+                        Casting: <b>${skill.name}</b>
+                    </div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+                        Click an enemy above to strike
+                    </div>
+                    <button class="btn btn-cmd-slate" style="padding: 4px 14px; font-size: 12px;" onclick="cancelTargeting()">Cancel</button>
+                `;
+            }
+        }
+        enterTargetingMode(skill);
+    }
+    window.openTargeting = openTargeting;
+
+    function updateTargetingReticles() {
+        if (typeof battleState === 'undefined' || !battleState || !battleState.targetingMode) return;
+        const mode = battleState.targetingMode;
+        
+        const actingHero = (battleState && battleState.activeHero) || (typeof player !== 'undefined' && player.roster && player.roster[0]);
+        let attackElement = 'Physical';
+        if (typeof mode === 'object' && mode && mode.element) {
+            attackElement = mode.element;
+        } else if (actingHero && actingHero.element) {
+            attackElement = actingHero.element;
+        }
+        
+        const enemiesSide = document.getElementById('enemies-side');
+        if (!enemiesSide) return;
+        
+        const enemyBoxes = enemiesSide.querySelectorAll('.entity-box.enemy');
+        enemyBoxes.forEach(box => {
+            const enemyId = box.id;
+            const enemy = (battleState.enemies) ? battleState.enemies.find(e => e.id === enemyId) : null;
+            if (!enemy || enemy.hp <= 0) return;
+            
+            box.classList.add('target-focus-ring');
+            
+            const oldBadge = box.querySelector('.reticle-badge');
+            if (oldBadge) oldBadge.remove();
+            
+            const mult = (typeof getElementalMultiplier === 'function') 
+                ? getElementalMultiplier(attackElement, enemy.element)
+                : 1.0;
+                
+            let badgeHtml = '';
+            if (mult > 1.0) {
+                badgeHtml = `<div class="reticle-badge reticle-weak">💥 WEAK (${mult}x)</div>`;
+            } else if (mult < 1.0) {
+                badgeHtml = `<div class="reticle-badge reticle-resist">🛡️ RESIST (${mult}x)</div>`;
+            }
+            
+            if (badgeHtml) {
+                const temp = document.createElement('div');
+                temp.innerHTML = badgeHtml;
+                box.appendChild(temp.firstElementChild);
+            }
+        });
+    }
+    window.updateTargetingReticles = updateTargetingReticles;
+
+    function clearTargetingReticles() {
+        const enemiesSide = document.getElementById('enemies-side');
+        if (!enemiesSide) return;
+        enemiesSide.classList.remove('targeting-active');
+        const enemyBoxes = enemiesSide.querySelectorAll('.entity-box.enemy');
+        enemyBoxes.forEach(box => {
+            box.classList.remove('target-focus-ring');
+            const badge = box.querySelector('.reticle-badge');
+            if (badge) badge.remove();
+        });
+    }
+    window.clearTargetingReticles = clearTargetingReticles;
+
+    function updateTurnOrderTimeline() {
+        renderTurnOrderRibbon();
+    }
+    window.updateTurnOrderTimeline = updateTurnOrderTimeline;
+
+    // Export getAffinityMultiplier alias
+    if (typeof window !== 'undefined') {
+        window.getAffinityMultiplier = function(atkElem, defElem) {
+            return (typeof getElementalMultiplier === 'function') ? getElementalMultiplier(atkElem, defElem) : 1.0;
+        };
+    }
+
     function startBattle(count = 1, isBossFight = false) {
         if (player.roster) {
             player.roster.forEach(h => {
@@ -37274,6 +34559,8 @@ ${setInfoHtml}
 
 
 
+
+        if (typeof setupBattle === 'function') setupBattle(area ? area.id : player.currentAreaId);
 
         const arenaEl = document.getElementById('battle-arena');
 
@@ -38641,6 +35928,7 @@ ${setInfoHtml}
                         </div>
                         <div style="width: 100%;">
                             <div class="bar-container" style="height: 10px; margin-bottom: 2px;">
+                                <div class="bar-ghost" id="${minion.id}-hp-ghost" style="width: ${hpPct}%;"></div>
                                 <div class="bar-fill hp-fill" id="${minion.id}-hp-bar" style="width: ${hpPct}%; background: #a855f7;"></div>
                                 <div class="bar-text" id="${minion.id}-hp-txt" style="font-size: 8px; line-height: 10px;">${minion.hp}/${minion.maxHp}</div>
                             </div>
@@ -38858,6 +36146,7 @@ ${setInfoHtml}
 
 
 
+                                <div class="bar-ghost" id="${isMain ? 'battle-player-hp-ghost' : 'battle-hero-' + h.id + '-hp-ghost'}" style="width: ${hpPct}%"></div>
                                 <div class="bar-fill hp-fill" id="${hpBarId}" style="width: ${hpPct}%"></div>
 
 
@@ -39062,6 +36351,8 @@ ${setInfoHtml}
                 const hpPct = Math.max(0, Math.min(100, (minion.hp / minion.maxHp) * 100));
                 const hpBar = document.getElementById(`${minion.id}-hp-bar`);
                 if (hpBar) hpBar.style.width = `${hpPct}%`;
+                const minionGhost = document.getElementById(`${minion.id}-hp-ghost`);
+                if (minionGhost) minionGhost.style.width = `${hpPct}%`;
                 const hpTxt = document.getElementById(`${minion.id}-hp-txt`);
                 if (hpTxt) hpTxt.textContent = `${minion.hp}/${minion.maxHp}`;
                 const tray = document.getElementById(`statuses-${minion.id}`);
@@ -39269,6 +36560,8 @@ ${setInfoHtml}
 
 
                 if (hpBar) hpBar.style.width = `${hpPct}%`;
+                const heroGhost = document.getElementById(isMain ? 'battle-player-hp-ghost' : `battle-hero-${h.id}-hp-ghost`);
+                if (heroGhost) heroGhost.style.width = `${hpPct}%`;
 
 
 
@@ -39605,7 +36898,7 @@ ${setInfoHtml}
                 <div class="entity-name">${e.name}</div>
                 <div class="entity-element elem-${e.element}">${e.element}</div>
                 <div class="${spriteClass}">${spriteSvg}</div>
-                <div class="bar-container"><div class="bar-fill hp-fill" style="width: ${(e.hp / e.maxHp) * 100}%"></div><div class="bar-text">${e.hp}/${e.maxHp}</div></div>
+                <div class="bar-container hp-bar-container"><div class="bar-ghost" id="${e.id}-hp-ghost" style="width: ${(e.hp / e.maxHp) * 100}%"></div><div class="bar-fill hp-fill" id="${e.id}-hp-bar" style="width: ${(e.hp / e.maxHp) * 100}%"></div><div class="bar-text">${e.hp}/${e.maxHp}</div></div>
                 ${staggerBarHtml}
                 <div class="status-tray" id="statuses-${e.id}">${renderStatusBadges(e.statuses)}</div>
             `;
@@ -39745,6 +37038,8 @@ ${setInfoHtml}
 
 
         }
+        if (typeof renderHeroSquadDock === 'function') renderHeroSquadDock();
+        if (typeof renderBattleCommands === 'function') renderBattleCommands();
 
 
 
@@ -39761,37 +37056,14 @@ ${setInfoHtml}
 
 
     function logMsg(text, color = '#cccccc') {
-
-
-
-
-
-
-
         const logEl = document.getElementById('combat-log');
-
-
-
-
-
-
-
-        logEl.innerHTML += `<div class="log-entry" style="color:${color}">${text}</div>`;
-
-
-
-
-
-
-
+        if (!logEl) return;
+        const entry = document.createElement('div');
+        entry.className = 'log-entry anim-slide-in';
+        entry.style.color = color;
+        entry.innerHTML = text;
+        logEl.appendChild(entry);
         logEl.scrollTop = logEl.scrollHeight;
-
-
-
-
-
-
-
     }
 
 
@@ -41448,7 +38720,7 @@ ${setInfoHtml}
 
 
 
-            let isBoss = false;
+            let isBoss = Boolean(actor.isBoss);
 
 
 
@@ -41488,7 +38760,7 @@ ${setInfoHtml}
 
 
 
-            let classes = ['turn-chip', 'timeline-chip'];
+            let classes = ['turn-node', 'turn-chip', 'timeline-chip'];
 
 
 
@@ -41600,6 +38872,7 @@ ${setInfoHtml}
 
 
 
+            chip.title = `${actor.name || (isPlayer ? 'Hero' : 'Enemy')}`;
             chip.innerHTML = `<span class="chip-icon">${icon}</span> <span class="chip-name">${actor.name || (isPlayer ? 'Hero' : 'Enemy')}</span>`;
 
 
@@ -42832,6 +40105,8 @@ ${setInfoHtml}
 
 
 
+        if (typeof renderHeroSquadDock === 'function') renderHeroSquadDock();
+        if (typeof renderBattleCommands === 'function') renderBattleCommands();
         const banner = document.getElementById('acting-hero-banner');
 
 
@@ -43860,45 +41135,11 @@ ${setInfoHtml}
 
 
     function enterTargetingMode(mode) {
-
-
-
-
-
-
-
         battleState.targetingMode = mode;
-
-
-
-
-
-
-
         document.getElementById('battle-commands').classList.add('targeting-mode-ui');
-
-
-
-
-
-
-
         document.getElementById('enemies-side').classList.add('targeting-active');
-
-
-
-
-
-
-
+        if (typeof updateTargetingReticles === 'function') updateTargetingReticles();
         closeSubMenu();
-
-
-
-
-
-
-
     }
 
 
@@ -43916,29 +41157,13 @@ ${setInfoHtml}
 
 
     function cancelTargeting() {
-
-
-
-
-
-
-
         if (battleState) battleState.targetingMode = null;
-
-
-
-
-
-
-
+        if (typeof clearTargetingReticles === 'function') clearTargetingReticles();
+        const promptEl = document.getElementById('target-prompt');
+        if (promptEl) {
+            promptEl.innerHTML = `Select a target...<br><br><button class="btn btn-cmd-slate" style="padding: 4px 14px; font-size: 12px;" onclick="cancelTargeting()">Cancel</button>`;
+        }
         enableCommands();
-
-
-
-
-
-
-
     }
 
 
@@ -44044,13 +41269,18 @@ ${setInfoHtml}
 
 
         logMsg("Select a target to attack.");
-
-
-
-
-
-
-
+        const promptEl = document.getElementById('target-prompt');
+        if (promptEl) {
+            promptEl.innerHTML = `
+                <div style="font-size: 14px; font-weight: bold; color: #ef4444; margin-bottom: 6px;">
+                    ⚔️ <b>Basic Attack</b>
+                </div>
+                <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+                    Click an enemy above to strike
+                </div>
+                <button class="btn btn-cmd-slate" style="padding: 4px 14px; font-size: 12px;" onclick="cancelTargeting()">Cancel</button>
+            `;
+        }
         enterTargetingMode('attack');
 
 
@@ -44244,14 +41474,8 @@ ${setInfoHtml}
 
 
         const mode = battleState.targetingMode;
-
-
-
-
-
-
-
         battleState.targetingMode = null;
+        if (typeof clearTargetingReticles === 'function') clearTargetingReticles();
 
 
 
@@ -49535,6 +46759,9 @@ ${setInfoHtml}
                 battleState.channelingUltimate = null;
                 target.channelingUltimate = null;
                 applyStatus(target, 'staggered', 2);
+                if (!player.questStats) player.questStats = {};
+                player.questStats.staggerBreaks = (player.questStats.staggerBreaks || 0) + 1;
+                player.staggerBreaks = (player.staggerBreaks || 0) + 1;
                 logMsg(`💥 STAGGER BREAK! ${target.name}'s ultimate was shattered! ${target.name} is Staggered! (+50% Damage Taken)`, "#f43f5e");
                 if (typeof playSFX === 'function') playSFX('shield_break');
                 if (typeof screenShake === 'function') screenShake('heavy', 500);
@@ -50792,6 +48019,11 @@ ${setInfoHtml}
 
 
 
+    function showSkillsMenu() {
+        openBattleSkills();
+    }
+    window.showSkillsMenu = showSkillsMenu;
+
     function openBattleSkills() {
 
 
@@ -50880,7 +48112,7 @@ ${setInfoHtml}
 
 
 
-            <div id="skills-items-container" style="flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding-right:2px;"></div>
+            <div id="skills-items-container" class="skills-grid-container"></div>
 
 
 
@@ -51176,7 +48408,17 @@ ${setInfoHtml}
 
 
 
-            if (category !== 'all' && skill.category !== category) return;
+            let matchesCategory = false;
+            if (category === 'all') {
+                matchesCategory = true;
+            } else if (category === 'offense') {
+                matchesCategory = (skill.category === 'offense');
+            } else if (category === 'defense') {
+                matchesCategory = (skill.category === 'defense' || skill.category === 'heal' || skill.type === 'buff');
+            } else if (category === 'utility') {
+                matchesCategory = (skill.category === 'utility' || skill.category === 'summon' || skill.category === 'buff' || skill.category === 'defense' || skill.category === 'heal' || skill.type === 'support' || skill.type === 'buff');
+            }
+            if (!matchesCategory) return;
 
 
 
@@ -51240,78 +48482,26 @@ ${setInfoHtml}
 
 
 
-            html += `<button class="btn" style="width:100%; text-align:left; padding:6px 10px; font-size:12px; margin:2px 0;" ${canCast?'':'disabled'} onclick="selectSkill('${skillName}')">
+            const elemIcons = {
+                'Fire': '🔥', 'Water': '💧', 'Wind': '⚡', 'Earth': '🪨',
+                'Light': '✨', 'Dark': '💀', 'Physical': '⚔️'
+            };
+            const eIcon = elemIcons[skill.element] || '⚔️';
+            let powerText = '';
+            if (skill.type === 'heal') powerText = `❤️ Heal ${skill.power || ''}`;
+            else if (skill.power) powerText = `⚔️ x${skill.power}`;
+            else powerText = `✨ ${skill.type || 'Spell'}`;
 
-
-
-
-
-
-
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-
-
-
-
-
-
-
-                            <b>${skill.name}</b>
-
-
-
-
-
-
-
-                            <span style="font-size:11px; color:#ffaa00; font-weight:bold;">${cost} MP</span>
-
-
-
-
-
-
-
+            html += `<button class="btn skill-card-tactile" ${canCast ? '' : 'disabled'} onclick="selectSkill('${skillName}')">
+                        <div class="skill-card-header">
+                            <span class="skill-card-name" title="${skill.name}"><b>${skill.name}</b></span>
+                            <span class="skill-mp-pill ${canCast ? '' : 'mp-insufficient'}">${cost} MP</span>
                         </div>
-
-
-
-
-
-
-
-                        <div style="font-size:10px; color:#94a3b8; display:flex; gap:6px; margin-top:2px;">
-
-
-
-
-
-
-
-                            <span>${catIcon} ${skill.element}</span>
-
-
-
-
-
-
-
-                            <span>• ${targetDesc}</span>
-
-
-
-
-
-
-
+                        <div class="skill-card-meta">
+                            <span class="skill-elem-badge skill-elem-${skill.element || 'Physical'}">${eIcon} ${skill.element || 'Physical'}</span>
+                            <span class="skill-power-pill">${powerText}</span>
+                            <span class="skill-target-pill">${targetDesc}</span>
                         </div>
-
-
-
-
-
-
-
                      </button>`;
 
 
@@ -52535,13 +49725,18 @@ ${setInfoHtml}
 
 
             logMsg(`Select a target for ${skill.name}.`);
-
-
-
-
-
-
-
+            const promptEl = document.getElementById('target-prompt');
+            if (promptEl) {
+                promptEl.innerHTML = `
+                    <div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 6px;">
+                        Casting: <b>${skill.name}</b>
+                    </div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 10px;">
+                        Click an enemy above to strike
+                    </div>
+                    <button class="btn btn-cmd-slate" style="padding: 4px 14px; font-size: 12px;" onclick="cancelTargeting()">Cancel</button>
+                `;
+            }
             enterTargetingMode(skill);
 
 
@@ -55996,958 +53191,210 @@ ${setInfoHtml}
 
 
 
-        if (tier >= 3) {
-
-
-
-
-
-
-
-            html += `
-
-
-
-
-
-
-
-                <div style="text-align: center; padding: 40px 20px; background: rgba(16,185,129,0.1); border: 1px solid #10b981; border-radius: 8px;">
-
-
-
-
-
-
-
-                    <div style="font-size: 32px; margin-bottom: 10px;">👑</div>
-
-
-
-
-
-
-
-                    <h3 style="color: #10b981; margin: 0 0 10px 0;">Apex Evolution Mastered</h3>
-
-
-
-
-
-
-
-                    <p style="color: #cbd5e1; font-size: 14px; max-width: 500px; margin: 0 auto 15px auto;">${hero.name} has achieved the pinnacle of power as a <b>${currentCls.name}</b>. All apex multipliers and passives are fully realized.</p>
-
-
-
-
-
-
-
-                    <button class="btn-respec-main" onclick="respecHeroClass('${hero.id}')">
-
-
-
-
-
-
-
-                        🔄 Respec Specialization Path (5,000 Gold)
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-            `;
-
-
-
-
-
-
-
-            container.innerHTML = html;
-
-
-
-
-
-
-
-            return;
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // Find available advancements
-
-
-
-
-
-
-
-        let available = [];
-
-
-
-
-
-
-
-        for(let cid in CLASSES_DB) {
-
-
-
-
-
-
-
-            let c = CLASSES_DB[cid];
-
-
-
-
-
-
-
-            if (c.tier === nextTier && (c.parent === currentClassId || (tier === 0 && c.parent === null))) {
-
-
-
-
-
-
-
-                available.push(c);
-
-
-
-
-
-
-
-            }
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if (heroLevel < requiredLevel) {
-
-
-
-
-
-
-
-            html += `
-
-
-
-
-
-
-
-                <div style="text-align: center; padding: 25px 20px; background: rgba(239,68,68,0.08); border: 1px dashed #ef4444; border-radius: 8px; margin-bottom: 15px;">
-
-
-
-
-
-
-
-                    <div style="font-size: 26px; margin-bottom: 6px;">🔒</div>
-
-
-
-
-
-
-
-                    <h4 style="color: #ef4444; margin: 0 0 6px 0;">Advancement Locked</h4>
-
-
-
-
-
-
-
-                    <p style="color: #cbd5e1; font-size: 13px; margin: 0;">Must reach <b>Level ${requiredLevel}</b> to unlock Tier ${nextTier} Evolution.<br>(Current Progress: Level ${heroLevel} / ${requiredLevel})</p>
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-                <div style="font-size: 13px; font-weight: bold; color: #888; margin-bottom: 10px; text-transform: uppercase;">Upcoming Choices at Level ${requiredLevel}:</div>
-
-
-
-
-
-
-
-            `;
-
-
-
-
-
-
-
-        } else {
-
-
-
-
-
-
-
-            html += `
-
-
-
-
-
-
-
-                <div style="font-size: 14px; color: #10b981; margin-bottom: 12px; font-weight: bold;">
-
-
-
-
-
-
-
-                    ✨ Tier ${nextTier} Advancement Available! Choose ${hero.name}'s specialized path:
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-            `;
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">`;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        for(let opt of available) {
-
-
-
-
-
-
-
-            let canEvolve = heroLevel >= requiredLevel;
-
-
-
-
-
-
-
-            
-
-
-
-
-
-
-
-            // Format stat mods
-
-
-
-
-
-
-
+        function renderClassCard(opt, isCurrent, canAct, btnText, btnOnClick, disabled = false) {
             let modSpans = [];
-
-
-
-
-
-
-
             if(opt.statMods) {
-
-
-
-
-
-
-
                 for(let stat in opt.statMods) {
-
-
-
-
-
-
-
                     let val = opt.statMods[stat];
-
-
-
-
-
-
-
                     let statLabel = stat.toUpperCase();
-
-
-
-
-
-
-
                     if(stat === 'maxHp') statLabel = 'HP';
-
-
-
-
-
-
-
                     if(stat === 'maxMp') statLabel = 'MP';
-
-
-
-
-
-
-
-                    
-
-
-
-
-
-
-
                     if(stat === 'crit') {
-
-
-
-
-
-
-
                         let sign = val >= 0 ? `+${val}%` : `${val}%`;
-
-
-
-
-
-
-
                         let color = val >= 0 ? '#22c55e' : '#ef4444';
-
-
-
-
-
-
-
                         modSpans.push(`<span style="color:${color}; font-weight:bold;">${sign} ${statLabel}</span>`);
-
-
-
-
-
-
-
                     } else {
-
-
-
-
-
-
-
                         let pct = Math.round((val - 1) * 100);
-
-
-
-
-
-
-
                         let sign = pct >= 0 ? `+${pct}%` : `${pct}%`;
-
-
-
-
-
-
-
                         let color = pct >= 0 ? '#22c55e' : '#ef4444';
-
-
-
-
-
-
-
                         modSpans.push(`<span style="color:${color}; font-weight:bold;">${sign} ${statLabel}</span>`);
-
-
-
-
-
-
-
                     }
-
-
-
-
-
-
-
                 }
-
-
-
-
-
-
-
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            // Skills info
-
-
-
-
-
-
 
             let skillsInfo = '';
-
-
-
-
-
-
-
             if (opt.skills && opt.skills.length > 0) {
-
-
-
-
-
-
-
                 skillsInfo = `
-
-
-
-
-
-
-
                     <div style="margin-top: 8px; font-size: 11px; color: #94a3b8;">
-
-
-
-
-
-
-
                         <b style="color: #cbd5e1;">Signature Skills:</b> ${opt.skills.join(', ')}
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
                 `;
-
-
-
-
-
-
-
             }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
             let passiveHtml = '';
-
-
-
-
-
-
-
             if(opt.passiveName && opt.passiveDesc) {
-
-
-
-
-
-
-
                 passiveHtml = `
-
-
-
-
-
-
-
                     <div style="margin-top: 10px; padding: 8px 10px; background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; border-radius: 4px;">
-
-
-
-
-
-
-
                         <div style="font-size: 12px; font-weight: bold; color: #c084fc;">⚡ Passive: ${opt.passiveName}</div>
-
-
-
-
-
-
-
                         <div style="font-size: 11px; color: #cbd5e1; margin-top: 2px;">${opt.passiveDesc}</div>
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
                 `;
-
-
-
-
-
-
-
             }
 
+            let icon = opt.id === 'warrior' ? '🛡️' : (opt.id === 'mage' ? '🔮' : (opt.id === 'rogue' ? '🗡️' : (opt.id === 'ranger' ? '🏹' : (opt.id === 'cleric' ? '🕊️' : (opt.id === 'necromancer' ? '💀' : '⚔️')))));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-            html += `
-
-
-
-
-
-
-
-                <div style="background: rgba(20,20,30,0.85); border: 1px solid ${canEvolve ? '#a855f7' : '#444'}; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
-
-
-
-
-
-
-
+            return `
+                <div style="background: rgba(20,20,30,0.85); border: 1px solid ${isCurrent ? '#10b981' : (canAct ? '#a855f7' : '#444')}; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-
-
-
-
-
-
-
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-
-
-
-
-
-
-
-                            <h3 style="margin: 0; color: #ffd700; font-size: 18px;">${opt.name}</h3>
-
-
-
-
-
-
-
+                            <h3 style="margin: 0; color: #ffd700; font-size: 17px; display:flex; align-items:center; gap:6px;">
+                                <span>${icon}</span> <span>${opt.name}</span>
+                            </h3>
                             <span style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #374151; color: #cbd5e1;">Tier ${opt.tier}</span>
-
-
-
-
-
-
-
                         </div>
-
-
-
-
-
-
-
-                        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 10px 0; min-height: 32px;">${opt.desc}</p>
-
-
-
-
-
-
-
+                        <p style="font-size: 12px; color: #94a3b8; margin: 0 0 10px 0; min-height: 32px;">${opt.desc || ''}</p>
                         
-
-
-
-
-
-
-
                         <div style="font-size: 12px; margin-bottom: 6px; color: #aaa;">Stat Modifiers:</div>
-
-
-
-
-
-
-
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; margin-bottom: 6px;">
-
-
-
-
-
-
-
                             ${modSpans.join('')}
-
-
-
-
-
-
-
                         </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                         ${skillsInfo}
-
-
-
-
-
-
-
                         ${passiveHtml}
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                     <div style="margin-top: 15px;">
-
-
-
-
-
-
-
-                        <button class="btn" style="width: 100%; background: ${canEvolve ? 'linear-gradient(135deg, #7c3aed, #ec4899)' : '#374151'}; color: ${canEvolve ? '#ffffff' : '#888'}; font-weight: bold; padding: 8px; border: 1px solid ${canEvolve ? '#f472b6' : '#555'};" 
-
-
-
-
-
-
-
-                                ${canEvolve ? '' : 'disabled'} 
-
-
-
-
-
-
-
-                                onclick="advanceHeroClass('${hero.id}', '${opt.id}')">
-
-
-
-
-
-
-
-                            ${canEvolve ? '✨ Evolve to ' + opt.name + ' (Free)' : '🔒 Requires Level ' + requiredLevel + ' (Current: ' + heroLevel + '/' + requiredLevel + ')'}
-
-
-
-
-
-
-
+                        <button class="btn" style="width: 100%; background: ${isCurrent ? '#1e293b' : (canAct ? 'linear-gradient(135deg, #7c3aed, #ec4899)' : '#374151')}; color: ${isCurrent ? '#10b981' : (canAct ? '#ffffff' : '#888')}; font-weight: bold; padding: 8px; border: 1px solid ${isCurrent ? '#10b981' : (canAct ? '#f472b6' : '#555')};" 
+                                ${disabled ? 'disabled' : ''} 
+                                onclick="${btnOnClick}">
+                            ${btnText}
                         </button>
-
-
-
-
-
-
-
                     </div>
-
-
-
-
-
-
-
                 </div>
-
-
-
-
-
-
-
             `;
-
-
-
-
-
-
-
         }
 
+        if (tier >= 3) {
+            html += `
+                <div style="text-align: center; padding: 40px 20px; background: rgba(16,185,129,0.1); border: 1px solid #10b981; border-radius: 8px;">
+                    <div style="font-size: 32px; margin-bottom: 10px;">👑</div>
+                    <h3 style="color: #10b981; margin: 0 0 10px 0;">Apex Evolution Mastered</h3>
+                    <p style="color: #cbd5e1; font-size: 14px; max-width: 500px; margin: 0 auto 15px auto;">${hero.name} has achieved the pinnacle of power as a <b>${currentCls.name}</b>. All apex multipliers and passives are fully realized.</p>
+                    <button class="btn-respec-main" onclick="respecHeroClass('${hero.id}')">
+                        🔄 Respec Specialization Path (5,000 Gold)
+                    </button>
+                </div>
+            `;
+            container.innerHTML = html;
+            return;
+        }
 
+        if (tier <= 1) {
+            // Render Tier 1 Base Class Selection Grid
+            const t1Keys = ['warrior', 'mage', 'rogue', 'ranger', 'cleric', 'necromancer'];
+            html += `
+                <div style="margin-bottom: 25px;">
+                    <div style="font-size: 15px; font-weight: bold; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <span>🛡️</span> <span>Tier 1 Base Classes (Choose or Switch Path)</span>
+                    </div>
+                    <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">
+                        Any hero currently at Tier 1 can choose or switch between all 6 foundational disciplines. Switching base class cleanses old skills, grants signature starter skills, and unlocks specialized evolution branches.
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">
+            `;
 
+            for (let cId of t1Keys) {
+                let opt = CLASSES_DB[cId];
+                if (!opt) continue;
+                let isCurrent = (cId === currentClassId);
+                let isFree = (currentClassId === 'novice' || !hero.classSwitched);
+                let cost = isFree ? 0 : 5000;
+                let canAfford = cost === 0 || (player.gold || 0) >= cost;
+                let btnText = isCurrent ? '✔️ Current Class' : (isFree ? '✨ Select Class (Free)' : `🔄 Switch Class (${cost}G)`);
+                let btnOnClick = isCurrent ? '' : `switchHeroBaseClass('${hero.id}', '${cId}')`;
+                let disabled = isCurrent || !canAfford;
+                html += renderClassCard(opt, isCurrent, !isCurrent && canAfford, btnText, btnOnClick, disabled);
+            }
+            html += `</div></div>`;
 
+            // If not novice, show Tier 2 Specializations
+            if (currentClassId !== 'novice') {
+                let branches = [];
+                for (let cid in CLASSES_DB) {
+                    let c = CLASSES_DB[cid];
+                    if (c.tier === 2 && c.parent === currentClassId) {
+                        branches.push(c);
+                    }
+                }
 
+                html += `
+                    <div style="margin-top: 25px;">
+                        <div style="font-size: 15px; font-weight: bold; color: #a855f7; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                            <span>⚔️</span> <span>Tier 2 Specialization Branches (${currentCls.name})</span>
+                        </div>
+                `;
 
+                if (heroLevel < 25) {
+                    html += `
+                        <div style="text-align: center; padding: 20px; background: rgba(239,68,68,0.08); border: 1px dashed #ef4444; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="font-size: 24px; margin-bottom: 4px;">🔒</div>
+                            <h4 style="color: #ef4444; margin: 0 0 4px 0;">Specialization Locked</h4>
+                            <p style="color: #cbd5e1; font-size: 13px; margin: 0;">Must reach <b>Level 25</b> to unlock Tier 2 Specialization Evolution.<br>(Current Progress: Level ${heroLevel} / 25)</p>
+                        </div>
+                        <div style="font-size: 13px; font-weight: bold; color: #888; margin-bottom: 10px; text-transform: uppercase;">Upcoming Choices at Level 25:</div>
+                    `;
+                } else {
+                    html += `
+                        <div style="font-size: 14px; color: #10b981; margin-bottom: 12px; font-weight: bold;">
+                            ✨ Tier 2 Advancement Available! Choose ${hero.name}'s specialized path:
+                        </div>
+                    `;
+                }
 
+                html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">`;
+                for (let opt of branches) {
+                    let canEvolve = heroLevel >= 25;
+                    let btnText = canEvolve ? `✨ Evolve to ${opt.name} (Free)` : `🔒 Requires Level 25 (${heroLevel}/25)`;
+                    let btnOnClick = canEvolve ? `advanceHeroClass('${hero.id}', '${opt.id}')` : '';
+                    html += renderClassCard(opt, false, canEvolve, btnText, btnOnClick, !canEvolve);
+                }
+                html += `</div></div>`;
+            }
+        } else if (tier === 2) {
+            // Tier 2 hero: show Tier 3 Apex Evolution
+            let apexOptions = [];
+            for (let cid in CLASSES_DB) {
+                let c = CLASSES_DB[cid];
+                if (c.tier === 3 && c.parent === currentClassId) {
+                    apexOptions.push(c);
+                }
+            }
 
+            html += `
+                <div style="margin-top: 10px;">
+                    <div style="font-size: 15px; font-weight: bold; color: #f59e0b; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <span>👑</span> <span>Tier 3 Apex Evolution (${currentCls.name})</span>
+                    </div>
+            `;
 
+            if (heroLevel < 50) {
+                html += `
+                    <div style="text-align: center; padding: 20px; background: rgba(239,68,68,0.08); border: 1px dashed #ef4444; border-radius: 8px; margin-bottom: 15px;">
+                        <div style="font-size: 24px; margin-bottom: 4px;">🔒</div>
+                        <h4 style="color: #ef4444; margin: 0 0 4px 0;">Apex Evolution Locked</h4>
+                        <p style="color: #cbd5e1; font-size: 13px; margin: 0;">Must reach <b>Level 50</b> to unlock Tier 3 Apex Evolution.<br>(Current Progress: Level ${heroLevel} / 50)</p>
+                    </div>
+                    <div style="font-size: 13px; font-weight: bold; color: #888; margin-bottom: 10px; text-transform: uppercase;">Upcoming Apex Evolution at Level 50:</div>
+                `;
+            } else {
+                html += `
+                    <div style="font-size: 14px; color: #10b981; margin-bottom: 12px; font-weight: bold;">
+                        ✨ Tier 3 Apex Evolution Available! Master ${hero.name}'s ultimate path:
+                    </div>
+                `;
+            }
 
-
-
-
-
-
-        html += `</div>`;
-
-
-
-
-
-
+            html += `<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px;">`;
+            for (let opt of apexOptions) {
+                let canEvolve = heroLevel >= 50;
+                let btnText = canEvolve ? `👑 Master ${opt.name} (Free)` : `🔒 Requires Level 50 (${heroLevel}/50)`;
+                let btnOnClick = canEvolve ? `advanceHeroClass('${hero.id}', '${opt.id}')` : '';
+                html += renderClassCard(opt, false, canEvolve, btnText, btnOnClick, !canEvolve);
+            }
+            html += `</div></div>`;
+        }
 
         container.innerHTML = html;
-
-
-
-
-
-
-
     }
 
 
@@ -56994,23 +53441,103 @@ ${setInfoHtml}
 
 
 
-    function advanceHeroClass(heroId, classId) {
+        function switchHeroBaseClass(heroId, targetClassId) {
+        let hero = null;
+        if (typeof heroId === 'object' && heroId !== null) {
+            hero = heroId;
+        } else if (player.roster) {
+            hero = player.roster.find(h => h.id === heroId) || (heroId === 'hero_main' ? player.roster.find(h => h.isMain) : null);
+        }
+        if (!hero && heroId === 'hero_main') {
+            if (typeof syncMainHero === 'function') syncMainHero();
+            hero = player.roster.find(h => h.isMain);
+        }
+        if (!hero) return false;
 
+        const targetCls = (typeof CLASSES_DB !== 'undefined') ? CLASSES_DB[targetClassId] : null;
+        if (!targetCls || targetCls.tier !== 1) return false;
+        if (hero.classId === targetClassId) return true;
 
+        const isFree = (hero.classId === 'novice' || (hero.isMain && player.currentClass === 'novice') || !hero.classSwitched);
+        const cost = isFree ? 0 : 5000;
 
+        if (cost > 0 && (player.gold || 0) < cost) {
+            if (typeof showToast === 'function') {
+                showToast('Insufficient Gold', `Switching base class costs ${cost} Gold!`, 'warning', 4000);
+            }
+            return false;
+        }
 
+        if (cost > 0) {
+            player.gold -= cost;
+            if (typeof updateHeader === 'function') updateHeader();
+        }
 
+        hero.classSwitched = true;
 
+        // Cleanse old class skills
+        let oldClassId = hero.classId;
+        let oldCls = (typeof CLASSES_DB !== 'undefined') ? CLASSES_DB[oldClassId] : null;
+        let skillsToRemove = new Set();
+        while (oldCls) {
+            if (oldCls.skills && Array.isArray(oldCls.skills)) {
+                oldCls.skills.forEach(s => skillsToRemove.add(s));
+            }
+            oldCls = oldCls.parent ? CLASSES_DB[oldCls.parent] : null;
+        }
 
+        if (hero.skills && Array.isArray(hero.skills)) {
+            hero.skills = hero.skills.filter(s => !skillsToRemove.has(s));
+        }
+        if ((hero.isMain || hero.id === 'hero_main') && player.skills && Array.isArray(player.skills)) {
+            player.skills = player.skills.filter(s => !skillsToRemove.has(s));
+        }
+
+        // Set new classId
+        hero.classId = targetClassId;
+        if (hero.isMain || hero.id === 'hero_main') {
+            player.currentClass = targetClassId;
+            if (typeof syncMainHero === 'function') syncMainHero();
+        }
+
+        // Add starter skills of new base class
+        if (targetCls.skills && Array.isArray(targetCls.skills)) {
+            if (!hero.skills) hero.skills = [];
+            targetCls.skills.forEach(s => {
+                if (!hero.skills.includes(s)) hero.skills.push(s);
+                if ((hero.isMain || hero.id === 'hero_main') && player.skills && !player.skills.includes(s)) {
+                    player.skills.push(s);
+                }
+            });
+        }
+
+        // Recalculate stats
+        computeHeroStats(hero);
+        if (hero.isMain || hero.id === 'hero_main') {
+            if (typeof computeStats === 'function') computeStats();
+            if (typeof updateHeader === 'function') updateHeader();
+            if (typeof renderStats === 'function') renderStats();
+        }
+
+        if (typeof playSFX === 'function') playSFX('levelup');
+        if (typeof showToast === 'function') {
+            showToast('Class Switched', `${hero.name} is now a ${targetCls.name}!`, 'level', 3500);
+        }
+
+        if (typeof renderClassAdvancement === 'function') renderClassAdvancement();
+        return true;
+    }
+
+    if (typeof window !== 'undefined') {
+        window.switchHeroBaseClass = switchHeroBaseClass;
+    }
+
+function advanceHeroClass(heroId, classId) {
         const cls = (typeof CLASSES_DB !== 'undefined') ? CLASSES_DB[classId] : null;
-
-
-
-
-
-
-
         if (!cls) return false;
+        if (cls.tier === 1) {
+            return switchHeroBaseClass(heroId, classId);
+        }
 
 
 
@@ -57658,111 +54185,25 @@ ${setInfoHtml}
 
 
 
-    function respecHeroClass(heroId) {
-
-
-
-
-
-
-
+    function respecHeroClass(heroId, targetClassId) {
         let hero = null;
-
-
-
-
-
-
-
         if (typeof heroId === 'object' && heroId !== null) {
-
-
-
-
-
-
-
             hero = heroId;
-
-
-
-
-
-
-
         } else if (player.roster) {
-
-
-
-
-
-
-
             hero = player.roster.find(h => h.id === heroId) || (heroId === 'hero_main' ? player.roster.find(h => h.isMain) : null);
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
         if (!hero && heroId === 'hero_main') {
-
-
-
-
-
-
-
             if (typeof syncMainHero === 'function') syncMainHero();
-
-
-
-
-
-
-
             hero = player.roster.find(h => h.isMain);
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
         if (!hero) return false;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         const currentCls = (typeof CLASSES_DB !== 'undefined') ? CLASSES_DB[hero.classId] : null;
+        if (!currentCls) return false;
+
+        if (targetClassId && targetClassId !== hero.classId) {
+            return switchHeroBaseClass(heroId, targetClassId);
+        }
 
 
 
@@ -59613,6 +56054,8 @@ ${setInfoHtml}
 
 
                 if(a.boss && a.boss.name === defeatedBoss.name) {
+                    if (!player.defeatedAreaBosses) player.defeatedAreaBosses = [];
+                    if (!player.defeatedAreaBosses.includes(aId)) player.defeatedAreaBosses.push(aId);
 
 
 
@@ -61420,6 +57863,7 @@ ${setInfoHtml}
 
 
 
+        if (typeof setupBattle === 'function') setupBattle('area_10');
         const arenaEl = document.getElementById('battle-arena');
 
 
@@ -82965,13 +79409,17 @@ function randomChoice(arr) {
 
 
 function selectPartyTarget(livingParty) {
-
-
-
-
-
-
-
+    if (typeof livingParty === 'string') {
+        if (typeof battleState !== 'undefined' && battleState && battleState.minions) {
+            const m = battleState.minions.find(x => x && x.id === livingParty && x.hp > 0);
+            if (m) return m;
+        }
+        if (typeof player !== 'undefined' && player && player.roster) {
+            const h = player.roster.find(x => x && x.id === livingParty);
+            if (h) return h;
+        }
+        return null;
+    }
     if (!livingParty || !Array.isArray(livingParty) || livingParty.length === 0) return null;
 
 
@@ -89261,6 +85709,7 @@ function startRaidBattle(raidId) {
         });
     }
 
+    if (typeof setupBattle === 'function') setupBattle('calamity');
     const arenaEl = document.getElementById('battle-arena');
     if (arenaEl && raid.bgGradient) {
         arenaEl.style.background = raid.bgGradient;
