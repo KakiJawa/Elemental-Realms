@@ -111,6 +111,8 @@
 
 
     let battleState = {
+            minions: [],
+            soulRemnants: 0,
 
 
 
@@ -12585,6 +12587,8 @@ if (typeof window !== 'undefined') {
             return `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,15 L75,85 L50,70 L25,85 Z" fill="#16a34a"/><circle cx="50" cy="40" r="14" fill="#ca8a04"/><line x1="50" y1="20" x2="50" y2="80" stroke="#fef08a" stroke-width="3"/><path d="M25,50 Q50,25 75,50" stroke="#ca8a04" stroke-width="3" fill="none"/></svg>`;
         } else if (cls === 'cleric' || cls === 'high_priest' || cls === 'inquisitor' || cls === 'seraph_of_dawn' || cls === 'grand_justiciar') {
             return `<svg viewBox="0 0 100 100" width="100%" height="100%"><circle cx="50" cy="50" r="40" fill="#f8fafc" stroke="#ffd700" stroke-width="4"/><path d="M50,15 L50,85 M25,40 L75,40" stroke="#ffd700" stroke-width="8" stroke-linecap="round"/><circle cx="50" cy="40" r="10" fill="#38bdf8"/><path d="M35,65 Q50,80 65,65" stroke="#38bdf8" stroke-width="3" fill="none"/></svg>`;
+        } else if (cls === 'necromancer' || cls === 'dread_lich' || cls === 'bone_commander' || cls === 'lich_king_sovereign' || cls === 'lord_of_the_grave') {
+            return `<svg viewBox="0 0 100 100" width="100%" height="100%"><path d="M50,15 Q80,40 70,85 L30,85 Q20,40 50,15 Z" fill="#1e1b4b" stroke="#8b5cf6" stroke-width="2"/><circle cx="50" cy="45" r="14" fill="#cbd5e1"/><ellipse cx="45" cy="43" rx="3" ry="4" fill="#1e1b4b"/><ellipse cx="55" cy="43" rx="3" ry="4" fill="#1e1b4b"/><path d="M46,53 L54,53" stroke="#1e1b4b" stroke-width="2"/><circle cx="50" cy="45" r="17" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-dasharray="3,2"/></svg>`;
         } else {
 
 
@@ -12706,6 +12710,7 @@ if (typeof window !== 'undefined') {
 
 
     function getHeroCombatEntity(hero) {
+        if (hero && hero.isMinion) return hero;
 
 
 
@@ -12980,6 +12985,7 @@ if (typeof window !== 'undefined') {
                     if (hasStatus(this, 'battle_cry')) mult *= 1.2;
                     if (hasStatus(this, 'beast_roar')) mult *= 1.2;
                     if (hasStatus(this, 'primal_roar')) mult *= 1.25;
+                    if (hasStatus(this, 'curse')) mult *= 0.8;
 
 
 
@@ -13060,7 +13066,12 @@ if (typeof window !== 'undefined') {
 
 
 
-                get matk() { return computeHeroStats(hero).matk || 10; },
+                get matk() {
+                    let s = computeHeroStats(hero);
+                    let mult = 1.0;
+                    if (hasStatus(this, 'curse')) mult *= 0.8;
+                    return Math.max(0, Math.floor((s.matk || 10) * mult));
+                },
 
 
 
@@ -13328,6 +13339,7 @@ if (typeof window !== 'undefined') {
                     if (hasStatus(this, 'battle_cry')) mult *= 1.2;
                     if (hasStatus(this, 'beast_roar')) mult *= 1.2;
                     if (hasStatus(this, 'primal_roar')) mult *= 1.25;
+                    if (hasStatus(this, 'curse')) mult *= 0.8;
 
 
 
@@ -13400,6 +13412,11 @@ if (typeof window !== 'undefined') {
 
 
 
+                get matk() {
+                    let mult = 1.0;
+                    if (hasStatus(this, 'curse')) mult *= 0.8;
+                    return Math.max(0, Math.floor((pStats.matk || 10) * mult));
+                },
                 get mdef() {
                     let mult = 1.0;
                     if (hasStatus(this, 'sanctuary_protection')) mult *= 1.15;
@@ -36891,6 +36908,14 @@ ${setInfoHtml}
     window.getHeroHealShieldPotency = getHeroHealShieldPotency;
 
     function startBattle(count = 1, isBossFight = false) {
+        if (player.roster) {
+            player.roster.forEach(h => {
+                if (h) {
+                    h.phylacteryUsed = false;
+                    h.inPhylactery = false;
+                }
+            });
+        }
 
 
 
@@ -38554,7 +38579,10 @@ ${setInfoHtml}
 
 
 
+            let livingMinions = (battleState && battleState.minions) ? battleState.minions.filter(m => m.hp > 0) : [];
+            const minionCountInDom = formationContainer.querySelectorAll('.minion-companion-card').length;
             const needsRebuild = !document.getElementById('battle-player') ||
+                (minionCountInDom !== livingMinions.length) ||
 
 
 
@@ -38601,6 +38629,26 @@ ${setInfoHtml}
 
 
 
+
+            function renderMinionCardHtml(minion) {
+                const hpPct = Math.max(0, Math.min(100, (minion.hp / minion.maxHp) * 100));
+                return `
+                    <div class="entity-box minion-companion-card" id="${minion.id}" data-minion-id="${minion.id}">
+                        <div class="entity-name" style="font-size: 10px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; text-align: center; color: #cbd5e1;">💀 ${minion.name}</div>
+                        <div class="entity-element elem-Dark" style="font-size: 8px; padding: 1px 3px;">Occult</div>
+                        <div class="entity-sprite minion-card-avatar" style="width: 32px; height: 32px; margin: 2px auto; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                            💀
+                        </div>
+                        <div style="width: 100%;">
+                            <div class="bar-container" style="height: 10px; margin-bottom: 2px;">
+                                <div class="bar-fill hp-fill" id="${minion.id}-hp-bar" style="width: ${hpPct}%; background: #a855f7;"></div>
+                                <div class="bar-text" id="${minion.id}-hp-txt" style="font-size: 8px; line-height: 10px;">${minion.hp}/${minion.maxHp}</div>
+                            </div>
+                            <div class="status-tray" id="statuses-${minion.id}" style="min-height: 10px;">${renderStatusBadges(minion.statuses || {})}</div>
+                        </div>
+                    </div>
+                `;
+            }
 
             function renderHeroCardHtml(h) {
 
@@ -38954,7 +39002,7 @@ ${setInfoHtml}
 
 
 
-                if (frontHeroes.length > 0) {
+                if (frontHeroes.length > 0 || livingMinions.length > 0) {
 
 
 
@@ -38962,7 +39010,7 @@ ${setInfoHtml}
 
 
 
-                    formHtml += `<div class="formation-row formation-front" id="formation-front"><div class="formation-row-label">🛡️ Frontline</div>${frontHeroes.map(renderHeroCardHtml).join('')}</div>`;
+                    formHtml += `<div class="formation-row formation-front" id="formation-front"><div class="formation-row-label">🛡️ Frontline</div>${frontHeroes.map(renderHeroCardHtml).join('')}${livingMinions.map(renderMinionCardHtml).join('')}</div>`;
 
 
 
@@ -39009,6 +39057,16 @@ ${setInfoHtml}
 
 
 
+
+            livingMinions.forEach(minion => {
+                const hpPct = Math.max(0, Math.min(100, (minion.hp / minion.maxHp) * 100));
+                const hpBar = document.getElementById(`${minion.id}-hp-bar`);
+                if (hpBar) hpBar.style.width = `${hpPct}%`;
+                const hpTxt = document.getElementById(`${minion.id}-hp-txt`);
+                if (hpTxt) hpTxt.textContent = `${minion.hp}/${minion.maxHp}`;
+                const tray = document.getElementById(`statuses-${minion.id}`);
+                if (tray) tray.innerHTML = renderStatusBadges(minion.statuses || {});
+            });
 
             activeHeroes.forEach(h => {
 
@@ -42919,6 +42977,52 @@ ${setInfoHtml}
 
 
         if(!battleState.active) return;
+        // Phylactery Ward Reconstitution check
+        if (player.roster) {
+            player.roster.forEach(h => {
+                if (h && h.inPhylactery) {
+                    let ent = (typeof getHeroCombatEntity === 'function') ? getHeroCombatEntity(h) : null;
+                    let hStats = computeHeroStats(h);
+                    let maxHp = h.isMain ? pStats.maxHp : (hStats.maxHp || 100);
+                    let maxMp = h.isMain ? pStats.maxMp : (hStats.maxMp || 50);
+                    let reconHp = Math.round(maxHp * 0.50);
+                    let reconMp = maxMp;
+                    if (h.isMain) {
+                        player.baseStats.hp = reconHp;
+                        pStats.hp = reconHp;
+                        player.baseStats.mp = reconMp;
+                        pStats.mp = reconMp;
+                    } else {
+                        h.hp = reconHp;
+                        h.mp = reconMp;
+                        if (h.baseStats) {
+                            h.baseStats.hp = reconHp;
+                            h.baseStats.mp = reconMp;
+                        }
+                    }
+                    if (ent) {
+                        ent.hp = reconHp;
+                        ent.mp = reconMp;
+                        if (ent.statuses && ent.statuses.phylactery_stasis) delete ent.statuses.phylactery_stasis;
+                    }
+                    h.inPhylactery = false;
+                    logMsg(`⚰️❄️ Phylactery Reconstitution! ${h.name} emerges from stasis with 50% HP and 100% MP!`, "#06b6d4");
+                    floatText(ent ? ent.id : 'battle-player', "RECONSTITUTED!", "#06b6d4");
+
+                    // Frost Nova AoE: 150% MATK Cold damage to all enemies
+                    let actingMatk = h.isMain ? pStats.matk : hStats.matk;
+                    let novaDmg = Math.max(1, Math.round(actingMatk * 1.50));
+                    if (battleState && battleState.enemies) {
+                        battleState.enemies.forEach(e => {
+                            if (e && e.hp > 0) {
+                                applyDamage(e, Math.max(1, novaDmg - (e.mdef || 0)), ELEMENTS.Water, ent);
+                            }
+                        });
+                    }
+                    logMsg(`❄️ Frost Nova explodes from the Phylactery, dealing ${novaDmg} Cold damage to all enemies!`, "#06b6d4");
+                }
+            });
+        }
 
 
 
@@ -45329,6 +45433,14 @@ ${setInfoHtml}
             applyDamage(target, petBaseDmg, ELEMENTS.Physical, playerEnt);
         }
 
+        // Death's Dominion: Basic attacks inflict Decay (3t) and Curse (-20% ATK/MATK, 3t)
+        if (heroHasPassive(actingHero, 'death_dominion') && target.hp > 0) {
+            applyStatus(target, 'decay', 3);
+            applyStatus(target, 'curse', 3);
+            logMsg(`💀 Death's Dominion hexes ${target.name} with Decay and Curse (-20% ATK/MATK)!`, "#9333ea");
+            floatText(target.id, "CURSED & DECAY", "#9333ea");
+        }
+
 
 
 
@@ -46455,6 +46567,30 @@ ${setInfoHtml}
                 dmg = Math.max(1, Math.floor(baseDmg * mitigation));
                 target._isHeadshotStagger = true;
                 logMsg("🎯 Headshot Stagger delivers a crushing concussive blow! (2.5x Stagger)", "#f59e0b");
+            } else if (skill.name === 'Bone Spear') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                let effDef = Math.floor(target.def * 0.75); // ignores 25% DEF
+                let mitigation = 20 / (20 + effDef);
+                let baseDmg = (actingMatk * 1.60) + (skill.power || 0);
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                if (battleState) {
+                    battleState.soulRemnants = Math.min(5, (battleState.soulRemnants || 0) + 1);
+                }
+                logMsg(`🦴 Bone Spear punctures ${target.name}, ignoring 25% DEF! (+1 Soul Remnant: ${battleState ? battleState.soulRemnants : 1}/5)`, "#c084fc");
+            } else if (skill.name === 'Grave Chill') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                let effMdef = target.mdef || 0;
+                let mitigation = 20 / (20 + effMdef);
+                let baseDmg = (actingMatk * 1.80) + (skill.power || 0);
+                dmg = Math.max(1, Math.floor(baseDmg * mitigation));
+                let targetHasDebuff = target.statuses && Object.keys(target.statuses).length > 0;
+                applyStatus(target, 'slow', 3);
+                if (targetHasDebuff) {
+                    applyStatus(target, 'freeze', 1);
+                    logMsg(`❄️ Grave Chill blasts debuffed ${target.name} with Abyssal Frost! Inflicted Slow and Freeze!`, "#06b6d4");
+                } else {
+                    logMsg(`❄️ Grave Chill chills ${target.name}! Inflicted Slow (-30% SPD) for 3 turns!`, "#06b6d4");
+                }
             } else if (skill.name === 'Radiant Smite') {
                 let actingMatk = isMain ? pStats.matk : heroStats.matk;
                 let actingAtk = playerEnt.atk;
@@ -47451,7 +47587,20 @@ ${setInfoHtml}
 
 
             let dmg = Math.max(1, Math.floor(playerEnt.atk * 1.5 + skill.power));
-            if (skill.name === 'Judgement Pyre') {
+            if (skill.name === 'Corpse Explosion') {
+                let actingMatk = isMain ? pStats.matk : heroStats.matk;
+                dmg = Math.max(1, Math.floor(actingMatk * 2.20 + (skill.power || 0)));
+                if (battleState && battleState.soulRemnants > 0) {
+                    battleState.soulRemnants--;
+                    logMsg(`💥 Corpse Explosion detonates a Soul Remnant (${battleState.soulRemnants} left)!`, "#ef4444");
+                } else if (battleState && battleState.minions && battleState.minions.some(m => m.hp > 0)) {
+                    let activeM = battleState.minions.find(m => m.hp > 0);
+                    logMsg(`💥 Corpse Explosion sacrifices and detonates ${activeM.name}!`, "#ef4444");
+                    applyDamage(activeM, 99999, ELEMENTS.Dark, playerEnt);
+                } else {
+                    logMsg(`💥 Corpse Explosion erupts with dark necromantic energy!`, "#ef4444");
+                }
+            } else if (skill.name === 'Judgement Pyre') {
                 let actingMatk = isMain ? pStats.matk : heroStats.matk;
                 dmg = Math.max(1, Math.floor(actingMatk * 1.4 + (skill.power || 0)));
             } else
@@ -47786,6 +47935,73 @@ ${setInfoHtml}
 
 
     function applyDamage(target, amount, element, attacker = null, isCrit = false) {
+        if (!target || target.hp <= 0) return;
+
+        // Frontline Minion Target Damage Handling
+        if (target.isMinion) {
+            if (target.statuses) {
+                for (let bId of ['bone_armor', 'bone_barrier', 'divine_barrier']) {
+                    if (target.statuses[bId] && target.statuses[bId].value > 0) {
+                        let curVal = target.statuses[bId].value;
+                        if (curVal >= amount) {
+                            target.statuses[bId].value -= amount;
+                            amount = 0;
+                            logMsg(`${target.name}'s barrier absorbed the attack!`, "#ffd700");
+                            floatText(target.id, "ABSORBED", "#ffd700");
+                            break;
+                        } else {
+                            amount -= curVal;
+                            delete target.statuses[bId];
+                            logMsg(`${target.name}'s barrier broke!`, "#ffd700");
+                            floatText(target.id, "SHIELD BROKE", "#ffd700");
+                        }
+                    }
+                }
+            }
+            if (amount > 0) {
+                target.hp = Math.max(0, target.hp - amount);
+                logMsg(`${target.name} takes ${amount} damage.`);
+                floatText(target.id, `-${amount}`, "#ef4444");
+                applyHitFlash(target.id);
+            }
+            if (target.hp <= 0) {
+                floatText(target.id, "SHATTERED!", "#a855f7");
+                logMsg(`💀 ${target.name} shattered under the blow!`, "#a855f7");
+                if (battleState && battleState.minions) {
+                    let idx = battleState.minions.indexOf(target);
+                    if (idx !== -1) battleState.minions.splice(idx, 1);
+                }
+                // Soul Harvest Remnant
+                if (battleState) {
+                    battleState.soulRemnants = Math.min(5, (battleState.soulRemnants || 0) + 1);
+                }
+                // Cataclysmic Reanimation check
+                let summoner = player.roster && player.roster.find(h => h.id === target.summonerId);
+                if (summoner && typeof heroHasPassive === 'function' && heroHasPassive(summoner, 'cataclysmic_reanimation')) {
+                    let sStats = computeHeroStats(summoner);
+                    let sMatk = summoner.isMain ? pStats.matk : sStats.matk;
+                    let expDmg = Math.max(1, Math.round(sMatk * 1.50));
+                    logMsg(`💀 Cataclysmic Reanimation! ${target.name}'s destruction detonates a 150% Corpse Explosion and shields the party!`, "#a855f7");
+                    if (battleState && battleState.enemies) {
+                        battleState.enemies.forEach(e => {
+                            if (e && e.hp > 0) {
+                                applyDamage(e, Math.max(1, expDmg - (e.mdef || 0)), ELEMENTS.Dark, getHeroCombatEntity(summoner));
+                            }
+                        });
+                    }
+                    let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+                    livingParty.forEach(h => {
+                        let hS = computeHeroStats(h);
+                        let mHp = h.isMain ? pStats.maxHp : (hS.maxHp || 100);
+                        let bVal = Math.round(mHp * 0.15);
+                        applyStatus(getHeroCombatEntity(h), 'bone_barrier', 3, bVal);
+                        floatText(getHeroCombatEntity(h).id, `+${bVal} BONE BARRIER`, "#a855f7");
+                    });
+                }
+            }
+            if (typeof renderBattlefield === 'function') renderBattlefield();
+            return;
+        }
 
 
 
@@ -47839,6 +48055,20 @@ ${setInfoHtml}
                     }
                 }
             }
+            // Undead Vanguard: 40% backline damage redirection to highest HP minion
+            if (battleState && battleState.minions && amount > 0) {
+                let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+                let boneCommander = livingParty.find(h => typeof heroHasPassive === 'function' && heroHasPassive(h, 'undead_vanguard'));
+                let activeMinions = battleState.minions.filter(m => m && m.hp > 0).sort((a, b) => b.hp - a.hp);
+                if (boneCommander && activeMinions.length > 0) {
+                    let targetMinion = activeMinions[0];
+                    let redirected = Math.floor(amount * 0.40);
+                    amount -= redirected;
+                    logMsg(`💀 Undead Vanguard: ${targetMinion.name} intercepted ${redirected} damage for ${targetHero.name}!`, "#a855f7");
+                    floatText(target.id, `Intercepted -${redirected}`, "#a855f7");
+                    applyDamage(targetMinion, redirected, element, attacker);
+                }
+            }
         }
 
         // Staggered status: +50% damage amplified!
@@ -47875,6 +48105,14 @@ ${setInfoHtml}
                     amount = Math.floor(amount * 1.30);
                     logMsg(`⚖️ Righteous Zeal: +30% Holy damage dealt to afflicted ${target.name}!`, "#ffd700");
                 }
+            }
+        }
+        // Death's Dominion: +40% amplified Dark, Cold, and Decay damage
+        if (attacker && (element === ELEMENTS.Dark || element === ELEMENTS.Water || element === 'Dark' || element === 'Water' || element === 'decay')) {
+            let attackerHero = attacker.hero || (player.roster && player.roster.find(h => h.id === attacker.heroId || (h.isMain && (attacker.isPlayer || attacker.id === 'battle-player'))));
+            if (attackerHero && typeof heroHasPassive === 'function' && heroHasPassive(attackerHero, 'death_dominion')) {
+                amount = Math.floor(amount * 1.40);
+                logMsg(`💀 Death's Dominion amplified necrotic damage (+40%)!`, "#a855f7");
             }
         }
 
@@ -48892,6 +49130,49 @@ ${setInfoHtml}
             renderBattlefield();
         }
 
+        // Bone Barrier Absorption
+        if (hasStatus(target, 'bone_barrier') && amount > 0) {
+            let shield = target.statuses.bone_barrier.value || 0;
+            if (shield >= amount) {
+                target.statuses.bone_barrier.value -= amount;
+                amount = 0;
+                logMsg(`${target.name}'s Bone Barrier absorbed the attack! (${target.statuses.bone_barrier.value} shield remaining)`, "#94a3b8");
+                floatText(target.id, "ABSORBED", "#94a3b8");
+            } else {
+                amount -= shield;
+                delete target.statuses.bone_barrier;
+                logMsg(`${target.name}'s Bone Barrier shattered!`, "#94a3b8");
+                floatText(target.id, "BONE SHATTER", "#94a3b8");
+            }
+            renderBattlefield();
+        }
+
+        // Bone Armor Absorption & Retaliation
+        if (hasStatus(target, 'bone_armor') && amount > 0) {
+            let shield = target.statuses.bone_armor.value || 0;
+            let casterMatk = target.statuses.bone_armor.casterMatk || 50;
+            if (shield >= amount) {
+                target.statuses.bone_armor.value -= amount;
+                amount = 0;
+                logMsg(`${target.name}'s Bone Armor absorbed the attack! (${target.statuses.bone_armor.value} shield remaining)`, "#cbd5e1");
+                floatText(target.id, "ABSORBED", "#cbd5e1");
+            } else {
+                amount -= shield;
+                delete target.statuses.bone_armor;
+                logMsg(`🦴 ${target.name}'s Bone Armor shattered! Retaliating with calcified bone shards!`, "#cbd5e1");
+                floatText(target.id, "BONE ARMOR RETRIBUTION!", "#cbd5e1");
+                // Retaliate with 100% MATK physical damage to all enemies
+                if (battleState && battleState.enemies) {
+                    battleState.enemies.forEach(e => {
+                        if (e && e.hp > 0) {
+                            applyDamage(e, Math.max(1, casterMatk - (e.def || 0)), ELEMENTS.Physical, target);
+                        }
+                    });
+                }
+            }
+            renderBattlefield();
+        }
+
 
 
 
@@ -49627,7 +49908,41 @@ ${setInfoHtml}
                     applyStatus(target, 'berserk', 3);
                     logMsg(`⚔️ UNDYING WRATH! ${target.name} defies death, surviving with 1 HP and entering Berserk (+50% ATK)!`, "#ef4444");
                     floatText(target.id, "UNDYING WRATH!", "#ef4444");
+                } else if (heroHasPassive(targetHero || player, 'phylactery_ward') && !target.phylacteryUsed && !(targetHero && targetHero.phylacteryUsed)) {
+                    if (isMainTarget) battleState.phylacteryUsed = true;
+                    target.phylacteryUsed = true;
+                    if (targetHero) targetHero.phylacteryUsed = true;
+                    target.hp = 1;
+                    if (isMainTarget) {
+                        pStats.hp = 1;
+                        if (player.baseStats) player.baseStats.hp = 1;
+                    } else if (targetHero) {
+                        targetHero.hp = 1;
+                        if (targetHero.baseStats) targetHero.baseStats.hp = 1;
+                    }
+                    applyStatus(target, 'phylactery_stasis', 2);
+                    target.inPhylactery = true;
+                    if (targetHero) targetHero.inPhylactery = true;
+                    logMsg(`⚰️ PHYLACTERY WARD! ${target.name}'s soul enters stasis, cheating death!`, "#8b5cf6");
+                    floatText(target.id, "PHYLACTERY STASIS", "#8b5cf6");
                 }
+            } else if ((isMainTarget || targetHero) && typeof heroHasPassive === 'function' && heroHasPassive(targetHero || player, 'phylactery_ward') && !target.phylacteryUsed && !(targetHero && targetHero.phylacteryUsed)) {
+                if (isMainTarget) battleState.phylacteryUsed = true;
+                target.phylacteryUsed = true;
+                if (targetHero) targetHero.phylacteryUsed = true;
+                target.hp = 1;
+                if (isMainTarget) {
+                    pStats.hp = 1;
+                    if (player.baseStats) player.baseStats.hp = 1;
+                } else if (targetHero) {
+                    targetHero.hp = 1;
+                    if (targetHero.baseStats) targetHero.baseStats.hp = 1;
+                }
+                applyStatus(target, 'phylactery_stasis', 2);
+                target.inPhylactery = true;
+                if (targetHero) targetHero.inPhylactery = true;
+                logMsg(`⚰️ PHYLACTERY WARD! ${target.name}'s soul enters stasis, cheating death!`, "#8b5cf6");
+                floatText(target.id, "PHYLACTERY STASIS", "#8b5cf6");
             } else if (heroHasPassive(targetHero || player, 'undying_wrath') && !target.undyingWrathUsed && !battleState.undyingWrathUsed) {
 
 
@@ -49968,6 +50283,35 @@ ${setInfoHtml}
                 if (battleState) battleState._inSacredRetribution = false;
             }
         }
+        // Death's Dominion: 15% of all damage dealt by Lich King heals living party members
+        if (amount > 0 && attacker && attacker !== target && !attacker._inVampiricHeal) {
+            let attackerHero = attacker.hero || (player.roster && player.roster.find(h => h.id === attacker.heroId || (h.isMain && (attacker.isPlayer || attacker.id === 'battle-player'))));
+            if (attackerHero && typeof heroHasPassive === 'function' && heroHasPassive(attackerHero, 'death_dominion')) {
+                attacker._inVampiricHeal = true;
+                let vHeal = Math.max(1, Math.round(amount * 0.15));
+                let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+                livingParty.forEach(h => {
+                    let ent = getHeroCombatEntity(h);
+                    let s = computeHeroStats(h);
+                    let mHp = h.isMain ? pStats.maxHp : (s.maxHp || 100);
+                    let cHp = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || mHp));
+                    let newHp = Math.min(mHp, cHp + vHeal);
+                    if (h.isMain) {
+                        player.baseStats.hp = newHp;
+                        pStats.hp = newHp;
+                    } else {
+                        h.hp = newHp;
+                        if (h.baseStats) h.baseStats.hp = newHp;
+                    }
+                    if (ent) {
+                        ent.hp = newHp;
+                        floatText(ent.id, `+${vHeal}`, "#c084fc");
+                    }
+                });
+                logMsg(`💀 Death's Dominion: Vampiric feast healed all party members for ${vHeal} HP!`, "#c084fc");
+                attacker._inVampiricHeal = false;
+            }
+        }
 
 
 
@@ -49999,6 +50343,15 @@ ${setInfoHtml}
 
 
 
+                // Soul Harvest: Gain 1 Soul Remnant when an enemy dies (max 5)
+                if (battleState) {
+                    let livingParty = (typeof getLivingPartyHeroes === 'function') ? getLivingPartyHeroes() : [];
+                    let hasNecro = livingParty.some(h => typeof heroHasPassive === 'function' && (heroHasPassive(h, 'soul_harvest') || (h.classId && h.classId.includes('necromancer'))));
+                    if (hasNecro) {
+                        battleState.soulRemnants = Math.min(5, (battleState.soulRemnants || 0) + 1);
+                        logMsg(`💀 Soul Harvest: Reaped a soul remnant from ${target.name}! (${battleState.soulRemnants}/5 Remnants)`, "#c084fc");
+                    }
+                }
                 if (!player.bestiary) player.bestiary = {};
 
 
@@ -51413,6 +51766,88 @@ ${setInfoHtml}
                     floatText(ent.id, `+${heal} SANCTUARY`, "#ffd700");
                 });
                 logMsg(`${actingHero.name} casts Prayer of Sanctuary! Healed all allies for ${baseHeal} HP, cleansed 1 debuff, and granted Sanctuary Protection (+15% DEF/MDEF for 2t)!`, "#ffd700");
+            } else if (skill.name === 'Raise Skeleton') {
+                if (!battleState.minions) battleState.minions = [];
+                let maxMinions = heroHasPassive(actingHero, 'cataclysmic_reanimation') ? 3 : 2;
+                let activeMinions = battleState.minions.filter(m => m.hp > 0);
+                if (activeMinions.length >= maxMinions) {
+                    let oldest = activeMinions[0];
+                    applyDamage(oldest, 99999, ELEMENTS.Dark, playerEnt);
+                }
+                let minionHp = Math.round(actingMaxHp * 0.35);
+                if (heroHasPassive(actingHero, 'undead_vanguard')) minionHp = Math.round(minionHp * 1.30);
+                let minionAtk = Math.round((isMain ? pStats.matk : heroStats.matk) * 0.70);
+                let minionDef = Math.round((isMain ? pStats.def : heroStats.def) * 0.80);
+                let minion = {
+                    id: 'minion_' + Date.now() + '_' + Math.floor(Math.random() * 10000),
+                    name: 'Skeletal Vanguard',
+                    isMinion: true,
+                    hp: minionHp,
+                    maxHp: minionHp,
+                    atk: minionAtk,
+                    def: minionDef,
+                    row: 'front',
+                    summonerId: actingHero.id,
+                    statuses: {}
+                };
+                battleState.minions.push(minion);
+                logMsg(`💀 ${actingHero.name} raises a Skeletal Vanguard (${minionHp} HP, ${minionAtk} ATK, ${minionDef} DEF) to hold the Frontline!`, "#c084fc");
+                floatText(playerEnt.id, "SUMMON SKELETON", "#c084fc");
+            } else if (skill.name === 'Legion Vanguard') {
+                if (!battleState.minions) battleState.minions = [];
+                let maxMinions = heroHasPassive(actingHero, 'cataclysmic_reanimation') ? 3 : 2;
+                for (let i = 0; i < 2; i++) {
+                    let activeMinions = battleState.minions.filter(m => m.hp > 0);
+                    if (activeMinions.length >= maxMinions) {
+                        let oldest = activeMinions[0];
+                        applyDamage(oldest, 99999, ELEMENTS.Dark, playerEnt);
+                    }
+                    let minionHp = Math.round(actingMaxHp * 0.35);
+                    if (heroHasPassive(actingHero, 'undead_vanguard')) minionHp = Math.round(minionHp * 1.30);
+                    let minionAtk = Math.round((isMain ? pStats.matk : heroStats.matk) * 0.70);
+                    let minionDef = Math.round((isMain ? pStats.def : heroStats.def) * 0.80);
+                    let minion = {
+                        id: 'minion_' + Date.now() + '_' + i + '_' + Math.floor(Math.random() * 10000),
+                        name: 'Skeletal Vanguard',
+                        isMinion: true,
+                        hp: minionHp,
+                        maxHp: minionHp,
+                        atk: minionAtk,
+                        def: minionDef,
+                        row: 'front',
+                        summonerId: actingHero.id,
+                        statuses: {}
+                    };
+                    let shieldVal = Math.round(minionHp * 0.20);
+                    applyStatus(minion, 'bone_barrier', 3, shieldVal);
+                    battleState.minions.push(minion);
+                }
+                logMsg(`💀 ${actingHero.name} commands Legion Vanguard! Summoned 2 armored Skeletal Vanguards with Bone Shields!`, "#c084fc");
+                floatText(playerEnt.id, "LEGION VANGUARD", "#c084fc");
+            } else if (skill.name === 'Bone Armor') {
+                const livingHeroes = (battleState && battleState.party) 
+                    ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
+                    : (typeof getLivingPartyHeroes === 'function' ? getLivingPartyHeroes() : [actingHero]);
+                let targetH = actingHero;
+                let lowestRatio = 2;
+                livingHeroes.forEach(h => {
+                    let s = computeHeroStats(h);
+                    let mHp = h.isMain ? pStats.maxHp : (s.maxHp || 100);
+                    let cHp = h.isMain ? pStats.hp : (h.hp !== undefined ? h.hp : (h.baseStats?.hp || mHp));
+                    let ratio = cHp / mHp;
+                    if (ratio < lowestRatio) {
+                        lowestRatio = ratio;
+                        targetH = h;
+                    }
+                });
+                let tEnt = getHeroCombatEntity(targetH);
+                let barrierVal = Math.round(actingMaxHp * 0.35);
+                applyStatus(tEnt, 'bone_armor', 3, barrierVal);
+                if (tEnt.statuses && tEnt.statuses.bone_armor) {
+                    tEnt.statuses.bone_armor.casterMatk = isMain ? pStats.matk : heroStats.matk;
+                }
+                logMsg(`🦴 ${actingHero.name} encases ${targetH.name} in Bone Armor (${barrierVal} Barrier)!`, "#cbd5e1");
+                floatText(tEnt.id, `BONE ARMOR (+${barrierVal})`, "#cbd5e1");
             } else if (skill.name === 'Divine Intervention') {
                 const livingHeroes = (battleState && battleState.party) 
                     ? battleState.party.filter(h => (h.isMain ? pStats.hp > 0 : (h.hp !== undefined ? h.hp > 0 : (h.baseStats?.hp > 0))))
@@ -55329,7 +55764,7 @@ ${setInfoHtml}
 
 
 
-                let icon = isLeader ? '👑' : ((h.classId === 'cleric' || h.classId === 'high_priest' || h.classId === 'inquisitor' || h.classId === 'seraph_of_dawn' || h.classId === 'grand_justiciar') ? '🕊️' : (h.classId === 'mage' ? '🔮' : ((h.classId === 'ranger' || h.classId === 'beastmaster' || h.classId === 'deadeye_sniper' || h.classId === 'primal_apex_lord' || h.classId === 'celestial_sharpshooter') ? '🏹' : (h.classId === 'rogue' ? '🗡️' : '🛡️'))));
+                let icon = isLeader ? '👑' : ((h.classId === 'necromancer' || h.classId === 'dread_lich' || h.classId === 'bone_commander' || h.classId === 'lich_king_sovereign' || h.classId === 'lord_of_the_grave') ? '💀' : ((h.classId === 'cleric' || h.classId === 'high_priest' || h.classId === 'inquisitor' || h.classId === 'seraph_of_dawn' || h.classId === 'grand_justiciar') ? '🕊️' : (h.classId === 'mage' ? '🔮' : ((h.classId === 'ranger' || h.classId === 'beastmaster' || h.classId === 'deadeye_sniper' || h.classId === 'primal_apex_lord' || h.classId === 'celestial_sharpshooter') ? '🏹' : (h.classId === 'rogue' ? '🗡️' : '🛡️')))));
 
                 return `
 
@@ -56530,101 +56965,19 @@ ${setInfoHtml}
 
 
     function heroHasPassive(heroOrEntity, passiveId) {
-
-
-
-
-
-
-
         if (!heroOrEntity) return false;
-
-
-
-
-
-
-
         let hero = heroOrEntity.hero || heroOrEntity;
-
-
-
-
-
-
-
         if (hero.isMain || hero.id === 'hero_main' || hero.id === 'battle-player' || hero === (typeof player !== 'undefined' ? player : null) || (hero.currentClass && !hero.classId)) {
-
-
-
-
-
-
-
             return (typeof playerHasPassive === 'function') ? playerHasPassive(passiveId) : false;
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
         const classId = hero.classId || hero.currentClass;
-
-
-
-
-
-
-
         if (!classId || typeof CLASSES_DB === 'undefined' || !CLASSES_DB[classId]) return false;
-
-
-
-
-
-
-
-        const cls = CLASSES_DB[classId];
-
-
-
-
-
-
-
-        if (cls.passive === passiveId) return true;
-
-
-
-
-
-
-
-        if (cls.parent && CLASSES_DB[cls.parent] && CLASSES_DB[cls.parent].passive === passiveId) return true;
-
-
-
-
-
-
-
+        let curr = CLASSES_DB[classId];
+        while (curr) {
+            if (curr.passive === passiveId) return true;
+            curr = curr.parent && CLASSES_DB[curr.parent];
+        }
         return false;
-
-
-
-
-
-
-
     }
 
 
@@ -79495,7 +79848,7 @@ function generateRecruit(tier = 'standard') {
 
 
 
-    const classes = ['warrior', 'mage', 'rogue', 'ranger', 'cleric'];
+    const classes = ['warrior', 'mage', 'rogue', 'ranger', 'cleric', 'necromancer'];
 
 
 
@@ -79578,6 +79931,7 @@ function generateRecruit(tier = 'standard') {
     else if (classId === 'rogue') starterSkills = ['Quick Slash', 'Smoke Screen'];
     else if (classId === 'ranger') starterSkills = ['Aimed Shot', 'Marked Prey'];
     else if (classId === 'cleric') starterSkills = ['Holy Light', 'Purify'];
+    else if (classId === 'necromancer') starterSkills = ['Raise Skeleton', 'Bone Spear'];
 
 
 
@@ -79643,7 +79997,8 @@ function generateRecruit(tier = 'standard') {
 
         rogue:   { hp: 90,  maxHp: 90,  mp: 50, maxMp: 50, atk: 11, def: 6, matk: 8,  mdef: 6, spd: 16, crit: 10 },
         ranger:  { hp: 95,  maxHp: 95,  mp: 50, maxMp: 50, atk: 13, def: 7, matk: 7,  mdef: 6, spd: 15, crit: 12 },
-        cleric:  { hp: 100, maxHp: 100, mp: 70, maxMp: 70, atk: 7,  def: 8, matk: 12, mdef: 11, spd: 11, crit: 5 }
+        cleric:  { hp: 100, maxHp: 100, mp: 70, maxMp: 70, atk: 7,  def: 8, matk: 12, mdef: 11, spd: 11, crit: 5 },
+        necromancer: { hp: 100, maxHp: 100, mp: 65, maxMp: 65, atk: 7, def: 8, matk: 13, mdef: 10, spd: 11, crit: 6 }
     };
 
 
@@ -79892,7 +80247,7 @@ function generateRecruit(tier = 'standard') {
 
 
 
-        row: (classId === 'mage' || classId === 'ranger' || classId === 'cleric') ? 'back' : 'front'
+        row: (classId === 'mage' || classId === 'ranger' || classId === 'cleric' || classId === 'necromancer') ? 'back' : 'front'
 
 
 
@@ -82625,7 +82980,9 @@ function selectPartyTarget(livingParty) {
 
 
 
+    let livingMinions = (typeof battleState !== 'undefined' && battleState && battleState.minions) ? battleState.minions.filter(m => m && m.hp > 0) : [];
     let frontHeroes = livingParty.filter(h => h.row === 'front');
+    let frontCombatants = [...frontHeroes, ...livingMinions];
 
 
 
@@ -82649,7 +83006,7 @@ function selectPartyTarget(livingParty) {
 
 
 
-    if (frontHeroes.length === 0) return randomChoice(backHeroes);
+    if (frontCombatants.length === 0) return randomChoice(backHeroes);
 
 
 
@@ -82657,7 +83014,7 @@ function selectPartyTarget(livingParty) {
 
 
 
-    if (backHeroes.length === 0) return randomChoice(frontHeroes);
+    if (backHeroes.length === 0) return randomChoice(frontCombatants);
 
 
 
@@ -82689,7 +83046,7 @@ function selectPartyTarget(livingParty) {
 
 
 
-        return randomChoice(frontHeroes);
+        return randomChoice(frontCombatants);
 
 
 
@@ -82738,6 +83095,7 @@ function selectPartyTarget(livingParty) {
 
 
 function computeHeroStats(hero) {
+    if (hero && hero.isMinion) return hero;
 
 
 
@@ -83114,6 +83472,10 @@ function computeHeroStats(hero) {
 
 
         if (cls.statMods.spd) total.spd = Math.round(total.spd * cls.statMods.spd);
+        // Soul Harvest: +4% MATK per Soul Remnant
+        if (typeof battleState !== 'undefined' && battleState && battleState.soulRemnants && typeof heroHasPassive === 'function' && heroHasPassive(hero, 'soul_harvest')) {
+            total.matk = Math.round(total.matk * (1 + (battleState.soulRemnants * 0.04)));
+        }
 
 
 
@@ -87539,6 +87901,9 @@ function renderBarracksUI(targetId = 'mercenary-modal-content') {
                         <option value="cleric" ${window.barracksFilter.classId === 'cleric' ? 'selected' : ''}>Cleric</option>
                         <option value="high_priest" ${window.barracksFilter.classId === 'high_priest' ? 'selected' : ''}>High Priest</option>
                         <option value="inquisitor" ${window.barracksFilter.classId === 'inquisitor' ? 'selected' : ''}>Inquisitor</option>
+                        <option value="necromancer" ${window.barracksFilter.classId === 'necromancer' ? 'selected' : ''}>Necromancer</option>
+                        <option value="dread_lich" ${window.barracksFilter.classId === 'dread_lich' ? 'selected' : ''}>Dread Lich</option>
+                        <option value="bone_commander" ${window.barracksFilter.classId === 'bone_commander' ? 'selected' : ''}>Bone Commander</option>
 
                     </select>
 

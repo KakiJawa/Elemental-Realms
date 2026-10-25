@@ -1025,7 +1025,11 @@
         beast_roar: { id: 'beast_roar', name: 'Beast Roar', icon: '🐾', element: 'Physical', type: 'buff', color: '#10b981', desc: 'Empowered by the beast: +20% ATK and +15 SPD.' },
         primal_roar: { id: 'primal_roar', name: 'Primal Roar', icon: '🦁', element: 'Physical', type: 'buff', color: '#ca8a04', desc: 'Primal aura active: +25% ATK, +20 SPD, and immune to Stun and Silence.' },
         holy_vulnerability: { id: 'holy_vulnerability', name: 'Holy Vulnerability', icon: '✨🔥', element: 'Light', type: 'debuff', color: '#ffd700', desc: 'Afflicted by sacred fire: takes +25% amplified Holy damage for 3 turns.' },
-        sanctuary_protection: { id: 'sanctuary_protection', name: 'Sanctuary Protection', icon: '🛡️✨', element: 'Light', type: 'buff', color: '#fef08a', desc: 'Blessed sanctuary: DEF and MDEF increased by 15%.' }
+        sanctuary_protection: { id: 'sanctuary_protection', name: 'Sanctuary Protection', icon: '🛡️✨', element: 'Light', type: 'buff', color: '#fef08a', desc: 'Blessed sanctuary: DEF and MDEF increased by 15%.' },
+        bone_armor: { id: 'bone_armor', name: 'Bone Armor', icon: '🦴🛡️', element: 'Dark', type: 'buff', color: '#cbd5e1', desc: 'Encase in calcified bone armor: absorbs damage. When broken, retaliates with 100% MATK physical damage to all enemies.' },
+        bone_barrier: { id: 'bone_barrier', name: 'Bone Barrier', icon: '💀🛡️', element: 'Dark', type: 'buff', color: '#94a3b8', desc: 'Protected by bone plating: absorbs incoming damage.' },
+        curse: { id: 'curse', name: 'Curse of Frailty', icon: '👁️‍🗨️', element: 'Dark', type: 'debuff', color: '#9333ea', desc: 'Afflicted by dark hexes: ATK and MATK reduced by 20% for 3 turns.' },
+        phylactery_stasis: { id: 'phylactery_stasis', name: 'Phylactery Stasis', icon: '⚰️', element: 'Dark', type: 'buff', color: '#8b5cf6', desc: 'In soul stasis! Immune to damage and reconstituting. Will resurrect next turn with a devastating Frost Nova.' }
     };
 
 
@@ -1117,6 +1121,13 @@
         'Divine Intervention': { name: 'Divine Intervention', category: 'defense', type: 'buff', element: ELEMENTS.Light, power: 0, mp: 30, target: 'ally_single', desc: "Instantly grants a massive Divine Barrier equal to 40% of the target's Max HP and applies Regen (restoring 15% Max HP per turn) for 3 turns." },
         'Radiant Smite': { name: 'Radiant Smite', category: 'offense', type: 'magic', element: ELEMENTS.Light, power: 170, mp: 22, target: 'enemy_single', desc: 'Deals 170% MATK + 80% ATK Holy damage. 50% of the damage dealt is immediately restored to the lowest HP party member.' },
         'Judgement Pyre': { name: 'Judgement Pyre', category: 'offense', type: 'magic', element: ELEMENTS.Fire, power: 140, mp: 32, target: 'enemy_all', desc: 'Engulfs all enemies in sacred fire dealing 140% MATK damage, inflicting Burn (3 turns) and Holy Vulnerability (targets take +25% Holy damage for 3 turns).' },
+        // Necromancer & Evolutions
+        'Raise Skeleton': { name: 'Raise Skeleton', category: 'summon', type: 'magic', element: ELEMENTS.Dark, power: 0, mp: 20, target: 'self', desc: 'Summons a Skeletal Vanguard to the Frontline (HP: 35% Summoner Max HP, ATK: 70% MATK, DEF: 80% DEF). Skeletal minions intercept frontline enemy attacks. Max 2 minions (3 for Lord of the Grave).' },
+        'Bone Spear': { name: 'Bone Spear', category: 'offense', type: 'magic', element: ELEMENTS.Dark, power: 160, mp: 12, target: 'enemy_single', desc: 'Hurls a sharp calcified spike of bone. Deals 160% MATK Dark damage, ignores 25% of the target DEF, and generates 1 Soul Remnant.' },
+        'Grave Chill': { name: 'Grave Chill', category: 'offense', type: 'magic', element: ELEMENTS.Water, power: 180, mp: 18, target: 'enemy_single', desc: 'Blasts the target with abyssal frost. Deals 180% MATK Cold damage, inflicts Slow (-30% SPD, 3 turns). If target is already debuffed, also inflicts Freeze for 1 turn.' },
+        'Corpse Explosion': { name: 'Corpse Explosion', category: 'offense', type: 'magic', element: ELEMENTS.Dark, power: 220, mp: 25, target: 'enemy_all', desc: 'Detonates a fallen minion or soul remnant with catastrophic force. Deals 220% MATK Dark damage to all enemies. Can also detonate an active minion if no remnants exist.' },
+        'Legion Vanguard': { name: 'Legion Vanguard', category: 'summon', type: 'magic', element: ELEMENTS.Dark, power: 0, mp: 35, target: 'self', desc: 'Summons 2 armored Skeletal Vanguards to the frontline, each reinforced with a Bone Shield equal to 20% of their Max HP.' },
+        'Bone Armor': { name: 'Bone Armor', category: 'defense', type: 'buff', element: ELEMENTS.Dark, power: 0, mp: 20, target: 'ally_single', desc: 'Encase an ally in a ribcage shield granting a barrier equal to 35% of the Necromancer Max HP for 3 turns. When broken, retaliates with 100% MATK physical damage to all enemies.' },
     };
 
 
@@ -2142,57 +2153,106 @@
             passive: 'sacred_retribution',
             passiveName: "Sacred Retribution",
             passiveDesc: "Whenever an enemy attacks any party member, the Grand Justiciar has a 40% chance to immediately counter-attack with an unblockable Holy Smite."
+        },
+        // --- Necromancer Class Tree (Tier 1 -> Tier 2 -> Tier 3) ---
+        necromancer: {
+            id: 'necromancer',
+            name: 'Necromancer',
+            tier: 1,
+            parent: null,
+            minLevel: 10,
+            desc: "Dark occult summoner commanding skeletal minions to absorb enemy attacks on the frontline.",
+            statMods: { matk: 1.25, mdef: 1.20, maxMp: 1.25, maxHp: 1.05, def: 1.05, spd: 1.05, crit: 5 },
+            skills: ['Raise Skeleton', 'Bone Spear'],
+            passive: 'soul_harvest',
+            passiveName: "Soul Harvest",
+            passiveDesc: "Whenever an enemy or minion dies, gain 1 Soul Remnant (max 5). Each Soul Remnant increases MATK by 4%."
+        },
+        dread_lich: {
+            id: 'dread_lich',
+            name: 'Dread Lich',
+            tier: 2,
+            parent: 'necromancer',
+            minLevel: 25,
+            desc: "Frost and Shadow sorcerer capable of detonating corpses and cheating death through soul phylacteries.",
+            statMods: { matk: 1.50, mdef: 1.40, maxMp: 1.45, maxHp: 1.15, def: 1.10, spd: 1.10, crit: 10 },
+            skills: ['Grave Chill', 'Corpse Explosion'],
+            passive: 'phylactery_ward',
+            passiveName: "Phylactery Ward",
+            passiveDesc: "Once per combat encounter, fatal damage puts the Dread Lich into stasis. After 1 turn, reconstitute with 50% HP, 100% MP, and unleash a Frost Nova dealing 150% MATK Cold damage to all enemies."
+        },
+        bone_commander: {
+            id: 'bone_commander',
+            name: 'Bone Commander',
+            tier: 2,
+            parent: 'necromancer',
+            minLevel: 25,
+            desc: "Legion master commanding multiple resilient skeletal warriors that absorb attacks aimed at squishy backline allies.",
+            statMods: { matk: 1.35, mdef: 1.35, maxMp: 1.30, maxHp: 1.35, def: 1.35, spd: 1.10, crit: 5 },
+            skills: ['Legion Vanguard', 'Bone Armor'],
+            passive: 'undead_vanguard',
+            passiveName: "Undead Vanguard",
+            passiveDesc: "Skeletal minions gain +30% Max HP. 40% of all single-target damage targeted at backline allies is redirected to the frontline minion with the highest HP."
+        },
+        lich_king_sovereign: {
+            id: 'lich_king_sovereign',
+            name: 'Lich King Sovereign',
+            tier: 3,
+            parent: 'dread_lich',
+            minLevel: 50,
+            desc: "Supreme master of the grave wielding cataclysmic dark magic, party vampiric healing, and absolute immortality.",
+            statMods: { matk: 1.80, mdef: 1.65, maxMp: 1.70, maxHp: 1.30, def: 1.25, spd: 1.20, crit: 20 },
+            passive: 'death_dominion',
+            passiveName: "Death's Dominion",
+            passiveDesc: "Deals +40% amplified Dark, Cold, and Decay damage. 15% of all damage dealt by the Lich King heals living party members. Basic attacks inflict Decay (3t) and Curse (-20% ATK/MATK, 3t)."
+        },
+        lord_of_the_grave: {
+            id: 'lord_of_the_grave',
+            name: 'Lord of the Grave',
+            tier: 3,
+            parent: 'bone_commander',
+            minLevel: 50,
+            desc: "Undead warlord with an expanded legion of 3 frontline bone vanguards that detonate into protective bone barriers upon destruction.",
+            statMods: { matk: 1.60, mdef: 1.55, maxMp: 1.50, maxHp: 1.60, def: 1.60, spd: 1.15, crit: 15 },
+            passive: 'cataclysmic_reanimation',
+            passiveName: "Cataclysmic Reanimation",
+            passiveDesc: "Skeletal minion capacity increased to 3. Whenever a minion is destroyed, it triggers a free Corpse Explosion (150% MATK) and grants all living party members a Bone Barrier equal to 15% Max HP for 3 turns."
         }
     };
 
 
 
     function playerHasPassive(passiveId) {
-
         if (!player || !player.currentClass) return false;
-
         let cls = (typeof CLASSES_DB !== 'undefined' && CLASSES_DB[player.currentClass]);
-
         if (!cls) return false;
-
-        if (cls.passive === passiveId) return true;
-
-        if (cls.parent && CLASSES_DB[cls.parent] && CLASSES_DB[cls.parent].passive === passiveId) return true;
-
+        let curr = cls;
+        while (curr) {
+            if (curr.passive === passiveId) return true;
+            curr = curr.parent && CLASSES_DB[curr.parent];
+        }
         return false;
-
     }
 
-
-
     function heroHasPassive(heroOrEntity, passiveId) {
-
         if (!heroOrEntity) return false;
-
         let hero = heroOrEntity.hero || heroOrEntity;
-
         if (hero.isMain || hero.id === 'hero_main' || hero.id === 'battle-player' || hero === (typeof player !== 'undefined' ? player : null) || (hero.currentClass && !hero.classId)) {
-
             return (typeof playerHasPassive === 'function') ? playerHasPassive(passiveId) : false;
-
         }
-
         const classId = hero.classId || hero.currentClass;
-
         if (!classId || typeof CLASSES_DB === 'undefined' || !CLASSES_DB[classId]) return false;
-
-        const cls = CLASSES_DB[classId];
-
-        if (cls.passive === passiveId) return true;
-
-        if (cls.parent && CLASSES_DB[cls.parent] && CLASSES_DB[cls.parent].passive === passiveId) return true;
-
+        let curr = CLASSES_DB[classId];
+        while (curr) {
+            if (curr.passive === passiveId) return true;
+            curr = curr.parent && CLASSES_DB[curr.parent];
+        }
         return false;
-
     }
 
     if (typeof window !== 'undefined') {
 
+        window.playerHasPassive = playerHasPassive;
         window.heroHasPassive = heroHasPassive;
 
     }

@@ -6834,3 +6834,56 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
     align-items: center;
     gap: 4px;
 }
+
+
+/* =========================================================================
+   NECROMANCER CLASS TREE, BADGES & MINION CARDS
+   ========================================================================= */
+
+.class-necromancer {
+    color: #c084fc;
+}
+
+.class-dread_lich {
+    color: #06b6d4;
+    text-shadow: 0 0 4px rgba(6, 182, 212, 0.4);
+}
+
+.class-bone_commander {
+    color: #cbd5e1;
+    text-shadow: 0 0 4px rgba(203, 213, 225, 0.4);
+}
+
+.class-lich_king_sovereign {
+    color: #a855f7;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+}
+
+.class-lord_of_the_grave {
+    color: #e2e8f0;
+    text-shadow: 0 0 8px rgba(226, 232, 240, 0.6);
+}
+
+.necromancer-badge {
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid #8b5cf6;
+    color: #c084fc;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.minion-companion-card {
+    background: rgba(30, 27, 75, 0.85);
+    border: 1px dashed #8b5cf6;
+    border-radius: 6px;
+    padding: 4px;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.3);
+    min-width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
