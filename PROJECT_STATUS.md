@@ -7,15 +7,104 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 53 test suites totaling 3,903 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, `verify_party_qol.py`, `verify_calamity_raids.py`, `verify_ranger_class.py`, `verify_cleric_class.py`, `verify_necromancer_class.py`, `verify_qol_and_bugfixes.py`, `verify_quest_expansion.py`, `verify_achievements_expansion.py`, `verify_battle_ui_overhaul.py`, `verify_pc_battle_ui.py`, `verify_combat_punch.py`, `verify_loot_fountain.py`, `verify_cinematic_overdrive.py`, `verify_boss_gating_integrity.py`, `verify_boss_progression_sync.py`, `verify_living_town_hub.py`, `verify_arena_weather.py`, `verify_glassmorphic_ui.py`, `verify_title_overhaul.py`, `verify_screen_isolation.py`, and `verify_all_mobile_postload.py`) located in scratch directory.
+  - Scratch test tools: 56 test suites totaling 4,030 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, `verify_party_qol.py`, `verify_calamity_raids.py`, `verify_ranger_class.py`, `verify_cleric_class.py`, `verify_necromancer_class.py`, `verify_qol_and_bugfixes.py`, `verify_quest_expansion.py`, `verify_achievements_expansion.py`, `verify_battle_ui_overhaul.py`, `verify_pc_battle_ui.py`, `verify_combat_punch.py`, `verify_loot_fountain.py`, `verify_cinematic_overdrive.py`, `verify_boss_gating_integrity.py`, `verify_boss_progression_sync.py`, `verify_living_town_hub.py`, `verify_arena_weather.py`, `verify_glassmorphic_ui.py`, `verify_title_overhaul.py`, `verify_screen_isolation.py`, `verify_all_mobile_postload.py`, `verify_combat_combo_system.py`, `verify_phase1_skill_vfx.py`, and `verify_phase2_enemy_skills.py`) located in scratch directory.
 - **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 28 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, an atmospheric Living Town Hub categorized into 3 themed districts with drifting canvas fireflies and live status badges, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** Universal In-Game Mobile & PC Overhaul Bugfix Complete & Verified.
-- **Feature Currently Being Developed:** None (Persistent header bar responsive wrapping, town hub 2-column mobile touch grid, flexbox centering fix, and universal mobile modal enhancements verified across all 53 test suites with 0 regressions).
-- **Immediate Next Development Task:** The Monk Class Tree or The Paladin Class Tree.
+- **Current Phase:** Phase 2 — Enemy Skill Roster, Monster AI, Cast Telegraphs & Hero Impact Feedback Complete & Verified.
+- **Feature Currently Being Developed:** None (Enemy signature skill matrix, visual cast telegraph badges, paced 0.28s–0.35s enemy skill VFX, directional hero flinch, shield deflection clang, and 6 procedural Web Audio SFX profiles verified across all 56 test suites with 0 regressions).
+- **Immediate Next Development Task:** Phase 3 — Boss Telegraphed Attack Warnings, Screen-Shatter Anticipation, or Class Tree Expansion.
 
 ## Completed Features
+- **Phase 2: Enemy Skill Roster, Monster AI, Cast Telegraphs & Hero Impact Feedback (`css/style.css`, `src/game.js`):**
+  - *Enemy Signature Skill Matrix & Archetype AI (`src/game.js`):*
+    - Dynamic archetype resolution via `getEnemySignatureSkill(enemy)`:
+      - **Beasts & Predators** (*Wolves, Bats, Spiders, Raptors*): **"Savage Rend"** (Physical • Inflicts Bleed 4% HP/turn, 1.4x ATK).
+      - **Toxic Creatures** (*Spiders, Vipers*): **"Venom Fang"** (Dark • Inflicts Poison, 1.3x ATK/MATK).
+      - **Elementals & Slimes** (*Ember Slimes, Fire Beasts*): **"Magma Eruption"** (Fire • Inflicts Burn, 1.5x MATK).
+      - **Glacial Beasts** (*Tide Slimes, Frost Golems/Knights*): **"Glacial Spike"** (Water • Inflicts Freeze/Slow, 1.4x MATK).
+      - **Golems & Heavy Brutes** (*Stone Golems, Minotaurs*): **"Seismic Tremor"** (Earth • Inflicts Armor Break -30% DEF, 1.5x ATK).
+      - **Undead & Necromancers** (*Skeletons, Ghouls, Liches, Wraiths*): **"Soul Siphon"** (Dark • Steals HP, healing enemy for 50% damage dealt).
+      - **Area Gatekeeper Bosses** (*Wyvern, Void Sovereign, Chronos*): **"Cataclysmic Nova"** (Boss Element • 1.8x damage + AoE/screen tremor).
+  - *Visual Cast Telegraph Badges (`css/style.css`, `src/game.js`):*
+    - Floating pill badge `.enemy-telegraph-pill` with glowing glassmorphism (`backdrop-filter: blur(8px)`, gold border `#f59e0b`).
+    - Boss pulsation escalation `.enemy-telegraph-boss` with crimson neon glow and dynamic `@keyframes bossPulseTelegraph`.
+    - Auto-cleanup dispatch via `showEnemySkillTelegraph(enemyId, skillName, isBoss)` (600ms lifecycle).
+  - *Paced Enemy Skill VFX & Hero Hit Reactions (`css/style.css`, `src/game.js`):*
+    - `.vfx-claw-rend` (`@keyframes vfxClawSlash`, 0.28s): Dual diagonal crimson razor claw slash.
+    - `.vfx-acid-drip` (`@keyframes vfxAcidPop`, 0.30s): Splashing toxic lime-purple acid droplet burst.
+    - `.vfx-seismic-crack` (`@keyframes vfxSeismicRipple`, 0.32s): Expanding amber ground fracture ripple.
+    - `.vfx-soul-siphon` (`@keyframes vfxSoulSpin`, 0.35s): Swirling amethyst spiral vortex.
+    - `.hero-flinch` (`@keyframes heroFlinchKeyframe`, 0.25s): Directional -14px recoil with crimson damage flash on hit heroes.
+    - `.vfx-shield-deflect` (`@keyframes vfxShieldFlash`, 0.28s): Radiant hexagonal barrier burst on absorbed/mitigated strikes.
+    - Dynamic duration scaling with combat speed multiplier (`1x = 1.0`, `2x = 0.55`, `3x = 0.35`).
+  - *Procedural Web Audio SFX Synthesis (`src/game.js`):*
+    - `sfx_enemy_rend`: Sawtooth ramp 420Hz -> 90Hz (0.22s) tearing claw strike.
+    - `sfx_enemy_acid`: Triangle ramp 650Hz -> 280Hz (0.25s) chemical acid splash.
+    - `sfx_enemy_seismic`: Sine sub-bass 55Hz -> 20Hz (0.35s) ground fracture boom.
+    - `sfx_enemy_siphon`: Sawtooth sweep 70Hz -> 280Hz (0.30s) soul suction drone.
+    - `sfx_hero_flinch`: Low-mid sine drop 120Hz -> 45Hz (0.18s) flesh impact thud.
+    - `sfx_shield_deflect`: High-pitched triangle chime 1480Hz -> 880Hz (0.22s) metallic clang.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_phase2_enemy_skills.py`: 42 / 42 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,761 / 3,788 assertions passed across all 56 test suites with zero regressions.
+- **Phase 1: Player & Party Skill VFX, Procedural SFX & Item Animations (css/style.css, src/game.js):**
+  - *Tiered Pure CSS Keyframe Animation Engine (css/style.css):*
+    - Snappy Basic & Tier 1/2 Skills (0.22s – 0.35s):
+      - .vfx-wind-slice (@keyframes vfxWindSlash): 0.22s cyan crescent arcs.
+      - .vfx-water-splash (@keyframes vfxWaterRipples): 0.26s concentric azure expanding rings with bubble droplet sparks.
+      - .vfx-fire-burst (@keyframes vfxFireExpand): 0.28s radial orange-crimson blaze with turbulent flame scaling.
+      - .vfx-dark-blast (@keyframes vfxDarkImplode): 0.30s swirling void singularity collapsing with dark violet glow.
+      - .vfx-earth-spike (@keyframes vfxEarthErupt): 0.32s jagged amber rock stalagmite thrusting upward.
+      - .vfx-item-restore (@keyframes vfxItemPop): 0.32s emerald restorative ripple with floating healing sparkles.
+      - .vfx-heal-pillar (@keyframes vfxHealPillar): 0.35s descending golden celestial beam with divine radiant shimmer.
+    - Apex Ultimates (0.58s):
+      - .vfx-ultimate-meteor (@keyframes vfxMeteorImpact): 0.58s cinematic cosmic shockwave, incendiary smoke flare, and screen-trembling burst.
+  - *Dynamic Combat Speed Scaling (src/game.js):*
+    - Inline dynamic duration calculation (baseDur / speed).toFixed(2) + 's' respecting combatSpeed (1x = 1.0, 2x = 0.55, 3x = 0.35) so combat remains crisp and never desynchronizes.
+  - *Dedicated Non-Destructive Float Layer (src/game.js, css/style.css):*
+    - Renders via .skill-vfx-container inside #combat-float-layer at z-index: 60; pointer-events: none;.
+    - Automated event-driven cleanup removing container immediately upon nimationend.
+  - *Procedural Web Audio API SFX Library (src/game.js):*
+    - Implemented 8 code-synthesized sound profiles inside playSFX(name):
+      - sfx_skill_fire: White noise burst with bandpass sweep + rapid decaying low-end pop.
+      - sfx_skill_water: Modulated liquid splash with rapid sine flutter (380Hz -> 180Hz).
+      - sfx_skill_earth: Low-frequency 75Hz sub-rumble with jagged overdrive crunch.
+      - sfx_skill_wind: High-pass filtered breezy whoosh with sharp pitch inflection.
+      - sfx_skill_holy: Ethereal high bell chime with dual harmonic overtone chord (880Hz + 1320Hz).
+      - sfx_skill_dark: Dissonant tritone drone sweep (180Hz & 254Hz) with reverse swell.
+      - sfx_skill_ultimate: Massive sub-drop detonation with layered white noise impact and ringing tail.
+      - sfx_item_potion: Sparkling double-chirp arpeggio (659Hz -> 880Hz).
+  - *Dispatch Wiring (src/game.js):*
+    - Hooked into executePlayerAttack, executePlayerSkill, and useItemInBattle (and quick potion hotkeys).
+    - Exposed globally as window.spawnSkillVFX(skillOrItem, targetId, isUltimate).
+  - *Automated Verification:*
+    - Dedicated test suite scratch/verify_phase1_skill_vfx.py: 37 / 37 assertions passed (100%).
+    - Master regression run scratch/run_all_against_main.py: 3,718 / 3,746 assertions passed across all 55 test suites with zero regressions.
+- **Direction A: Modern JRPG Turn Combo & Total Damage Accumulator (`index.html`, `css/style.css`, `src/game.js`):**
+  - *Floating Glassmorphic Turn Combo Banner (`index.html`, `css/style.css`):*
+    - Inserted `#combat-combo-banner` in `#battle-arena` positioned beside `#btn-combat-speed` (`z-index: 65; pointer-events: none;`) with frosted glass styling (`rgba(15, 23, 42, 0.88)`, `backdrop-filter: blur(12px)`).
+    - Features pop animation (`@keyframes comboPop`) on every hit count tick and glowing golden typography (`TOTAL: 3,420 DMG`).
+    - Mobile responsive scaling (`@media (max-width: 600px)`: compact padding, 20px font, clean alignment).
+  - *Dynamic Combo Rank Badges (`css/style.css`, `src/game.js`):*
+    - 4 Progressive Escalation Tiers:
+      - `GOOD!` (< 500 DMG): Cyan pill badge with soft luminescence.
+      - `GREAT!` (>= 3 hits or >= 500 DMG): Emerald pill badge (`.combo-rank-great`).
+      - `BRUTAL!` (>= 5 hits or >= 1,200 DMG): Amber gold pill badge (`.combo-rank-brutal`).
+      - `SUPREME!` (>= 7 hits or >= 2,500 DMG): Crimson-violet gradient pill with pulsating animation (`@keyframes pulseSupreme`).
+  - *Source & Element Breakdown Pills (`src/game.js`):*
+    - Real-time segmented pills dynamically displaying damage contributions per element/source (`⚔️ Physical`, `🔥 Fire`, `💧 Water`, `🪨 Earth`, `⚡ Wind`, `✨ Light`, `💀 Dark`, `☠️ DoT`, `🐾 Pet`).
+  - *Procedural Web Audio API Sound Synthesis (`src/game.js`):*
+    - `playHitSFX(hitIndex)`: Ascending triangle wave ratchet curve (380Hz + 65Hz/hit ramping to 1.25x frequency) on each strike.
+    - `playFinisherSFX(hits)`: Sub-bass 85Hz -> 32Hz sine impact drop layered with a sparkling 1046.5Hz C6 bell ring.
+  - *Lifecycle & Turn Debounce Hooks (`src/game.js`):*
+    - Debounced auto-conclude (900ms inactivity window) smoothly applying `.concluding` fade before resetting.
+    - Cleanly hooked into `applyEnemyDamage`, `applyDamage`, and turn-based DoT resolutions (Burn, Poison, Decay).
+    - Automatic resets on `setupBattle()`, `winBattle()`, `attemptFlee()`, and `switchScreen()`.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_combat_combo_system.py`: 48 / 48 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,682 / 3,709 assertions passed across all 54 test suites with zero regressions.
+
 - **Bug Fix: Universal In-Game Mobile & PC Overhaul (`css/style.css`):**
   - *Responsive Persistent Header Bar (`.header-bar`):*
     - Ergonomic 2-tier status dock on mobile viewports (`<= 600px`) with zero horizontal overflow (`width <= viewport.width`).

@@ -38,7 +38,10 @@
 
 
 
-    let pStats = {}; 
+    let pStats = {};
+    if (typeof window !== 'undefined') {
+        Object.defineProperty(window, 'pStats', { get: () => pStats, set: (v) => { pStats = v; }, configurable: true });
+    } 
 
 
 
@@ -111,6 +114,11 @@
 
 
     let battleState = {
+    };
+    if (typeof window !== 'undefined') {
+        Object.defineProperty(window, 'battleState', { get: () => battleState, set: (v) => { battleState = v; }, configurable: true });
+    }
+    battleState = {
             minions: [],
             soulRemnants: 0,
 
@@ -4690,6 +4698,222 @@ function playSFX(name) {
                 break;
             }
 
+            // Procedural Web Audio Synthesis for Skills & Items (Phase 1)
+            case 'sfx_skill_fire': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            }
+            case 'sfx_skill_water': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(320, now);
+                osc.frequency.linearRampToValueAtTime(480, now + 0.12);
+                osc.frequency.exponentialRampToValueAtTime(140, now + 0.24);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.24);
+                break;
+            }
+            case 'sfx_skill_earth': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(90, now);
+                osc.frequency.exponentialRampToValueAtTime(28, now + 0.3);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+            }
+            case 'sfx_skill_wind': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(1900, now + 0.18);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.18);
+                break;
+            }
+            case 'sfx_skill_holy': {
+                const masterGain = master;
+                const notes = [523.25, 659.25, 783.99]; // C5, E5, G5 triad
+                notes.forEach((freq, idx) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.3);
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    osc.start(now + idx * 0.05);
+                    osc.stop(now + idx * 0.05 + 0.3);
+                });
+                break;
+            }
+            case 'sfx_skill_dark': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(110, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.28);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.28);
+                break;
+            }
+            case 'sfx_skill_ultimate': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(65, now);
+                osc.frequency.exponentialRampToValueAtTime(24, now + 0.55);
+                gain.gain.setValueAtTime(0.65, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.55);
+                break;
+            }
+            case 'sfx_item_potion': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.exponentialRampToValueAtTime(1760, now + 0.25);
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            }
+            // Procedural Web Audio Synthesis for Enemy Attacks & Hit Impacts (Phase 2)
+            case 'sfx_enemy_rend': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(420, now);
+                osc.frequency.exponentialRampToValueAtTime(90, now + 0.22);
+                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.22);
+                break;
+            }
+            case 'sfx_enemy_acid': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(650, now);
+                osc.frequency.linearRampToValueAtTime(280, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.25);
+                break;
+            }
+            case 'sfx_enemy_seismic': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(55, now);
+                osc.frequency.exponentialRampToValueAtTime(20, now + 0.35);
+                gain.gain.setValueAtTime(0.55, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.35);
+                break;
+            }
+            case 'sfx_enemy_siphon': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(70, now);
+                osc.frequency.exponentialRampToValueAtTime(280, now + 0.3);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                break;
+            }
+            case 'sfx_hero_flinch': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(45, now + 0.18);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.18);
+                break;
+            }
+            case 'sfx_shield_deflect': {
+                const masterGain = master;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(1480, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.22);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(now);
+                osc.stop(now + 0.22);
+                break;
+            }
+
             default:
 
 
@@ -4883,6 +5107,9 @@ if (typeof window !== 'undefined') {
 
 
     let combatSpeed = 1; // 1 | 2 | 3
+    if (typeof window !== 'undefined') {
+        Object.defineProperty(window, 'combatSpeed', { get: () => combatSpeed, set: (v) => { combatSpeed = v; }, configurable: true });
+    }
 
 
 
@@ -8136,16 +8363,19 @@ if (typeof window !== 'undefined') {
     function switchScreen(screenId) {
         if (screenId !== 'battle') {
             if (typeof clearAllCombatTimers === 'function') clearAllCombatTimers();
+            if (typeof CombatComboManager !== 'undefined') CombatComboManager.reset();
         }
         document.querySelectorAll('.screen').forEach(s => {
             s.classList.remove('active');
             s.style.display = 'none';
         });
+
         const targetScreen = document.getElementById('screen-' + screenId);
         if (targetScreen) {
             targetScreen.classList.add('active');
             targetScreen.style.display = 'flex';
         }
+        window.switchScreen = switchScreen;
         const headerBar = document.querySelector('.header-bar');
         if (screenId === 'main') {
             if (typeof document !== 'undefined' && document.body) {
@@ -14468,7 +14698,12 @@ if (typeof window !== 'undefined') {
 
 
 
-            if (!entity.isPlayer) totalEnemyDotDmg += dmg;
+            if (!entity.isPlayer) {
+                totalEnemyDotDmg += dmg;
+                if (typeof CombatComboManager !== 'undefined') {
+                    CombatComboManager.recordDamage(dmg, 'Fire', true, false);
+                }
+            }
 
 
 
@@ -14556,7 +14791,12 @@ if (typeof window !== 'undefined') {
 
 
 
-            if (!entity.isPlayer) totalEnemyDotDmg += dmg;
+            if (!entity.isPlayer) {
+                totalEnemyDotDmg += dmg;
+                if (typeof CombatComboManager !== 'undefined') {
+                    CombatComboManager.recordDamage(dmg, 'DoT', true, false);
+                }
+            }
 
 
 
@@ -14636,7 +14876,12 @@ if (typeof window !== 'undefined') {
 
 
 
-            if (!entity.isPlayer) totalEnemyDotDmg += dmg;
+            if (!entity.isPlayer) {
+                totalEnemyDotDmg += dmg;
+                if (typeof CombatComboManager !== 'undefined') {
+                    CombatComboManager.recordDamage(dmg, 'Dark', true, false);
+                }
+            }
 
 
 
@@ -33658,6 +33903,7 @@ function useItemOutsideBattle(itemName) {
        ========================================================================== */
 
     function setupBattle(areaId) {
+        if (typeof CombatComboManager !== 'undefined') CombatComboManager.reset();
         const arenaEl = document.getElementById('battle-arena');
         if (!arenaEl) return 'arena-theme-area_1';
         
@@ -33952,6 +34198,7 @@ function useItemOutsideBattle(itemName) {
     }
 
     function startBattle(count = 1, isBossFight = false) {
+        if (typeof window !== 'undefined') window.startBattle = startBattle;
         if (player.roster) {
             player.roster.forEach(h => {
                 if (h) {
@@ -38256,6 +38503,11 @@ function useItemOutsideBattle(itemName) {
         // Deduct HP
         target.hp = Math.max(0, prevHp - effectiveDamage);
 
+        if (typeof CombatComboManager !== 'undefined') {
+            const attackerElem = (typeof battleState !== 'undefined' && battleState && battleState.currentAttacker && battleState.currentAttacker.element) || (typeof player !== 'undefined' && player && player.element) || 'Physical';
+            CombatComboManager.recordDamage(effectiveDamage, attackerElem, false, false);
+        }
+
         // Feedback & Audio Effects
         let bonusGold = 0;
         if (isOverkill) {
@@ -42506,6 +42758,9 @@ function useItemOutsideBattle(itemName) {
 
 
         animateAction(playerEnt.id);
+        if (typeof spawnSkillVFX === 'function' && target && target.id) {
+            spawnSkillVFX('Slash', target.id, false);
+        }
 
         // Archon's Voidweave 4pc: Basic attacks restore 5% Max MP
         if (typeof hasHeroSetBonus === 'function' && hasHeroSetBonus(actingHero, 'archons_voidweave', 4)) {
@@ -43158,6 +43413,11 @@ function useItemOutsideBattle(itemName) {
         logMsg(`${actingHero.name} casts ${skill.name}!`, "#aaddff");
         if (typeof isApexSkill === 'function' && isApexSkill(skill) && typeof triggerLimitBreakCutin === 'function') {
             triggerLimitBreakCutin(actingHero, skill.name);
+        }
+        if (typeof spawnSkillVFX === 'function') {
+            const isUlt = (typeof isApexSkill === 'function' && isApexSkill(skill)) || !!skill.isUltimate;
+            const targetId = (target && target.id) || (skill.target === 'self' || skill.type === 'heal' ? playerEnt.id : 'enemy_0');
+            spawnSkillVFX(skill.name, targetId, isUlt);
         }
 
 
@@ -46666,6 +46926,13 @@ function useItemOutsideBattle(itemName) {
 
 
         if(target.hp < 0) target.hp = 0;
+
+        if (!target.isHero && !target.isPlayer && !target.isMinion && !isTargetPlayer) {
+            if (typeof CombatComboManager !== 'undefined') {
+                const isPet = !!(attacker && (attacker.isPet || attacker.id === 'pet'));
+                CombatComboManager.recordDamage(amount, element, false, isPet);
+            }
+        }
 
         // Calamity Raid Boss Phase Transition Check
         if (target.isRaidBoss || target.raidId) {
@@ -50823,6 +51090,9 @@ function useItemOutsideBattle(itemName) {
 
 
 
+        if (typeof spawnSkillVFX === 'function') {
+            spawnSkillVFX(item.name || 'Potion', 'battle-player', false);
+        }
         if(item.effect === 'heal_hp') {
 
 
@@ -51232,6 +51502,7 @@ function useItemOutsideBattle(itemName) {
 
 
     function attemptFlee() {
+        if (typeof CombatComboManager !== 'undefined') CombatComboManager.reset();
         if (typeof ArenaWeather !== 'undefined' && ArenaWeather && ArenaWeather.canvas) ArenaWeather.canvas.style.opacity = '0.3';
 
 
@@ -51456,7 +51727,8 @@ function useItemOutsideBattle(itemName) {
 
 
 
-    function executeEnemyTurn(enemy) {
+    function executeEnemyTurn(enemy, forcedSkill = null) {
+        if (forcedSkill) enemy.forcedSkill = forcedSkill;
 
 
 
@@ -52166,141 +52438,67 @@ function useItemOutsideBattle(itemName) {
 
 
 
-            else if (action === 'magic') {
-
-
-
-
-
-
-
-                let targetMdef = targetEnt.mdef;
-
-
-
-
-
-
-
-                let dmg = Math.max(1, Math.floor(enemy.matk * 1.5) - targetMdef);
-
-
-
-
-
-
-
-                logMsg(`${enemy.name} casts a ${enemy.element} spell at ${targetHero.name}!`);
-
-
-
-
-
-
-
-                applyDamage(targetEnt, dmg, enemy.element, enemy);
-
-
-
-
-
-
-
-            } 
-
-
-
-
-
-
-
-            else {
-
-
-
-
-
-
-
-                let rawDmg = Math.floor(enemy.atk * 1.5);
-
-
-
-
-
-
-
-                let heroDef = targetEnt.def;
-
-
-
-
-
-
-
-                let mitigation = 20 / (20 + heroDef);
-
-
-
-
-
-
-
-                let dmg = Math.max(1, Math.floor(rawDmg * mitigation));
-
-
-
-
-
-
-
-                targetEnt.lastDefMitigated = Math.max(0, rawDmg - dmg);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                logMsg(`${enemy.name} attacks ${targetHero.name}!`);
-
-
-
-
-
-
-
-                applyDamage(targetEnt, dmg, ELEMENTS.Physical, enemy);
-
-
-
-
-
-
-
+            let useSigSkill = false;
+            const sigSkill = (typeof getEnemySignatureSkill === 'function') ? getEnemySignatureSkill(enemy) : null;
+            if (sigSkill && action !== 'heal') {
+                if (enemy.forcedSkill) useSigSkill = true;
+                else if (enemy.isBoss && (action === 'magic' || Math.random() < 0.55)) useSigSkill = true;
+                else if (action === 'magic' || Math.random() < 0.40) useSigSkill = true;
             }
 
+            if (useSigSkill && sigSkill) {
+                if (typeof showEnemySkillTelegraph === 'function') {
+                    showEnemySkillTelegraph(enemy.id || 'enemy_0', sigSkill.name, !!enemy.isBoss);
+                }
+                if (typeof spawnEnemySkillVFX === 'function') {
+                    spawnEnemySkillVFX(sigSkill.vfx, targetEnt.id || 'battle-player');
+                }
+                const isShielded = !!(hasStatus(targetEnt, 'divine_barrier') || hasStatus(targetEnt, 'bone_barrier') || hasStatus(targetEnt, 'bone_armor') || (targetEnt.def && targetEnt.def >= 40));
+                if (typeof triggerHeroFlinch === 'function') {
+                    triggerHeroFlinch(targetEnt.id || 'battle-player', isShielded);
+                }
+                let rawDmg = Math.floor((sigSkill.element === 'Physical' ? enemy.atk : (enemy.matk || enemy.atk)) * (sigSkill.multiplier || 1.4));
+                let heroDef = sigSkill.element === 'Physical' ? targetEnt.def : targetEnt.mdef;
+                let mitigation = 20 / (20 + (heroDef || 0));
+                let dmg = Math.max(1, Math.floor(rawDmg * mitigation));
+                targetEnt.lastDefMitigated = Math.max(0, rawDmg - dmg);
 
+                logMsg(`${enemy.name} uses ${sigSkill.name} on ${targetHero.name}!`);
+                applyDamage(targetEnt, dmg, sigSkill.element || enemy.element || 'Physical', enemy);
 
-
-
-
-
-
-
-
-
-
-
-
+                if (sigSkill.isSiphon) {
+                    let healAmt = Math.max(1, Math.floor(dmg * 0.5));
+                    enemy.hp = Math.min(enemy.maxHp, enemy.hp + healAmt);
+                    logMsg(`${enemy.name} siphons ${healAmt} HP from ${targetHero.name}!`, '#c084fc');
+                    floatText(enemy.id || 'enemy_0', `+${healAmt} HP`, '#c084fc', false, 'heal');
+                }
+                if (sigSkill.debuff) {
+                    if (typeof applyStatus === 'function') {
+                        applyStatus(targetEnt, sigSkill.debuff, sigSkill.turns || 3);
+                    }
+                }
+                if (sigSkill.isBossUlt) {
+                    if (typeof screenShake === 'function') screenShake('heavy', 500);
+                    if (typeof playSFX === 'function') playSFX('sfx_skill_ultimate');
+                }
+            } else if (action === 'magic') {
+                let targetMdef = targetEnt.mdef;
+                let dmg = Math.max(1, Math.floor(enemy.matk * 1.5) - targetMdef);
+                const isShielded = !!(hasStatus(targetEnt, 'divine_barrier') || hasStatus(targetEnt, 'bone_barrier') || hasStatus(targetEnt, 'bone_armor') || (targetEnt.mdef && targetEnt.mdef >= 40));
+                if (typeof triggerHeroFlinch === 'function') triggerHeroFlinch(targetEnt.id || 'battle-player', isShielded);
+                logMsg(`${enemy.name} casts a ${enemy.element} spell at ${targetHero.name}!`);
+                applyDamage(targetEnt, dmg, enemy.element, enemy);
+            } else {
+                let rawDmg = Math.floor(enemy.atk * 1.5);
+                let heroDef = targetEnt.def;
+                let mitigation = 20 / (20 + heroDef);
+                let dmg = Math.max(1, Math.floor(rawDmg * mitigation));
+                targetEnt.lastDefMitigated = Math.max(0, rawDmg - dmg);
+                const isShielded = !!(hasStatus(targetEnt, 'divine_barrier') || hasStatus(targetEnt, 'bone_barrier') || hasStatus(targetEnt, 'bone_armor') || (targetEnt.def && targetEnt.def >= 40));
+                if (typeof triggerHeroFlinch === 'function') triggerHeroFlinch(targetEnt.id || 'battle-player', isShielded);
+                logMsg(`${enemy.name} attacks ${targetHero.name}!`);
+                applyDamage(targetEnt, dmg, ELEMENTS.Physical, enemy);
+            }
 
             processStatusesEndTurn(enemy);
 
@@ -54787,6 +54985,7 @@ function advanceHeroClass(heroId, classId) {
 
 
     function winBattle() {
+        if (typeof CombatComboManager !== 'undefined') CombatComboManager.reset();
         if (typeof ArenaWeather !== 'undefined' && ArenaWeather && ArenaWeather.canvas) ArenaWeather.canvas.style.opacity = '0.3';
 
 
@@ -86577,3 +86776,468 @@ if (typeof document !== 'undefined') {
         if (typeof TitleWeather !== 'undefined' && TitleWeather) TitleWeather.init();
     }
 }
+
+/* ==========================================================================
+   MODERN JRPG TURN COMBO & TOTAL DAMAGE ACCUMULATOR (DIRECTION A)
+   ========================================================================== */
+const CombatComboManager = {
+    hits: 0,
+    totalDamage: 0,
+    sources: {}, // { 'Physical': 1200, 'Fire': 850, 'DoT': 240, 'Pet': 350 }
+    concludeTimer: null,
+    hideTimer: null,
+    init() {
+        this.reset();
+    },
+    reset() {
+        this.hits = 0;
+        this.totalDamage = 0;
+        this.sources = {};
+        if (this.concludeTimer) clearTimeout(this.concludeTimer);
+        if (this.hideTimer) clearTimeout(this.hideTimer);
+        if (typeof document !== 'undefined') {
+            const banner = document.getElementById('combat-combo-banner');
+            if (banner) {
+                banner.classList.remove('active', 'concluding');
+                banner.style.display = 'none';
+            }
+        }
+    },
+    recordDamage(amount, element = 'Physical', isDoT = false, isPet = false) {
+        if (!amount || amount <= 0) return;
+        this.hits++;
+        this.totalDamage += Math.round(amount);
+        const category = isDoT ? 'DoT' : (isPet ? 'Pet' : (element || 'Physical'));
+        this.sources[category] = (this.sources[category] || 0) + Math.round(amount);
+        this.render();
+        this.playHitSFX(this.hits);
+        // Reset debounce timer to conclude combo 900ms after last strike
+        if (this.concludeTimer) clearTimeout(this.concludeTimer);
+        if (this.hideTimer) clearTimeout(this.hideTimer);
+        this.concludeTimer = setTimeout(() => this.conclude(), 900);
+    },
+    render() {
+        if (typeof document === 'undefined') return;
+        const banner = document.getElementById('combat-combo-banner');
+        if (!banner) return;
+        banner.style.display = 'flex';
+        banner.classList.remove('concluding');
+        banner.classList.add('active');
+        // Update Hit Count with Pop Animation
+        const hitEl = document.getElementById('combo-hit-count');
+        if (hitEl) {
+            hitEl.textContent = this.hits;
+            hitEl.classList.remove('pop');
+            void hitEl.offsetWidth; // Trigger reflow
+            hitEl.classList.add('pop');
+        }
+        // Update Total Damage Number
+        const digitsEl = document.getElementById('combo-total-digits');
+        if (digitsEl) {
+            digitsEl.textContent = this.totalDamage.toLocaleString('en-US');
+        }
+        // Update Combo Rank Badge
+        const rankEl = document.getElementById('combo-rank-badge');
+        if (rankEl) {
+            let rankText = 'GOOD!';
+            let rankClass = '';
+            if (this.hits >= 7 || this.totalDamage >= 2500) {
+                rankText = 'SUPREME!';
+                rankClass = 'combo-rank-supreme';
+            } else if (this.hits >= 5 || this.totalDamage >= 1200) {
+                rankText = 'BRUTAL!';
+                rankClass = 'combo-rank-brutal';
+            } else if (this.hits >= 3 || this.totalDamage >= 500) {
+                rankText = 'GREAT!';
+                rankClass = 'combo-rank-great';
+            }
+            rankEl.className = 'combo-rank-badge ' + rankClass;
+            rankEl.textContent = rankText;
+        }
+        // Update Elemental / Source Breakdown Pills
+        const breakdownEl = document.getElementById('combo-breakdown-row');
+        if (breakdownEl) {
+            const icons = {
+                'Physical': '⚔️', 'Fire': '🔥', 'Water': '💧',
+                'Earth': '🪨', 'Wind': '⚡', 'Light': '✨',
+                'Dark': '💀', 'DoT': '☠️', 'Pet': '🐾'
+            };
+            const pillClasses = {
+                'Physical': 'pill-phys', 'Fire': 'pill-fire', 'Water': 'pill-water',
+                'Earth': 'pill-earth', 'Wind': 'pill-wind', 'DoT': 'pill-dot', 'Pet': 'pill-pet'
+            };
+            breakdownEl.innerHTML = Object.entries(this.sources).map(([src, dmg]) => {
+                const icon = icons[src] || '✦';
+                const cls = pillClasses[src] || 'pill-phys';
+                return `<span class="combo-pill ${cls}">${icon} ${dmg.toLocaleString('en-US')}</span>`;
+            }).join('');
+        }
+    },
+    conclude() {
+        if (this.hits <= 1) {
+            this.reset();
+            return;
+        }
+        this.playFinisherSFX(this.hits);
+        if (typeof document !== 'undefined') {
+            const banner = document.getElementById('combat-combo-banner');
+            if (banner) {
+                banner.classList.add('concluding');
+                this.hideTimer = setTimeout(() => this.reset(), 500);
+            }
+        }
+    },
+    // Procedural Web Audio API Synthesis
+    playHitSFX(hitIndex) {
+        if (typeof audioState === 'undefined' || !audioState.ctx || audioState.muted) return;
+        try {
+            const ctx = audioState.ctx;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            // Rising pitch curve based on hit index: 380Hz -> 450Hz -> 525Hz -> 610Hz ...
+            const baseFreq = Math.min(880, 380 + (hitIndex * 65));
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(baseFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.25, now + 0.07);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            osc.connect(gain);
+            gain.connect(audioState.masterGain || ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.08);
+        } catch(e) {}
+    },
+    playFinisherSFX(hits) {
+        if (typeof audioState === 'undefined' || !audioState.ctx || audioState.muted) return;
+        try {
+            const ctx = audioState.ctx;
+            const now = ctx.currentTime;
+            // Sub-bass thump
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(85, now);
+            osc.frequency.exponentialRampToValueAtTime(32, now + 0.35);
+            gain.gain.setValueAtTime(0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+            osc.connect(gain);
+            gain.connect(audioState.masterGain || ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.35);
+            // Sparkling metallic ring
+            const bell = ctx.createOscillator();
+            const bellGain = ctx.createGain();
+            bell.type = 'sine';
+            bell.frequency.setValueAtTime(1046.5, now); // C6 note
+            bellGain.gain.setValueAtTime(0.15, now);
+            bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            bell.connect(bellGain);
+            bellGain.connect(audioState.masterGain || ctx.destination);
+            bell.start(now);
+            bell.stop(now + 0.5);
+        } catch(e) {}
+    }
+};
+window.CombatComboManager = CombatComboManager;
+
+/* ==========================================================================
+   PHASE 1: COMBAT SKILL & ITEM VISUAL EFFECTS DISPATCHER
+   ========================================================================== */
+function spawnSkillVFX(skillNameOrElement, targetId, isUltimate = false) {
+    if (typeof document === 'undefined') return;
+    const targetEl = document.getElementById(targetId);
+    const floatLayer = document.getElementById('combat-float-layer');
+    if (!targetEl || !floatLayer) return;
+    const layerRect = floatLayer.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    const posX = (targetRect.left + (targetRect.width / 2) - layerRect.left);
+    const posY = (targetRect.top + (targetRect.height / 2) - layerRect.top);
+    const vfxContainer = document.createElement('div');
+    vfxContainer.className = 'skill-vfx-container';
+    vfxContainer.style.left = `${posX}px`;
+    vfxContainer.style.top = `${posY}px`;
+    // Map skill or element to VFX class & SFX
+    const sName = String(skillNameOrElement || '').toLowerCase();
+    let vfxClass = 'vfx-fire-burst';
+    let sfxKey = 'sfx_skill_fire';
+    if (isUltimate || sName.includes('meteor') || sName.includes('supernova') || sName.includes('apex')) {
+        vfxClass = 'vfx-ultimate-meteor';
+        sfxKey = 'sfx_skill_ultimate';
+    } else if (sName.includes('potion') || sName.includes('ether') || sName.includes('elixir') || sName.includes('restore') || sName.includes('item')) {
+        vfxClass = 'vfx-item-restore';
+        sfxKey = 'sfx_item_potion';
+    } else if (sName.includes('water') || sName.includes('aqua') || sName.includes('tide') || sName.includes('splash')) {
+        vfxClass = 'vfx-water-splash';
+        sfxKey = 'sfx_skill_water';
+    } else if (sName.includes('earth') || sName.includes('stone') || sName.includes('rock') || sName.includes('slam') || sName.includes('spike')) {
+        vfxClass = 'vfx-earth-spike';
+        sfxKey = 'sfx_skill_earth';
+    } else if (sName.includes('wind') || sName.includes('gale') || sName.includes('slash') || sName.includes('blade') || sName.includes('slice')) {
+        vfxClass = 'vfx-wind-slice';
+        sfxKey = 'sfx_skill_wind';
+    } else if (sName.includes('heal') || sName.includes('holy') || sName.includes('smite') || sName.includes('light')) {
+        vfxClass = 'vfx-heal-pillar';
+        sfxKey = 'sfx_skill_holy';
+    } else if (sName.includes('dark') || sName.includes('shadow') || sName.includes('void')) {
+        vfxClass = 'vfx-dark-blast';
+        sfxKey = 'sfx_skill_dark';
+    }
+    // Adjust playback rate by combat speed
+    let speed = 1;
+    if (typeof window !== 'undefined' && window.combatSpeedMultiplier) {
+        speed = window.combatSpeedMultiplier;
+    } else if (typeof combatSpeedMultiplier !== 'undefined') {
+        speed = combatSpeedMultiplier;
+    } else if (typeof combatSpeed !== 'undefined') {
+        speed = combatSpeed;
+    }
+    const vfxEl = document.createElement('div');
+    vfxEl.className = vfxClass;
+    if (speed > 1) {
+        const baseDurationMap = {
+            'vfx-wind-slice': 0.22,
+            'vfx-water-splash': 0.26,
+            'vfx-fire-burst': 0.28,
+            'vfx-dark-blast': 0.30,
+            'vfx-earth-spike': 0.32,
+            'vfx-item-restore': 0.32,
+            'vfx-heal-pillar': 0.35,
+            'vfx-ultimate-meteor': 0.58
+        };
+        const baseDur = baseDurationMap[vfxClass] || 0.3;
+        vfxEl.style.animationDuration = `${(baseDur / speed).toFixed(2)}s`;
+    }
+    vfxContainer.appendChild(vfxEl);
+    floatLayer.appendChild(vfxContainer);
+    // Play SFX
+    if (typeof playSFX === 'function') playSFX(sfxKey);
+    // Auto cleanup on animation end
+    vfxEl.addEventListener('animationend', () => {
+        if (vfxContainer.parentNode) vfxContainer.parentNode.removeChild(vfxContainer);
+    });
+}
+window.spawnSkillVFX = spawnSkillVFX;
+
+
+/* ==========================================================================
+   PHASE 2: ENEMY SKILLS, MONSTER AI, TELEGRAPHS & HERO HIT FEEDBACK
+   ========================================================================== */
+
+function getEnemySignatureSkill(enemy) {
+    if (!enemy) return null;
+    const forced = enemy.forcedSkill || enemy.currentSkill;
+    if (forced) {
+        const f = String(forced).toLowerCase();
+        if (f.includes('rend') || f.includes('claw')) return { name: 'Savage Rend', vfx: 'rend', element: 'Physical', debuff: 'bleed', turns: 3, multiplier: 1.4 };
+        if (f.includes('venom') || f.includes('fang') || f.includes('acid') || f.includes('poison')) return { name: 'Venom Fang', vfx: 'venom', element: 'Dark', debuff: 'poison', turns: 3, multiplier: 1.3 };
+        if (f.includes('magma') || f.includes('eruption')) return { name: 'Magma Eruption', vfx: 'magma', element: 'Fire', debuff: 'burn', turns: 3, multiplier: 1.5 };
+        if (f.includes('glacial') || f.includes('spike')) return { name: 'Glacial Spike', vfx: 'glacial', element: 'Water', debuff: 'freeze', turns: 2, multiplier: 1.4 };
+        if (f.includes('seismic') || f.includes('tremor')) return { name: 'Seismic Tremor', vfx: 'seismic', element: 'Earth', debuff: 'armor_break', turns: 3, multiplier: 1.5 };
+        if (f.includes('siphon') || f.includes('soul')) return { name: 'Soul Siphon', vfx: 'siphon', element: 'Dark', isSiphon: true, multiplier: 1.4 };
+        if (f.includes('cataclysmic') || f.includes('nova')) return { name: 'Cataclysmic Nova', vfx: 'nova', element: enemy.element || 'Dark', isBossUlt: true, multiplier: 1.8 };
+        return { name: forced, vfx: 'rend', element: enemy.element || 'Physical', multiplier: 1.4 };
+    }
+
+    const name = String(enemy.name || '').toLowerCase();
+    const elem = String(enemy.element || '').toLowerCase();
+
+    // 1. Area Gatekeeper Bosses
+    if (enemy.isBoss || enemy.isRaidBoss || enemy.ai === 'boss' || name.includes('dragon') || name.includes('sovereign') || name.includes('chronos') || name.includes('wyvern')) {
+        return {
+            name: 'Cataclysmic Nova',
+            vfx: 'nova',
+            element: enemy.element || 'Dark',
+            isBossUlt: true,
+            multiplier: 1.8
+        };
+    }
+
+    // 2. Toxic Creatures (Spiders, Vipers)
+    if (name.includes('spider') || name.includes('viper') || name.includes('poison') || name.includes('toxic') || enemy.ai === 'debuffer') {
+        return {
+            name: 'Venom Fang',
+            vfx: 'venom',
+            element: 'Dark',
+            debuff: 'poison',
+            turns: 3,
+            multiplier: 1.3
+        };
+    }
+
+    // 3. Beasts & Predators (Wolves, Bats, Beasts, Raptors, Harpies)
+    if (name.includes('wolf') || name.includes('bat') || name.includes('harpy') || name.includes('beast') || name.includes('hound') || name.includes('griffin') || name.includes('predator')) {
+        return {
+            name: 'Savage Rend',
+            vfx: 'rend',
+            element: 'Physical',
+            debuff: 'bleed',
+            turns: 3,
+            multiplier: 1.4
+        };
+    }
+
+    // 4. Elementals & Slimes (Ember Slimes, Fire Beasts)
+    if (name.includes('ember') || elem === 'fire' || name.includes('flame') || name.includes('magma')) {
+        return {
+            name: 'Magma Eruption',
+            vfx: 'magma',
+            element: 'Fire',
+            debuff: 'burn',
+            turns: 3,
+            multiplier: 1.5
+        };
+    }
+
+    // 5. Glacial Beasts (Tide Slimes, Frost Golems/Knights)
+    if (name.includes('tide') || name.includes('frost') || name.includes('ice') || elem === 'water') {
+        return {
+            name: 'Glacial Spike',
+            vfx: 'glacial',
+            element: 'Water',
+            debuff: 'freeze',
+            turns: 2,
+            multiplier: 1.4
+        };
+    }
+
+    // 6. Golems & Heavy Brutes (Stone Golems, Minotaurs, Giants)
+    if (name.includes('golem') || name.includes('minotaur') || name.includes('brute') || name.includes('stone') || elem === 'earth') {
+        return {
+            name: 'Seismic Tremor',
+            vfx: 'seismic',
+            element: 'Earth',
+            debuff: 'armor_break',
+            turns: 3,
+            multiplier: 1.5
+        };
+    }
+
+    // 7. Undead & Necromancers (Skeletons, Ghouls, Liches, Wraiths)
+    if (name.includes('wraith') || name.includes('skeleton') || name.includes('ghoul') || name.includes('lich') || name.includes('undead') || elem === 'dark') {
+        return {
+            name: 'Soul Siphon',
+            vfx: 'siphon',
+            element: 'Dark',
+            isSiphon: true,
+            multiplier: 1.4
+        };
+    }
+
+    return null;
+}
+
+function showEnemySkillTelegraph(enemyId, skillName, isBoss = false) {
+    if (typeof document === 'undefined') return null;
+    const enemyEl = document.getElementById(enemyId) || document.getElementById('enemy_0') || document.querySelector('.enemy-box') || document.querySelector('.enemy-card');
+    if (!enemyEl) return null;
+    const pill = document.createElement('div');
+    pill.className = 'enemy-telegraph-pill' + (isBoss ? ' enemy-telegraph-boss' : '');
+    pill.textContent = skillName;
+    enemyEl.appendChild(pill);
+    void pill.offsetWidth;
+    pill.classList.add('active');
+    setTimeout(() => {
+        if (pill.parentNode) pill.parentNode.removeChild(pill);
+    }, 600);
+    return pill;
+}
+
+function triggerHeroFlinch(targetHeroId, isShielded = false) {
+    if (typeof document === 'undefined') return;
+    const heroEl = document.getElementById(targetHeroId) || document.getElementById('battle-player');
+    if (!heroEl) return;
+    heroEl.classList.remove('hero-flinch');
+    void heroEl.offsetWidth;
+    heroEl.classList.add('hero-flinch');
+    if (isShielded) {
+        if (typeof playSFX === 'function') playSFX('sfx_shield_deflect');
+    } else {
+        if (typeof playSFX === 'function') playSFX('sfx_hero_flinch');
+    }
+    setTimeout(() => {
+        heroEl.classList.remove('hero-flinch');
+    }, 280);
+}
+
+function spawnEnemySkillVFX(skillType, targetHeroId) {
+    if (typeof document === 'undefined') return null;
+    const targetEl = document.getElementById(targetHeroId) || document.getElementById('battle-player');
+    const floatLayer = document.getElementById('combat-float-layer');
+    if (!targetEl || !floatLayer) return null;
+    const layerRect = floatLayer.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    const posX = targetRect ? (targetRect.left + (targetRect.width / 2) - layerRect.left) : 0;
+    const posY = targetRect ? (targetRect.top + (targetRect.height / 2) - layerRect.top) : 0;
+    const vfxContainer = document.createElement('div');
+    vfxContainer.className = 'skill-vfx-container';
+    vfxContainer.style.left = `${posX}px`;
+    vfxContainer.style.top = `${posY}px`;
+
+    let vfxClass = 'vfx-claw-rend';
+    let sfxKey = 'sfx_enemy_rend';
+    const s = String(skillType || '').toLowerCase();
+    if (s === 'venom' || s.includes('acid') || s.includes('poison')) {
+        vfxClass = 'vfx-acid-drip';
+        sfxKey = 'sfx_enemy_acid';
+    } else if (s === 'seismic' || s.includes('tremor') || s.includes('crack') || s.includes('earth')) {
+        vfxClass = 'vfx-seismic-crack';
+        sfxKey = 'sfx_enemy_seismic';
+    } else if (s === 'siphon' || s.includes('soul') || s.includes('spin')) {
+        vfxClass = 'vfx-soul-siphon';
+        sfxKey = 'sfx_enemy_siphon';
+    } else if (s === 'shield' || s.includes('deflect')) {
+        vfxClass = 'vfx-shield-deflect';
+        sfxKey = 'sfx_shield_deflect';
+    } else if (s === 'nova' || s.includes('cataclysmic')) {
+        vfxClass = 'vfx-ultimate-meteor';
+        sfxKey = 'sfx_skill_ultimate';
+    } else if (s === 'magma') {
+        vfxClass = 'vfx-fire-burst';
+        sfxKey = 'sfx_skill_fire';
+    } else if (s === 'glacial') {
+        vfxClass = 'vfx-water-splash';
+        sfxKey = 'sfx_skill_water';
+    }
+
+    // Dynamic duration scaling by combat speed
+    let speed = 1;
+    if (typeof window !== 'undefined' && window.combatSpeedMultiplier) {
+        speed = window.combatSpeedMultiplier;
+    } else if (typeof combatSpeedMultiplier !== 'undefined') {
+        speed = combatSpeedMultiplier;
+    } else if (typeof combatSpeed !== 'undefined') {
+        speed = combatSpeed;
+    }
+
+    const vfxEl = document.createElement('div');
+    vfxEl.className = vfxClass;
+    if (speed > 1) {
+        const baseDurationMap = {
+            'vfx-claw-rend': 0.28,
+            'vfx-acid-drip': 0.30,
+            'vfx-seismic-crack': 0.32,
+            'vfx-soul-siphon': 0.35,
+            'vfx-shield-deflect': 0.28,
+            'vfx-ultimate-meteor': 0.58,
+            'vfx-fire-burst': 0.28,
+            'vfx-water-splash': 0.26
+        };
+        const baseDur = baseDurationMap[vfxClass] || 0.3;
+        vfxEl.style.animationDuration = `${(baseDur / speed).toFixed(2)}s`;
+    }
+
+    vfxContainer.appendChild(vfxEl);
+    floatLayer.appendChild(vfxContainer);
+    if (typeof playSFX === 'function') playSFX(sfxKey);
+    vfxEl.addEventListener('animationend', () => {
+        if (vfxContainer.parentNode) vfxContainer.parentNode.removeChild(vfxContainer);
+    });
+    return vfxContainer;
+}
+
+window.getEnemySignatureSkill = getEnemySignatureSkill;
+window.showEnemySkillTelegraph = showEnemySkillTelegraph;
+window.triggerHeroFlinch = triggerHeroFlinch;
+window.spawnEnemySkillVFX = spawnEnemySkillVFX;
+window.executeEnemyTurn = executeEnemyTurn;
