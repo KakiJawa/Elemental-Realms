@@ -7,15 +7,214 @@
   - `css/style.css`: Complete application stylesheet and keyframe animations (880 lines).
   - `data/game_data.js`: Database constants and static data tables (`ELEMENTS`, `ITEMS_DB`, `SKILLS_DB`, `STATUS_TYPES_DB`, `ENEMIES_DB`, `AREAS_DB`, `CLASSES_DB`, `QUESTS_DB`, `ACHIEVEMENTS_DB`, `RELICS_DB`, `ALTAR_SHOP_DB`, `SHOP_EQUIPMENT_TIERS`, `SHOP_MATERIALS_DB`, `MYSTERY_BOXES_DB`, `PETS_DB`, `SKILL_TREE_DB`, `EXTENDED_AREAS`, `ADDITIONAL_PETS`) (1,560 lines).
   - `src/game.js`: Game state, combat engine, Web Audio API sound synthesizer, screen shake engine, visual hit VFX, status ailment processor, inventory, blacksmith workshop, class advancement, Spire endless dungeon, Ancient Relics, Astral Altar, Town Shop emporium, mystery gear coffers, multi-slot save manager, UTF-8 Base64 export/import, pet companions, Skill Tree 2.0 engine, area scouting, auto-equip optimizer, item lock, quick potion, mobile portrait engine, Adventurer's Codex, UI handlers, and initialization (6,180 lines).
-  - Scratch test tools: 42 test suites totaling 3,418 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, `verify_party_qol.py`, `verify_calamity_raids.py`, `verify_ranger_class.py`, `verify_cleric_class.py`, `verify_necromancer_class.py`, `verify_qol_and_bugfixes.py`, `verify_quest_expansion.py`, `verify_achievements_expansion.py`, `verify_battle_ui_overhaul.py`, and `verify_pc_battle_ui.py`) located in scratch directory.
-- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 20 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, a town hub with shop/inn, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
+  - Scratch test tools: 52 test suites totaling 3,825 test assertions (`verify_modularization.py`, `run_tests.py`, `test_phase2.py`, `test_stability_fixes.py`, `test_tier_expansion.py`, `verify_phase_a.py`, `verify_phase_b.py`, `verify_blacksmith.py`, `verify_status_engine.py`, `verify_class_system.py`, `verify_combat_polish.py`, `verify_battle_layout.py`, `verify_class_skills.py`, `verify_spire.py`, `verify_shop_overhaul.py`, `verify_save_manager.py`, `verify_audio_vfx.py`, `verify_pets_system.py`, `verify_skill_tree_2.py`, `verify_qol_suite.py`, `verify_combat_safety_qol.py`, `verify_mobile_portrait.py`, `verify_codex_system.py`, `verify_milestone1_expansion.py`, `verify_milestone2_expansion.py`, `verify_combat_visual_qol.py`, `verify_bestiary_system.py`, `verify_tavern_bounties.py`, `verify_party_phase1.py`, `verify_party_phase2.py`, `verify_party_phase3.py`, `verify_party_advancement.py`, `verify_party_qol.py`, `verify_calamity_raids.py`, `verify_ranger_class.py`, `verify_cleric_class.py`, `verify_necromancer_class.py`, `verify_qol_and_bugfixes.py`, `verify_quest_expansion.py`, `verify_achievements_expansion.py`, `verify_battle_ui_overhaul.py`, `verify_pc_battle_ui.py`, `verify_combat_punch.py`, `verify_loot_fountain.py`, `verify_cinematic_overdrive.py`, `verify_boss_gating_integrity.py`, `verify_boss_progression_sync.py`, `verify_living_town_hub.py`, `verify_arena_weather.py`, `verify_glassmorphic_ui.py`, `verify_title_overhaul.py`, and `verify_screen_isolation.py`) located in scratch directory.
+- **Game Description:** *Elemental Realms* is a turn-based ARPG/fantasy RPG featuring 10 distinct progression zones up to the Level 50 hard cap, culminating in the supreme cosmic encounter with Chronos, The Void Sovereign, gatekeeper boss battles with crowd-control immunities, a 16-status tactical buff/debuff engine with damage shields and DoTs, a Blacksmith crafting workshop (salvage, +1 to +5 equipment upgrades, and affix rerolling), an endless dungeon gauntlet (*The Infinite Spire*) with elevator checkpoints, 6 Ancient Relics granting rule-bending combat passives, an Astral Altar shop for permanent stat tomes, a 3-tab Town Shop emporium with bulk buying, blacksmith materials exchange, zone-tiered armory stock, 2 mystery gear gamble coffers with animated unboxing reveals, a multi-slot character profile save manager (3 isolated save slots) with Base64/JSON export/import capabilities and combat safety locks, a pure code-generated Web Audio API sound synthesizer with 28 distinct 16-bit retro SFX, dynamic screen shake engine, elemental hit VFX particle bursts, sprite hit-flashes, and juiced critical damage text, speed-based turn order, an elemental affinity system, SVG monster sprites, a 6-slot equipment system with 6 rarity tiers and random stat affixes, dynamic combat loot drops, a 3-branch skill tree, an atmospheric Living Town Hub categorized into 3 themed districts with drifting canvas fireflies and live status badges, an integrated 16-quest sequential progression system, a 13-achievement milestone progression system with permanent passive stat bonuses and cosmetic titles, and a non-blocking in-game toast notification banner system.
 
 ## Current Development Phase
-- **Current Phase:** PC & Desktop Battle UI Overhaul Complete & Verified.
-- **Feature Currently Being Developed:** None (Pill-badge timeline nodes with name ellipsis, desktop command deck dominance >= 500px, 2-column tactile skill cards with live targeting indicator, and collapsible combat log drawer verified across 42 suites with 3,402/3,418 assertions passing).
+- **Current Phase:** Screen Isolation & Title Screen Inactive Hiding Bugfix Complete & Verified.
+- **Feature Currently Being Developed:** None (Title screen isolation, screen transition hiding, and header bar isolation verified across all 52 test suites with 0 regressions).
 - **Immediate Next Development Task:** The Monk Class Tree or The Paladin Class Tree.
 
 ## Completed Features
+- **Bug Fix: Screen Isolation & Inactive Title Screen Hiding (`css/style.css`, `src/game.js`):**
+  - *Strict Inactive Screen CSS Rules (`css/style.css`):*
+    - Defined `#screen-main { display: none; }` by default with `#screen-main.active { display: flex; }`.
+    - Enforced `.screen:not(.active), #screen-main:not(.active) { display: none !important; }`, preventing higher ID-specificity (`#screen-main`) from overriding general `.screen` display rules when navigating away from the title screen.
+    - Preserved `body.on-title-screen .header-bar` and `body:has(#screen-main.active) .header-bar { display: none !important; }`.
+  - *Screen Switcher Display Synchronization (`src/game.js`):*
+    - Updated `switchScreen(screenId)` to explicitly clear active states and apply inline `s.style.display = 'none'` across all `.screen` elements.
+    - Explicitly applies `.active` class and `style.display = 'flex'` on `#screen-` + screenId.
+    - Accurately synchronizes `body.classList.add('on-title-screen')` / `remove('on-title-screen')` and `headerBar.style.display = 'none'` / `'flex'`.
+    - Preserves lifecycles for `TitleWeather`, `ArenaWeather`, `updateTownUI`, `initTownAmbientCanvas`, and `clearAllCombatTimers`.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_screen_isolation.py`: 32 / 32 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,556 / 3,583 assertions passed across all 52 test suites with zero regressions.
+
+- **Package 3: Complete Title Screen Overhaul (`index.html`, `css/style.css`, `src/game.js`):**
+  - *Full-Bleed Cinematic Title Presentation (`index.html`, `css/style.css`):*
+    - Automatically hides `.header-bar` on title screen (`body.on-title-screen .header-bar { display: none !important; }`), switching seamlessly to full-bleed dark radial gradient background (`#111827` -> `#030712` -> `#000000`).
+    - Mythic embossed golden title logo (`.title-heading` with 3-tier gold/amber text gradient and glowing drop-shadows) and golden celestial crest (`.title-crest`).
+    - Restores header bar automatically when entering town or combat (`switchScreen`).
+  - *Ambient Title Canvas Particle Engine (`TitleWeather` in `src/game.js`):*
+    - Simulates 35 drifting amber and cyan embers drifting upward on `#title-ambient-canvas` with sinusoidal horizontal swaying and randomized glowing radiance.
+    - Zero CPU footprint outside title screen: automatically halts `requestAnimationFrame` when leaving `#screen-main` (`<0.5% CPU`).
+  - *Smart "Continue Journey" Hero Snapshot Card (`updateTitleSaveCard` in `src/game.js`):*
+    - Dynamically parses `localStorage.getItem('er_save')` to display a frosted glass card showing hero name, level, class, exploration area, and gold counter.
+    - Features a 1-click `⚡ Continue Journey` button (`loadGame()`), or transitions to `No Journey Found` with a direct `⚔️ Begin` action if no save exists.
+  - *Awakening Character Creation & Elemental Origins Modal (`#modal-awakening` in `index.html` & `src/game.js`):*
+    - Dark fantasy prologue lore scroll introducing Eldoria's shattered leylines.
+    - Custom hero naming input with random name generator button (`randomizeHeroName()`).
+    - 4 Selectable Elemental Origin Blessings (`selectOrigin`):
+      1. **Flameborn (Fire):** +5% Base ATK • Starts with Fireball skill.
+      2. **Glacial Warden (Water):** +10% Max MP • Starts with Heal skill.
+      3. **Stonebound (Earth):** +10% Base DEF • Starts with Stoneskin skill.
+      4. **Stormstrider (Wind):** +5% Base SPD • Starts with Spark Bolt skill.
+    - `confirmAwakening()` initializes champion stats, equips starting origin skill, synchronizes the hero roster, and transitions to town. Direct programmatic calls to `newGame()` remain non-blocking for regression tests.
+  - *Sleek Title Utility Dock (`index.html`):*
+    - Glassmorphic top navigation pills for Audio toggle (`toggleAudio()`, `#btn-title-audio`), Adventurer's Codex (`openCodexModal()`), and Save Slot Manager (`openModal('modal-saves')`, `#btn-main-saves`).
+    - Bottom status footer displaying offline edition version tag, 50 systems operational tag, and click-to-awaken audio prompt.
+  - *Click-to-Awaken Web Audio API Synthesizer (`src/game.js`):*
+    - Resolves browser audio autoplay restrictions on first user interaction gesture (`handleTitleUserGesture()`), synthesizing a lush ethereal A major 9th chord (220, 277.18, 329.63, 440, 554.37 Hz) and hiding the prompt.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_title_overhaul.py`: 46 / 46 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,524 / 3,551 assertions passed across all 51 test suites with zero regressions.
+
+- **Option D: Glassmorphic Modernization & Unified Color Themes (`css/style.css`):**
+  - *Modern Elemental Jewel Tones & Design Tokens (`:root`):* Replaced legacy flat primary hex colors with vibrant, WCAG AA compliant jewel tones and glowing aura tokens:
+    - Flame Coral (`--fire: #f87171;`, `--fire-glow: rgba(248, 113, 113, 0.4);`)
+    - Glacier Azure (`--water: #38bdf8;`, `--water-glow: rgba(56, 189, 248, 0.4);`)
+    - Amber Citrine (`--earth: #fbbf24;`, `--earth-glow: rgba(251, 191, 36, 0.4);`)
+    - Jade Emerald (`--wind: #34d399;`, `--wind-glow: rgba(52, 211, 153, 0.4);`)
+    - Celestial Aurum (`--light: #fef08a;`, `--light-glow: rgba(254, 240, 138, 0.5);`)
+    - Nether Amethyst (`--dark: #c084fc;`, `--dark-glow: rgba(192, 132, 252, 0.4);`)
+    - Steel Silver (`--physical: #cbd5e1;`, `--physical-glow: rgba(203, 213, 225, 0.3);`)
+    - Dynamic Gauge Tokens (`--hp-color: #ef4444;`, `--mp-color: #0ea5e9;`, `--exp-color: #84cc16;`).
+  - *Frosted Glass Modals & Ambient Backdrop Blur (`.modal`, `.overlay`):*
+    - Window surfaces styled with `--glass-bg` (`rgba(15, 23, 42, 0.86)`), fallback `--glass-bg-fallback` (`rgba(15, 23, 42, 0.96)`), and hardware-accelerated `--glass-blur: blur(14px)` (`backdrop-filter` and `-webkit-backdrop-filter`).
+    - Multi-layer elevation box shadow (`--glass-shadow: 0 20px 48px -8px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.06)`) and subtle inset top rim highlight (`inset 0 1px 0 rgba(255, 255, 255, 0.12)`).
+    - Ambient dimmed backdrop overlay (`rgba(3, 7, 18, 0.72)`) with `backdrop-filter: blur(5px)`.
+    - Smooth cubic-bezier entrance animation (`scale(0.97)` to `scale(1)` with 0.25s opacity fade).
+  - *Elemental Badges & High-Legibility Pill Aesthetics (`.entity-element`, `[class*="elem-"]`):*
+    - Upgraded all 7 elemental classes (`.elem-Fire`, `.elem-Water`, `.elem-Earth`, `.elem-Wind`, `.elem-Light`, `.elem-Dark`, `.elem-Physical`) into rounded pill badges (`border-radius: 9999px`) with dual-tone diagonal linear gradients, luminous colored border accents, text drop shadows, and subtle elemental outer glow.
+  - *Universal Modern Thin Scrollbars (`*::-webkit-scrollbar`):*
+    - Standardized scrollbars across all scrollable containers and modal viewports with standard `scrollbar-width: thin;` and webkit rules (6px width/height, transparent track, and 9999px rounded translucent pill thumb with hover brightening).
+  - *Tactile Micro-Interactions (`.btn`, `.item-row`):*
+    - Added subtle physical press states (`.btn:hover` with `translateY(-2px)` and shadow lift, `.btn:active` with `translateY(1px)`).
+    - Item inventory and shop rows (`.item-row`) adopt frosted glass backgrounds (`--glass-bg-subtle`), shifting right (`translateX(3px)`) on hover with lightened border borders (`--glass-border-light`).
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_glassmorphic_ui.py`: 55 / 55 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,523 / 3,551 assertions passed across all 50 test suites with zero regressions.
+
+- **Option C: Arena Weather & Dynamic Particle Canvas (`index.html`, `css/style.css`, `src/game.js`):**
+  - *Non-Intrusive DOM Canvas Layer (`index.html`):* Injected `#arena-weather-canvas` (`.arena-weather-canvas`) as the primary child inside `#battle-arena`. Positioned at `z-index: 2` with `pointer-events: none` and responsive bounds, keeping combatant sprites and floating damage text (`z-index: 10–60`) 100% interactive and clickable.
+  - *Atmospheric Blending & CSS Layering (`css/style.css`):* Configured `mix-blend-mode: screen` by default with `transition: opacity 0.5s ease`, transitioning to `mix-blend-mode: color-dodge` on volcanic environments (`.arena-theme-area_4`, `.arena-theme-area_9`) to intensify fiery cinder and ember glows.
+  - *Lightweight Particle Engine Architecture (`ArenaWeather` in `src/game.js`):*
+    - Zero-GC Object Pool with exactly 40 pre-allocated particles (`maxParticles: 40`).
+    - Delta-time capped physics (`Math.min(dt, 0.1)`) preventing frame burst jumps on tab focus restore.
+    - 6 Distinct Biome Profiles mapped to area IDs via `setThemeByArea(areaId)`:
+      1. **Verdant Canopy (`forest` - Areas 1, 3, 6):** Golden-green fireflies and spore motes with sinusoidal horizontal drift and pulsating alpha glow.
+      2. **Abyssal Cavern (`cavern` - Areas 2, 7):** Bioluminescent teal & cyan bubbles rising with subtle horizontal oscillation.
+      3. **Volcanic Caldera (`volcano` - Areas 4, 9):** Rising fire cinders, burning embers, accelerating updrafts, and drifting ash flakes.
+      4. **Frozen Tundra (`blizzard` - Area 8):** Slanted blizzard snow crystals, dynamic wind gusts, and multi-depth speed layering.
+      5. **Astral Spire / Void (`void` - Areas 5, 10, Spire):** Swirling violet & celestial blue stardust motes with orbital vortex drift.
+      6. **Calamity Cataclysm (`calamity` - Raid / Boss Encounters):** Rapid blood-red vertical ember storm with intense jitter.
+  - *Lifecycle & Performance Guardrails:*
+    - Auto-pausing on screen transitions: `switchScreen('battle')` starts/resizes the canvas, while navigating to any other screen (`switchScreen('town')`) terminates `requestAnimationFrame`, halts the loop (`isRunning: false`), and clears the canvas to guarantee 0% idle CPU overhead outside combat encounters.
+    - Visibility state management: `document.addEventListener('visibilitychange')` automatically pauses the loop when the browser tab is hidden and resumes when refocused.
+    - Combat End transitions: Smoothly fades weather opacity to `0.3` in `winBattle()` and `attemptFlee()`, smoothly restoring to `0.85` on next encounter boot.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_arena_weather.py`: 45 / 45 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,523 / 3,551 assertions passed across all 49 test suites with zero regressions.
+
+- **Package A: The "Living Town Hub" Architecture (`index.html`, `css/style.css`, `src/game.js`):**
+  - *Multi-District Settlement Layout (`index.html`):* Restructured `#screen-town` from a plain 16-button grid into 3 thematic architectural wings:
+    - **District 1: The Frontier & Trials (`.grid-3col`):** Wilds Expedition (`#btn-town-battle` with `#badge-town-battle`), The Infinite Spire (`#btn-town-spire` with `#btn-town-spire-sub`), and Calamity Rift Gate (`#btn-town-calamity` with `#badge-town-calamity`).
+    - **District 2: The Grand Bazaar & Guilds (`.grid-4col`):** Iron Anvil Forge (`#btn-town-blacksmith`), Town Emporium (`#btn-town-shop`), Wayfarer's Tavern (`#btn-town-tavern`), and Mercenary Barracks (`#btn-town-mercenary`).
+    - **District 3: Sanctuary of Heroes (`.grid-4col`):** Hero Equipment (`#btn-town-character`), Inventory Bag (`#btn-town-inventory`), Class Sanctum (`#btn-town-class`), Astral Skill Tree (`#btn-town-skilltree`), Familiar Sanctuary (`#btn-town-pets`), Wayfarer's Inn (`#btn-town-inn` with `#btn-town-inn-sub`), Quest Archives (`#btn-town-quests` with `#btn-town-quests-sub` & `#badge-town-quests`), Hall of Glory (`#btn-town-achievements` with `#btn-town-achievements-sub` & `#badge-town-achievements`), and Adventurer's Codex (`#btn-town-codex`).
+    - Preserved 100% of all existing element IDs, onclick modal handlers, and `.town-btn` class compatibility for zero regressions.
+  - *Architectural Card Styling & Responsive 3D Elevation (`css/style.css`):*
+    - Atmospheric radial gradient background (`#screen-town`, `#1e1b4b` -> `#0f172a` -> `#020617`).
+    - Tactile card styling (`.town-building-card`) with 3D hover elevation (`translateY(-4px) scale(1.015)`), illuminated SVG icon containers (`.building-icon-wrap`), and 16 unique district-themed hover accent color glows (`.card-battle:hover`, `.card-spire:hover`, `.card-calamity:hover`, `.card-blacksmith:hover`, `.card-shop:hover`, etc.).
+    - Fully responsive multi-district grid layout: 3/4 columns on desktop, 2 columns at `<= 900px`, and 1 column stacked layout at `<= 500px`.
+  - *Ambient HTML5 Canvas Particle Engine (`src/game.js`):*
+    - Implemented `initTownAmbientCanvas()` driving `#town-ambient-canvas` with 20 warm drifting amber dust and firefly particles drifting upward with randomized flicker frequencies, velocities, and HSLA golden glow effects.
+    - Integrated lifecycle auto-suspension: automatically terminates `requestAnimationFrame` when navigating away from `#screen-town`, guaranteeing 0% CPU consumption during combat encounters or modal views. Re-initializes on entering Town via `switchScreen('town')`.
+  - *Live Dynamic Building Status Badges (`src/game.js`):*
+    - `updateTownUI()` synchronizes live building states in real-time:
+      - Active hunt zone displayed on `#badge-town-battle` (`AREAS_DB[player.selectedArea].name`).
+      - Calamity keystone count displayed on `#badge-town-calamity` (`${player.calamityKeys} Keystones`).
+      - Highest Spire checkpoint displayed on `#btn-town-spire-sub` (`Floor ${floor} Checkpoint`).
+      - Squad resting and health status on `#btn-town-inn-sub` (`Squad Wounded (20 Gold)` vs `All Rested (20 Gold)`).
+      - Claimable quest badges and text (`updateTownQuestButton` updates `#badge-town-quests` with `✨ ${claimable} Claimable` and `#btn-town-quests-sub`).
+      - Achievement milestone progress (`updateTownAchievementsButton` updates `#badge-town-achievements` and `#btn-town-achievements-sub` with `★ ${unlocked}/${total} Unlocked`).
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_living_town_hub.py`: 52 / 52 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,524 / 3,551 assertions passed across all 48 test suites with 0 regressions.
+
+- **Bidirectional Area Boss & Unlocked Zone Save/Load Synchronization (`src/game.js`):**
+  - *Centralized Progression Synchronizer (`syncAreaProgression`):* Created `syncAreaProgression(player)` in `src/game.js` to bidirectionally reconcile `player.defeatedAreaBosses` and `player.unlockedAreas`. Evaluates both arrays to determine the highest conquered milestone (`maxBossNum`), automatically backfills all prerequisite defeated bosses (`area_1` through `area_maxBossNum`), unlocks all corresponding exploration zones (`area_1` through `area_{maxBossNum + 1}`, capped at 10), updates legacy compatibility flags (`defeatedArea1Boss`, `defeatedArea5Boss`, `defeatedArea10Boss`), and sanitizes `player.selectedArea`. Exposed globally on `window.syncAreaProgression`.
+  - *Load Game Synchronization (`loadGame`):* Replaced rigid one-way filtering in `loadGame()` with `syncAreaProgression(player)`. Guarantees that existing player saves that reached Area 3 or Area 4 never have their zones stripped down to Area 1 or 2, seamlessly populating prerequisite bosses for full shop tier and quest synchronization.
+  - *Boss Defeat Progression Synchronization (`winBattle`):* When any Area Gatekeeper Boss is defeated in `winBattle()`, immediately invokes `syncAreaProgression(player)`, logs victory, displays toast, and guarantees the next zone and all prerequisites are recorded.
+  - *Automated Verification:* Dedicated suite `scratch/verify_boss_progression_sync.py` with 33 / 33 assertions passed (100%), regression verified across all 47 test suites.
+- **Strict Boss-Gated Progression & Area Unlock Integrity (`src/game.js`):**
+  - *Progression Sanitizer on Save Load (`loadGame`):* Completely eliminated legacy level-based area auto-unlock bypasses (`player.level >= 6`, `11`, `16`, ..., `46`). Introduced strict save progression sanitizer: dynamically builds legitimate unlocked areas from Area 1 plus `area_${num+1}` for each legitimately defeated boss in `player.defeatedAreaBosses`. Unearned areas injected by rogue saves or level thresholds are stripped, validly earned areas are restored, and `player.selectedArea` is guaranteed valid.
+  - *Area Unlock Level Bypass Elimination (`checkAreaUnlocks`):* Stripped all level-based area auto-unlocks (`level >= 26` through `46`), strictly delegating area unlocks to gatekeeper boss triumphs in `winBattle()`.
+  - *Shop Equipment Tiers & Mystery Box Decoupling (`renderShop` & `buyMysteryBox`):* Decoupled regional armory equipment tiers and Mystery Box loot pools from `player.unlockedAreas`, strictly requiring `tierNum === 1 || Boolean(player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId))`.
+  - *Quest & Achievement Decoupling (`getQuestProgress` & `getAchievementProgress`):* In `conquer_area` objectives, completion is evaluated strictly via `Boolean(player.defeatedAreaBosses && player.defeatedAreaBosses.includes(targetAreaId))`, completely eliminating legacy fallbacks to `player.unlockedAreas.includes(nextAreaId)`.
+  - *Legacy Boss Flags Synchronization (`syncMainHero`):* Synchronizes `player.defeatedArea1Boss` and `player.defeatedArea5Boss` strictly against `player.defeatedAreaBosses.includes('area_1')` and `player.defeatedAreaBosses.includes('area_5')`.
+  - *Automated Verification:* Dedicated suite `scratch/verify_boss_gating_integrity.py` with 30 / 30 assertions passed (100%), regression verified across all 46 test suites.
+- **The "Cinematic Overdrive" Package (Anime Limit Break Cut-Ins, Boss Slow-Mo Death Cam & Universal Stagger Breaks):**
+  - *Anime-Style Hero Limit Break Cut-In (`css/style.css` & `src/game.js`):*
+    - `triggerLimitBreakCutin(hero, skillName, onComplete)` activates when casting signature apex abilities (e.g., Blade Tempest, Meteoric Apocalypse, Judgment Ray, Cataclysm Rift, Phylactery Stasis) or high-cost burst skills.
+    - Dims the arena (`.limit-cutin-overlay` with `backdrop-filter: blur(3px)`) and sweeps a dynamic diagonal cinematic banner (`.limit-cutin-banner` with `@keyframes cutinSlice`) across the screen with class-themed icons (`⚔️`, `🔮`, `🗡️`, `🏹`, `🕊️`, `💀`), radiant tags (`.limit-cutin-tag`), and glowing skill typography (`.limit-cutin-skill`).
+    - Accompanied by procedural sound (`limit_cutin_whoosh`) and screen shake, cleanly removing itself after 900ms and calling `onComplete()`. Exposed globally on `window.triggerLimitBreakCutin`.
+  - *Slow-Motion Boss Finisher Cam ("Zack Snyder Kill Cam", `css/style.css` & `src/game.js`):*
+    - `triggerBossFinisherCam(bossEl, onComplete)` intercepts lethal hits on gatekeeper and Calamity raid bosses in `applyEnemyDamage()`.
+    - Applies high-contrast desaturation (`.arena-slowmo-death`, `filter: grayscale(100%) contrast(1.3) brightness(0.65)`) to `#battle-arena`, while highlighting the dying boss in radiant monochrome/crimson (`.boss-finisher-target` with `@keyframes bossLethalFlash`).
+    - Triggers heavy screen shake (`700ms`), deep gong reverberation (`cinematic_finish_gong`), and bursts 28 physical disintegration embers (`.boss-shatter-fragment` with `@keyframes fragmentExplode`) radiating outward from the boss center.
+    - Smoothly restores arena lighting after 1200ms and invokes `checkBattleEnd()`. Exposed globally on `window.triggerBossFinisherCam`.
+  - *Universal Boss Stagger Gauge & All-Out Attack Window (`css/style.css` & `src/game.js`):*
+    - Equips all Area Gatekeeper Bosses (Areas 1–10) and Calamity Raid Bosses with a Stagger gauge (`staggerMax: Math.round(boss.hp * 0.40)` and `staggerCurrent: Math.round(boss.hp * 0.40)`).
+    - Rendered in `renderBattlefield()` directly below the boss HP gauge as `.boss-stagger-bar-wrap` with `.boss-stagger-bar-fill`.
+    - Exploiting elemental weaknesses reduces the Stagger bar by `damage * 1.5` in both `applyEnemyDamage()` and `applyDamage()`.
+    - Depleting the bar triggers `💫 STAGGER BREAK!`: plays `glass_shatter`, shakes the screen (`heavy`, 400ms), applies status `'staggered'` for 1 turn (`.staggered-vulnerability-glow` with `@keyframes staggerDaze`), immobilizes the boss for a turn, and amplifies all incoming damage by +50%. Upon recovery, the stagger gauge resets to `staggerMax`.
+  - *Procedural Web Audio API Sound Synthesis (`playSFX`):*
+    - `case 'limit_cutin_whoosh':`: Swift resonant metallic whoosh (white noise sweep through high-resonance bandpass filter from 300 Hz to 2400 Hz) layered with a high-octave pentatonic bell chime (1046.5 Hz and 1318.5 Hz).
+    - `case 'cinematic_finish_gong':`: Deep sub-bass boom (65 Hz dropping to 42 Hz over 0.7s) layered with dual-oscillator long-tail gong reverberation (220 Hz sine + 440 Hz triangle with 1.4s exponential decay).
+    - `case 'glass_shatter':`: Sharp multi-transient high-pass noise burst (>3200 Hz) layered with rapid crystalline sawtooth/sine shards (2800 Hz and 3600 Hz dropping sharply over 0.25s).
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_cinematic_overdrive.py`: 41 / 41 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,419 / 3,438 assertions passed across all 45 test suites with zero regressions.
+- **The "Loot Fountain" Package (Rarity Light Beams, Flying Coin Fountain & Holographic Card Reveals):**
+  - *Diablo-Style Vertical Rarity Light Beams (`css/style.css` & `src/game.js`):*
+    - Radiant vertical light pillars with upward-drifting sparkling embers whenever Rare, Epic, Legendary, or Mythic loot drops after combat victory or Mystery Box reveals (`spawnRarityBeam(originEl, rarity)`).
+    - Features 4 distinct color themes: `.rarity-beam-rare` (sapphire blue `#3b82f6`), `.rarity-beam-epic` (arcane purple `#a855f7`), `.rarity-beam-legendary` (golden amber `#f59e0b`), and `.rarity-beam-mythic` (prismatic cycle with `@keyframes mythicPrism` through crimson, cyan, gold, and violet).
+    - Dynamic ground glow aura (`.rarity-beam-ground-glow`) and 8 procedural particle embers drifting upward with randomized delays and horizontal offsets.
+    - Automatic removal on `animationend`. Exposed globally on `window.spawnRarityBeam`.
+  - *3D Animated Flying Gold Coin Fountain (`css/style.css` & `src/game.js`):*
+    - `spawnGoldCoinFountain(originEl, goldAmount)` bursts 10–16 shiny 3D gold coins (`.gold-fountain-coin`) in parabolic trajectories directly from the victory point of impact or battlefield center into the header currency counter (`#hdr-gold`).
+    - Staggered CSS variables (`--fly-x`, `--fly-y`, `--spin-rot`) simulate physical parabolic arcs and dynamic rotations.
+    - Each arriving coin triggers `playSFX('coin_crescendo')` and header pulse animation (`.pulse-gold` with `@keyframes pulseGoldAnim`). Exposed globally on `window.spawnGoldCoinFountain`.
+  - *3D Holographic Foil Card Flip (`css/style.css` & `src/game.js`):*
+    - Upgrades Mystery Box reveals (`renderMysteryBoxReveal`) with an interactive 3D perspective stage (`.holo-card-stage`, `perspective: 1000px`).
+    - Flips card (`.holo-card-inner.flipped`, `transform: rotateY(180deg)`) revealing front face with dynamic holographic rainbow foil reflection (`.holo-card-back::after` with `@keyframes holoSheen` linear-gradient shimmer).
+    - Automatically plays sound and summons rarity light beam behind the card on reveal.
+  - *Interactive Victory Spoils Presentation Tray (`css/style.css` & `src/game.js`):*
+    - Renders a polished reward presentation deck (`.victory-spoils-tray`) directly into `#battle-victory-actions` upon combat victory.
+    - Displays badges for EXP earned (`.spoils-badge-exp`) and Gold earned (`.spoils-badge-gold`), along with tactile item cards (`.spoils-item-card`) displaying rarity borders and stat summaries.
+    - Seamlessly integrates with existing Hunt Again (`#btn-victory-again`) and Town (`#btn-victory-town`) actions with 0 regressions.
+  - *Procedural Web Audio Synthesis (`playSFX`):*
+    - `case 'coin_crescendo':`: Multi-tier ascending frequency chime (`900 + (counter % 12) * 120 Hz`) with rapid exponential decay (0.09s), creating a dopamine-rich casino counter crescendo.
+    - `case 'rarity_beam_hum':`: Atmospheric hum using a 165 Hz sawtooth oscillator layered with a detuned 168 Hz sine chorus routed through a 450 Hz low-pass filter with exponential gain fade.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_loot_fountain.py`: 30 / 30 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,378 / 3,397 assertions passed across all 44 test suites with zero regressions.
+- **The "Combat Punch" Package (Hitstop, Explosive Crits, Overkill & Sub-Bass Drops):**
+  - *Hitstop Micro-Freeze Frame (`triggerHitstop`):*
+    - Split-second pause (`50ms–70ms`, defaults to 60ms) on critical hits and elemental weakness breaks that temporarily applies `.hitstop-active` (`animation-play-state: paused !important; filter: brightness(1.6) contrast(1.2) !important;`) to the struck entity sprite and container before resuming animation flow.
+    - Exposed globally on `window.triggerHitstop`.
+  - *Radial Shockwave Pulse & Screen Impact Vignettes (`css/style.css` & `src/game.js`):*
+    - `spawnCombatShockwave(x, y, type)` injects radial shockwave rings into `#combat-float-layer` radiating from the strike impact point (`.combat-shockwave` with `@keyframes shockwavePulse`). Supports `.shockwave-crit` (golden glow `#fbbf24`), `.shockwave-weakness` (cyan glow `#38bdf8`), and `.shockwave-overkill` (crimson glow `#f87171`), with automatic cleanup on `animationend`.
+    - Screen Impact Vignette: Crits trigger `.arena-impact-crit` (`box-shadow: inset 0 0 60px rgba(251, 191, 36, 0.6)`) and Weakness breaks trigger `.arena-impact-weakness` (`box-shadow: inset 0 0 60px rgba(56, 189, 248, 0.6)`) across `#battle-arena`.
+  - *Super-Juiced Comic Floating Text Badges (`css/style.css` & `src/game.js`):*
+    - Enhanced `floatText(targetId, text, color, isCrit, type)` with dedicated typography:
+      - `💥 CRITICAL!!`: `.floating-text-crit` (24px, 900 weight, `#fef08a`, multi-layered drop shadow, pop-bounce animation).
+      - `⚡ WEAKNESS BREAK!`: `.floating-text-weakness` (20px, 800 weight, `#7dd3fc`, cyan aura).
+      - `💀 OVERKILL!!`: `.floating-text-overkill` (26px, 900 weight, `#f87171`, deep crimson shadow and rotational pop).
+  - *Overkill Mechanic & Bonus Gold (`applyEnemyDamage` & `applyDamage`):*
+    - When lethal damage exceeds remaining HP by ≥ 150% (`prevHp > 0 && damage >= Math.max(15, Math.round(prevHp * 1.5))`):
+      - Triggers `screenShake('heavy')`.
+      - Plays `playSFX('sfx_overkill')`.
+      - Spawns `floatText(targetId, `💀 OVERKILL!! -${damage}`, '#f87171', true, 'overkill')`.
+      - Awards +25% bonus combat gold (`Math.max(1, Math.round(target.gold * 0.25))`), credited to `player.gold` and tracked in `battleState.overkillBonusGold` with combat log notification: `💀 OVERKILL! +[X] bonus gold earned!`.
+    - Fully implemented in both `applyEnemyDamage(enemyIndex, damage, isCrit, isWeakness)` and core `applyDamage(target, amount, element, attacker, isCrit)`.
+  - *Procedural Web Audio Synthesis (`playSFX`):*
+    - `case 'sfx_bass_drop':`: Generates a low-frequency punchy sine sweep (95 Hz rapidly dropping to 28 Hz over 0.28s) layered with low-pass filtered noise for visceral acoustic weight.
+    - `case 'sfx_overkill':`: Generates a dual-oscillator crash (heavy sub-bass transient decaying into a 24 Hz low hum + 220 Hz to 55 Hz distorted square wave crack + bandpass noise transient).
+    - `case 'sfx_weakness_shatter':`: Generates a bright, crisp metallic chime transient (880 Hz fundamental + 1760 Hz harmonic bell) with fast exponential decay.
+  - *Automated Verification:*
+    - Dedicated test suite `scratch/verify_combat_punch.py`: 43 / 43 assertions passed (100%).
+    - Master regression run `scratch/run_all_against_main.py`: 3,442 / 3,461 assertions passed across all 43 test suites with zero regressions.
 - **PC & Desktop Battle UI Overhaul (Turn Ribbon, Command Deck & Compact Log):**
   - *Turn Ribbon Timeline Formatting (`css/style.css` & `src/game.js`):*
     - Mobile & Compact mode (`< 768px`): `.turn-node` operates as a compact 38px circle with `.chip-name` hidden, centered icon, and tooltip title (`chip.title`).
@@ -1056,6 +1255,32 @@
 - **Non-Blocking In-Game Toast Notification System (`showToast`):**
   - Replaced all 18 native `window.alert()` calls with styled toasts.
   - (*Implemented and verified* via automated tests).
+- **Living Town Hub & Districts (Package A):**
+  - Replaces flat button grid with 3 themed settlement districts: *Frontier & Trials* (Expeditions, Spire, Calamity), *Commerce & Crafting* (Blacksmith, Merchant, Market), and *Sanctum & Lore* (Inventory, Class Sanctum, Skill Tree, Familiar Sanctuary, Wayfarer's Inn, Quests, Hall of Glory, Codex).
+  - Illustrated building cards (`town-building-card`) with live dynamic status badges, 3D hover elevation, and an ambient canvas particle overlay (`#town-ambient-canvas`) emitting drifting golden embers.
+  - (*Implemented and verified* via 45/45 automated tests).
+- **Dynamic Arena Weather & Particle Canvas (Package C):**
+  - High-performance, zero-dependency HTML5 2D particle canvas (`#arena-weather-canvas`) operating at `z-index: 2` behind combatants.
+  - 6 distinct biome particle physics presets bound to area zones: Verdant Forest (drifting fireflies & leaf spores), Abyssal Cavern (rising bioluminescent bubbles), Volcanic Caldera (accelerating ash cinders & sparks), Frozen Tundra (slanted blizzard crystals), Astral Void & Spire (swirling stardust motes), and Calamity Cataclysm (fierce crimson ember storm).
+  - Delta-time particle pooling with auto-pause lifecycle controls when leaving combat or unfocusing the tab.
+  - (*Implemented and verified* via 48/48 automated tests).
+- **Glassmorphic Modernization & Unified Color Themes (Package D):**
+  - Hardware-accelerated frosted glass panels (`backdrop-filter: blur(14px)`) and darkened ambient modal overlays.
+  - Standardized jewel-tone elemental palette: Flame Coral (`#f87171`), Glacier Azure (`#38bdf8`), Amber Citrine (`#fbbf24`), Jade Emerald (`#34d399`), Celestial Aurum (`#fef08a`), Nether Amethyst (`#c084fc`), and Steel Silver (`#cbd5e1`).
+  - Universal sleek thin scrollbars (6px pill tracks) and tactile micro-interactions (`translateY(-2px)` on hover, `translateY(1px)` on press).
+  - (*Implemented and verified* via 55/55 automated tests).
+- **Complete Title Screen Overhaul & Awakening Creation (Package 3):**
+  - Full-bleed cinematic title screen (`#screen-main`) with ambient ember canvas (`#title-ambient-canvas`), embossed metallic typography, and auto-hidden in-game HUD header.
+  - Smart "Continue Journey" Save Snapshot Card dynamically parsing active `localStorage` saves (Hero Name, Level, Class, Zone, Gold).
+  - "Awakening" Character Creation modal (`#modal-awakening`) featuring custom hero name input, randomizer, and 4 starting elemental origin blessings (Flameborn +5% ATK, Glacial Warden +10% MP, Stonebound +10% DEF, Stormstrider +5% SPD).
+  - "Click to Awaken" Web Audio API harmonic chord synthesizer solving browser autoplay policies.
+  - Title utility dock: direct Save Manager access, Audio volume toggle, and Adventurer's Codex guide.
+  - (*Implemented and verified* via 46/46 automated tests).
+- **Screen Isolation & Title Screen Inactive Hiding Bugfix:**
+  - Resolved CSS specificity collision where `#screen-main` remained visible during battle and town screens.
+  - Configured `#screen-main` with default `display: none;`, activated strictly via `#screen-main.active { display: flex; }`, and reinforced with `.screen:not(.active), #screen-main:not(.active) { display: none !important; }`.
+  - Enforced programmatic screen cleanup in `switchScreen(screenId)` with inline style guarantees.
+  - (*Implemented and verified* via 32/32 automated tests).
 - **Tiered Quest & Achievement Progression Expansion:**
   - 16 Tiered Quests, 13 Milestone Achievements with passive stat stacking.
   - (*Implemented and verified* via 104/104 automated tests).
@@ -1094,4 +1319,4 @@
 
 ## Last Updated
 - **Date:** 2026-10-26
-- **Description:** Complete visual and ergonomic overhaul of the combat screen into a Modern JRPG / Gacha Dock Architecture (`index.html`, `css/style.css`, `src/game.js`). Features dynamic zone-themed arena backdrops (Areas 1–10 + Calamity), integrated bottom hero squad dock with live dual HP/MP gauges and leader crown, tactile Ruby/Sapphire/Emerald/Slate command deck cards, 2-column rich Elemental Skill Cards with elemental badges and MP pills, retractable floating combat ticker with toggleable drawer, smooth golden damage ghost HP bars, live elemental weakness targeting reticles (WEAK 1.5x / RESIST 0.5x), and circular turn order timeline with pulsing turnBeacon initiative nodes. Verified with 62/62 dedicated tests and 3,370 passing assertions across all 41 test suites on live index.html with zero regressions. (Tier 1 -> Tier 2 -> Tier 3), introducing the Frontline Minion Interception System, compact companion minion cards, Soul Remnants resource economy, Dread Lich (phylactery rebirth & corpse explosions), and Bone Commander (meat-shield damage redirection & bone armor). Verified with 75/75 dedicated tests and 3,157 passing test assertions across all 37 test suites on live index.html with zero regressions, and pushed to GitHub.
+- **Description:** Complete visual, aesthetic, and architectural modernization: Living Town Hub (3 districts, building cards, live badges, ambient canvas), Dynamic Arena Weather Canvas (6 biome particle physics profiles with auto-pause), Glassmorphic Design System (frosted glass blur, jewel-tone elemental palette, sleek thin scrollbars), Complete Title Screen Overhaul (full-bleed layout, ember canvas, smart continue snapshot card, "Awakening" character origin creator, Web Audio title chime), and Screen Isolation Bugfix ensuring `#screen-main` is strictly hidden in battle and town. Fully verified with automated test suites across all components with zero live regressions.

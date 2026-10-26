@@ -4402,11 +4402,293 @@ function playSFX(name) {
 
             }
 
+            case 'sfx_bass_drop': {
+                const osc = ctx.createOscillator();
+                const oscGain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(95, now);
+                osc.frequency.exponentialRampToValueAtTime(28, now + 0.28);
 
+                oscGain.gain.setValueAtTime(0.5, now);
+                oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
 
+                osc.connect(oscGain);
+                oscGain.connect(masterGain);
 
+                osc.start(now);
+                osc.stop(now + 0.28);
 
+                // Sub-punch noise transient
+                try {
+                    const bSize = Math.floor(ctx.sampleRate * 0.08);
+                    const nBuf = ctx.createBuffer(1, bSize, ctx.sampleRate);
+                    const nData = nBuf.getChannelData(0);
+                    for (let i = 0; i < bSize; i++) {
+                        nData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.02));
+                    }
+                    const nSrc = ctx.createBufferSource();
+                    nSrc.buffer = nBuf;
+                    const nFilter = ctx.createBiquadFilter();
+                    nFilter.type = 'lowpass';
+                    nFilter.frequency.setValueAtTime(140, now);
+                    const nGain = ctx.createGain();
+                    nGain.gain.setValueAtTime(0.35, now);
+                    nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    nSrc.connect(nFilter);
+                    nFilter.connect(nGain);
+                    nGain.connect(masterGain);
+                    nSrc.start(now);
+                } catch(e) {}
+                break;
+            }
 
+            case 'sfx_overkill': {
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(80, now);
+                osc1.frequency.exponentialRampToValueAtTime(24, now + 0.45);
+
+                osc2.type = 'sawtooth';
+                osc2.frequency.setValueAtTime(220, now);
+                osc2.frequency.exponentialRampToValueAtTime(55, now + 0.22);
+
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(masterGain);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.45);
+                osc2.stop(now + 0.45);
+                break;
+            }
+
+            case 'sfx_weakness_shatter': {
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(880, now);
+                osc1.frequency.exponentialRampToValueAtTime(820, now + 0.18);
+
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1760, now);
+                osc2.frequency.exponentialRampToValueAtTime(1600, now + 0.18);
+
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                gain2.gain.setValueAtTime(0.2, now);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                osc1.connect(gain1);
+                gain1.connect(masterGain);
+                osc2.connect(gain2);
+                gain2.connect(masterGain);
+
+                osc1.start(now);
+                osc1.stop(now + 0.18);
+                osc2.start(now);
+                osc2.stop(now + 0.18);
+                break;
+            }
+
+            case 'coin_crescendo': {
+                if (typeof window !== 'undefined') {
+                    window._coinCrescendoCounter = (window._coinCrescendoCounter || 0) + 1;
+                }
+                const counter = (typeof window !== 'undefined' && window._coinCrescendoCounter) || 1;
+                const baseFreq = 900 + (counter % 12) * 120;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.25, now + 0.09);
+
+                gain.gain.setValueAtTime(0.25, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+                osc.connect(gain);
+                gain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + 0.09);
+                break;
+            }
+
+            case 'rarity_beam_hum': {
+                const osc1 = ctx.createOscillator();
+                const osc2 = ctx.createOscillator();
+                const filter = ctx.createBiquadFilter();
+                const gain = ctx.createGain();
+
+                osc1.type = 'sawtooth';
+                osc1.frequency.setValueAtTime(165, now);
+
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(168, now);
+
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(450, now);
+                filter.frequency.exponentialRampToValueAtTime(800, now + 0.4);
+                filter.frequency.exponentialRampToValueAtTime(300, now + 1.2);
+
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.2, now + 0.3);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+
+                osc1.connect(filter);
+                osc2.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 1.2);
+                osc2.stop(now + 1.2);
+                break;
+            }
+
+            case 'limit_cutin_whoosh': {
+                try {
+                    const bufferSize = Math.floor(ctx.sampleRate * 0.5);
+                    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    const whiteNoise = ctx.createBufferSource();
+                    whiteNoise.buffer = noiseBuffer;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.Q.value = 5.0;
+                    filter.frequency.setValueAtTime(300, now);
+                    filter.frequency.exponentialRampToValueAtTime(2400, now + 0.45);
+
+                    const noiseGain = ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.01, now);
+                    noiseGain.gain.linearRampToValueAtTime(0.35, now + 0.15);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+                    whiteNoise.connect(filter);
+                    filter.connect(noiseGain);
+                    noiseGain.connect(master);
+                    whiteNoise.start(now);
+                    whiteNoise.stop(now + 0.5);
+
+                    // High-octave pentatonic bell chime
+                    const bellOsc = ctx.createOscillator();
+                    const bellGain = ctx.createGain();
+                    bellOsc.type = 'sine';
+                    bellOsc.frequency.setValueAtTime(1046.5, now + 0.1);
+                    bellOsc.frequency.setValueAtTime(1318.5, now + 0.22);
+                    bellGain.gain.setValueAtTime(0.001, now);
+                    bellGain.gain.linearRampToValueAtTime(0.25, now + 0.12);
+                    bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+                    bellOsc.connect(bellGain);
+                    bellGain.connect(master);
+                    bellOsc.start(now + 0.1);
+                    bellOsc.stop(now + 0.55);
+                } catch (e) {}
+                break;
+            }
+
+            case 'cinematic_finish_gong': {
+                try {
+                    // Deep sub-bass boom
+                    const subOsc = ctx.createOscillator();
+                    const subGain = ctx.createGain();
+                    subOsc.type = 'sine';
+                    subOsc.frequency.setValueAtTime(65, now);
+                    subOsc.frequency.exponentialRampToValueAtTime(42, now + 0.7);
+                    subGain.gain.setValueAtTime(0.6, now);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+                    subOsc.connect(subGain);
+                    subGain.connect(master);
+                    subOsc.start(now);
+                    subOsc.stop(now + 1.2);
+
+                    // Long-tail metallic gong reverberation
+                    const gongOsc1 = ctx.createOscillator();
+                    const gongOsc2 = ctx.createOscillator();
+                    const gongGain = ctx.createGain();
+                    gongOsc1.type = 'sine';
+                    gongOsc1.frequency.setValueAtTime(220, now);
+                    gongOsc2.type = 'triangle';
+                    gongOsc2.frequency.setValueAtTime(440, now);
+                    gongGain.gain.setValueAtTime(0.3, now);
+                    gongGain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+
+                    gongOsc1.connect(gongGain);
+                    gongOsc2.connect(gongGain);
+                    gongGain.connect(master);
+                    gongOsc1.start(now);
+                    gongOsc2.start(now);
+                    gongOsc1.stop(now + 1.4);
+                    gongOsc2.stop(now + 1.4);
+                } catch (e) {}
+                break;
+            }
+
+            case 'glass_shatter': {
+                try {
+                    const bufferSize = Math.floor(ctx.sampleRate * 0.35);
+                    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    const whiteNoise = ctx.createBufferSource();
+                    whiteNoise.buffer = noiseBuffer;
+
+                    const hpFilter = ctx.createBiquadFilter();
+                    hpFilter.type = 'highpass';
+                    hpFilter.frequency.setValueAtTime(3200, now);
+
+                    const noiseGain = ctx.createGain();
+                    noiseGain.gain.setValueAtTime(0.45, now);
+                    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                    whiteNoise.connect(hpFilter);
+                    hpFilter.connect(noiseGain);
+                    noiseGain.connect(master);
+                    whiteNoise.start(now);
+                    whiteNoise.stop(now + 0.3);
+
+                    // High-frequency crystalline shards
+                    const shardOsc1 = ctx.createOscillator();
+                    const shardOsc2 = ctx.createOscillator();
+                    const shardGain = ctx.createGain();
+                    shardOsc1.type = 'sawtooth';
+                    shardOsc1.frequency.setValueAtTime(2800, now);
+                    shardOsc1.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                    shardOsc2.type = 'sine';
+                    shardOsc2.frequency.setValueAtTime(3600, now);
+                    shardOsc2.frequency.exponentialRampToValueAtTime(1200, now + 0.25);
+
+                    shardGain.gain.setValueAtTime(0.25, now);
+                    shardGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                    shardOsc1.connect(shardGain);
+                    shardOsc2.connect(shardGain);
+                    shardGain.connect(master);
+                    shardOsc1.start(now);
+                    shardOsc2.start(now);
+                    shardOsc1.stop(now + 0.25);
+                    shardOsc2.stop(now + 0.25);
+                } catch (e) {}
+                break;
+            }
 
             default:
 
@@ -7852,62 +8134,53 @@ if (typeof window !== 'undefined') {
 
 
     function switchScreen(screenId) {
-
-
-
-
-
-
-
         if (screenId !== 'battle') {
-
-
-
-
-
-
-
             if (typeof clearAllCombatTimers === 'function') clearAllCombatTimers();
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-
-
-
-
-
-
-
-        document.getElementById('screen-' + screenId).classList.add('active');
-        if (screenId === 'town' && typeof updateTownUI === 'function') updateTownUI();
-
-
-
-
-
-
-
+        document.querySelectorAll('.screen').forEach(s => {
+            s.classList.remove('active');
+            s.style.display = 'none';
+        });
+        const targetScreen = document.getElementById('screen-' + screenId);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+            targetScreen.style.display = 'flex';
+        }
+        const headerBar = document.querySelector('.header-bar');
+        if (screenId === 'main') {
+            if (typeof document !== 'undefined' && document.body) {
+                document.body.classList.add('on-title-screen');
+            }
+            if (headerBar) headerBar.style.display = 'none';
+            if (typeof TitleWeather !== 'undefined' && TitleWeather) {
+                TitleWeather.resize();
+                TitleWeather.start();
+            }
+            if (typeof updateTitleSaveCard === 'function') updateTitleSaveCard();
+        } else {
+            if (typeof document !== 'undefined' && document.body) {
+                document.body.classList.remove('on-title-screen');
+            }
+            if (headerBar) headerBar.style.display = 'flex';
+            if (typeof TitleWeather !== 'undefined' && TitleWeather) {
+                TitleWeather.stop();
+            }
+        }
+        if (screenId === 'town') {
+            if (typeof updateTownUI === 'function') updateTownUI();
+            if (typeof initTownAmbientCanvas === 'function') initTownAmbientCanvas();
+        }
+        if (screenId === 'battle') {
+            if (typeof ArenaWeather !== 'undefined' && ArenaWeather) {
+                ArenaWeather.resize();
+                ArenaWeather.start();
+            }
+        } else {
+            if (typeof ArenaWeather !== 'undefined' && ArenaWeather) {
+                ArenaWeather.stop();
+            }
+        }
         updateSaveLoadButtons(screenId === 'battle');
-
-
-
-
-
-
-
     }
 
 
@@ -14765,6 +15038,9 @@ if (typeof window !== 'undefined') {
                 entity.statuses.staggered.duration--;
                 if (entity.statuses.staggered.duration <= 0) {
                     delete entity.statuses.staggered;
+                    if (entity.staggerMax > 0) {
+                        entity.staggerCurrent = entity.staggerMax;
+                    }
                     logMsg(`${entity.name} recovered from Staggered.`, "#f43f5e");
                 }
             }
@@ -15669,70 +15945,59 @@ window.getAllAreaKeys = getAllAreaKeys;
 
 
 function checkAreaUnlocks() {
-
-
-
-
-
-
-
     if (!player || !player.unlockedAreas) return;
-
-
-
-
-
-
-
-    if (player.level >= 26 && !player.unlockedAreas.includes('area_6')) player.unlockedAreas.push('area_6');
-
-
-
-
-
-
-
-    if (player.level >= 31 && !player.unlockedAreas.includes('area_7')) player.unlockedAreas.push('area_7');
-
-
-
-
-
-
-
-    if (player.level >= 36 && !player.unlockedAreas.includes('area_8')) player.unlockedAreas.push('area_8');
-
-
-
-
-
-
-
-    if (player.level >= 41 && !player.unlockedAreas.includes('area_9')) player.unlockedAreas.push('area_9');
-
-
-
-
-
-
-
-    if (player.level >= 46 && !player.unlockedAreas.includes('area_10')) player.unlockedAreas.push('area_10');
-
-
-
-
-
-
-
+    // Areas are strictly unlocked upon defeating gatekeeper bosses in winBattle.
 }
 
-
-
-
-
-
-
 window.checkAreaUnlocks = checkAreaUnlocks;
+
+function syncAreaProgression(p) {
+    if (!p) return;
+    if (!p.defeatedAreaBosses || !Array.isArray(p.defeatedAreaBosses)) {
+        p.defeatedAreaBosses = [];
+    }
+    if (!p.unlockedAreas || !Array.isArray(p.unlockedAreas)) {
+        p.unlockedAreas = ['area_1'];
+    }
+    // Check legacy boss flags
+    if (p.defeatedArea10Boss) p.defeatedAreaBosses.push('area_10');
+    if (p.defeatedArea5Boss) p.defeatedAreaBosses.push('area_5');
+    if (p.defeatedArea1Boss) p.defeatedAreaBosses.push('area_1');
+    // Find highest defeated boss
+    let maxBossNum = 0;
+    p.defeatedAreaBosses.forEach(a => {
+        const num = parseInt(String(a).replace('area_', '')) || 0;
+        if (num > maxBossNum) maxBossNum = num;
+    });
+    // Check unlockedAreas: if player already reached area_K, they conquered up to area_{K-1}
+    p.unlockedAreas.forEach(a => {
+        const num = parseInt(String(a).replace('area_', '')) || 0;
+        if (num - 1 > maxBossNum) maxBossNum = num - 1;
+    });
+    // Populate all prerequisite defeated bosses up to maxBossNum
+    const resolvedDefeated = [];
+    for (let i = 1; i <= maxBossNum; i++) {
+        resolvedDefeated.push(`area_${i}`);
+    }
+    p.defeatedAreaBosses = resolvedDefeated;
+    // Populate all unlocked areas up to area_{maxBossNum + 1} (capped at area_10)
+    const resolvedUnlocked = ['area_1'];
+    const maxUnlockedZone = Math.min(10, Math.max(1, maxBossNum + 1));
+    for (let i = 2; i <= maxUnlockedZone; i++) {
+        resolvedUnlocked.push(`area_${i}`);
+    }
+    p.unlockedAreas = resolvedUnlocked;
+    // Sync legacy compatibility flags
+    p.defeatedArea1Boss = p.defeatedAreaBosses.includes('area_1');
+    p.defeatedArea5Boss = p.defeatedAreaBosses.includes('area_5');
+    p.defeatedArea10Boss = p.defeatedAreaBosses.includes('area_10');
+    // Ensure selectedArea is a valid unlocked area
+    if (!p.selectedArea || !p.unlockedAreas.includes(p.selectedArea)) {
+        p.selectedArea = p.unlockedAreas[p.unlockedAreas.length - 1] || 'area_1';
+    }
+}
+window.syncAreaProgression = syncAreaProgression;
+
 
 
 
@@ -15749,92 +16014,15 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
 
         function renderBattlePrep() {
-
-
-
-
-
-
-
-        const container = document.getElementById('battle-prep-content');
-
-
-
-
-
-
-
+    const container = document.getElementById('battle-prep-content');
         if(!container) return;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         if(!player.unlockedAreas || !Array.isArray(player.unlockedAreas)) {
-
-
-
-
-
-
-
             player.unlockedAreas = ['area_1'];
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
         if(!player.selectedArea || !player.unlockedAreas.includes(player.selectedArea)) {
-
-
-
-
-
-
-
             player.selectedArea = player.unlockedAreas[player.unlockedAreas.length - 1] || 'area_1';
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         let currentArea = AREAS_DB[player.selectedArea] || AREAS_DB['area_1'];
 
@@ -18485,141 +18673,8 @@ window.checkAreaUnlocks = checkAreaUnlocks;
 
 
 
-            if(!player.unlockedAreas || !Array.isArray(player.unlockedAreas)) {
-
-
-
-
-
-
-
-                player.unlockedAreas = ['area_1'];
-
-
-
-
-
-
-
-            }
-
-
-
-
-
-
-
-            if(player.level >= 6 && !player.unlockedAreas.includes('area_2')) player.unlockedAreas.push('area_2');
-
-
-
-
-
-
-
-            if(player.level >= 11 && !player.unlockedAreas.includes('area_3')) player.unlockedAreas.push('area_3');
-
-
-
-
-
-
-
-            if(player.level >= 16 && !player.unlockedAreas.includes('area_4')) player.unlockedAreas.push('area_4');
-
-
-
-
-
-
-
-            if(player.level >= 21 && !player.unlockedAreas.includes('area_5')) player.unlockedAreas.push('area_5');
-
-
-
-
-
-
-
-            if(player.level >= 26 && !player.unlockedAreas.includes('area_6')) player.unlockedAreas.push('area_6');
-
-
-
-
-
-
-
-            if(player.level >= 31 && !player.unlockedAreas.includes('area_7')) player.unlockedAreas.push('area_7');
-
-
-
-
-
-
-
-            if(player.level >= 36 && !player.unlockedAreas.includes('area_8')) player.unlockedAreas.push('area_8');
-
-
-
-
-
-
-
-            if(player.level >= 41 && !player.unlockedAreas.includes('area_9')) player.unlockedAreas.push('area_9');
-
-
-
-
-
-
-
-            if(player.level >= 46 && !player.unlockedAreas.includes('area_10')) player.unlockedAreas.push('area_10');
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            if(!player.selectedArea || !player.unlockedAreas.includes(player.selectedArea)) {
-
-
-
-
-
-
-
-                player.selectedArea = player.unlockedAreas[player.unlockedAreas.length - 1] || 'area_1';
-
-
-
-
-
-
-
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            // Area Progression Synchronization on Load
+            syncAreaProgression(player);
 
             // Bestiary Initialization & Retroactive Discovery for Unlocked Areas
 
@@ -28364,10 +28419,7 @@ ${setInfoHtml}
         } else if (quest.type === 'skill_ranks') {
             current = typeof getTotalSkillRanks === 'function' ? getTotalSkillRanks() : 0;
         } else if (quest.type === 'conquer_area') {
-            const areaNum = parseInt((quest.areaId || '').replace('area_', '')) || 0;
-            const nextAreaId = 'area_' + (areaNum + 1);
-            const isDefeated = (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(quest.areaId)) ||
-                               (player.unlockedAreas && player.unlockedAreas.includes(nextAreaId));
+            const isDefeated = Boolean(player.defeatedAreaBosses && player.defeatedAreaBosses.includes(quest.areaId));
             current = isDefeated ? 1 : 0;
         } else if (quest.type === 'recruit_mercenaries') {
             current = (player.roster && player.roster.filter(h => !h.isMain && h.id !== 'hero_main' && h !== player).length) || 0;
@@ -28453,12 +28505,33 @@ ${setInfoHtml}
         const questBtn = document.getElementById('btn-town-quests');
         if (!questBtn) return;
         let claimable = getClaimableQuestCount();
-        if (claimable > 0) {
-            questBtn.innerHTML = `Quests<br><span style="color:#55ff55; font-size:12px;">● ${claimable} Ready!</span>`;
-            questBtn.style.borderColor = '#38bdf8';
+        const descEl = document.getElementById('btn-town-quests-sub');
+        const badgeEl = document.getElementById('badge-town-quests');
+        if (descEl) {
+            if (claimable > 0) {
+                descEl.innerHTML = `<span style="color:#4ade80;">● ${claimable} Ready!</span>`;
+            } else {
+                descEl.textContent = 'Milestone tasks & bounty marks';
+            }
+        }
+        if (badgeEl) {
+            if (claimable > 0) {
+                badgeEl.textContent = `✨ ${claimable} Claimable`;
+                badgeEl.style.display = 'inline-block';
+            } else {
+                badgeEl.style.display = 'none';
+            }
+        }
+        if (!descEl && !badgeEl) {
+            if (claimable > 0) {
+                questBtn.innerHTML = `Quests<br><span style="color:#55ff55; font-size:12px;">● ${claimable} Ready!</span>`;
+                questBtn.style.borderColor = '#38bdf8';
+            } else {
+                questBtn.innerHTML = 'Quests';
+                questBtn.style.borderColor = '#666';
+            }
         } else {
-            questBtn.innerHTML = 'Quests';
-            questBtn.style.borderColor = '#666';
+            questBtn.style.borderColor = claimable > 0 ? '#fbbf24' : '#334155';
         }
     }
 
@@ -28862,10 +28935,7 @@ function getTotalSkillRanks() {
         } else if (achievement.type === 'reach_level') {
             current = player.level || 1;
         } else if (achievement.type === 'conquer_area') {
-            const areaNum = parseInt((achievement.areaId || '').replace('area_', '')) || 0;
-            const nextAreaId = 'area_' + (areaNum + 1);
-            const isDefeated = (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(achievement.areaId)) ||
-                               (player.unlockedAreas && player.unlockedAreas.includes(nextAreaId));
+            const isDefeated = Boolean(player.defeatedAreaBosses && player.defeatedAreaBosses.includes(achievement.areaId));
             current = isDefeated ? 1 : 0;
         } else if (achievement.type === 'hero_tier') {
             let maxTier = 0;
@@ -28966,12 +29036,23 @@ function getTotalSkillRanks() {
         if (!achBtn) return;
         let unlocked = getUnlockedAchievementCount();
         let total = typeof ACHIEVEMENTS_DB !== 'undefined' ? Object.keys(ACHIEVEMENTS_DB).length : 37;
-        achBtn.innerHTML = `Achievements<br><span style="color:#c084fc; font-size:12px;">★ ${unlocked}/${total} Unlocked</span>`;
-        if (unlocked > 0) {
-            achBtn.style.borderColor = '#c084fc';
-        } else {
-            achBtn.style.borderColor = '#666';
+        const descEl = document.getElementById('btn-town-achievements-sub');
+        const badgeEl = document.getElementById('badge-town-achievements');
+        if (descEl) {
+            descEl.innerHTML = `★ ${unlocked}/${total} Unlocked`;
         }
+        if (badgeEl) {
+            if (unlocked > 0) {
+                badgeEl.textContent = `★ ${unlocked}/${total}`;
+                badgeEl.style.display = 'inline-block';
+            } else {
+                badgeEl.style.display = 'none';
+            }
+        }
+        if (!descEl && !badgeEl) {
+            achBtn.innerHTML = `Achievements<br><span style="color:#c084fc; font-size:12px;">★ ${unlocked}/${total} Unlocked</span>`;
+        }
+        achBtn.style.borderColor = unlocked > 0 ? '#e879f9' : '#334155';
     }
 
     function checkAchievements(silent = false) {
@@ -30455,8 +30536,7 @@ function useItemOutsideBattle(itemName) {
                     const tierNum = parseInt(tierKey.split('_')[1]) || 1;
                     const prevAreaId = `area_${tierNum - 1}`;
                     const isUnlocked = tierNum === 1 || 
-                                       (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId)) ||
-                                       (player.unlockedAreas && player.unlockedAreas.includes(tierKey) && tierNum <= player.unlockedAreas.length);
+                                       Boolean(player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId));
 
 
 
@@ -32941,8 +33021,7 @@ function useItemOutsideBattle(itemName) {
                 let tierNum = parseInt(a.split('_')[1]) || 1;
                 let prevAreaId = `area_${tierNum - 1}`;
                 let isUnlocked = tierNum === 1 || 
-                                 (player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId)) ||
-                                 (player.unlockedAreas && player.unlockedAreas.includes(a) && tierNum <= player.unlockedAreas.length);
+                                 Boolean(player.defeatedAreaBosses && player.defeatedAreaBosses.includes(prevAreaId));
 
 
 
@@ -33375,396 +33454,71 @@ function useItemOutsideBattle(itemName) {
 
 
     function renderMysteryBoxReveal(boxKey, item) {
-
-
-
-
-
-
-
         const stage = document.getElementById('unboxing-stage');
-
-
-
-
-
-
-
         if (!stage) return;
-
-
-
-
-
-
-
         const box = (typeof MYSTERY_BOXES_DB !== 'undefined' && MYSTERY_BOXES_DB[boxKey]) || { cost: 250 };
-
-
-
-
-
-
-
         const tierInfo = (typeof RARITY_TIERS !== 'undefined' && RARITY_TIERS[item.rarity]) || { color: '#fff' };
-
-
-
-
-
-
-
         const rarityColor = tierInfo.color || '#fff';
-
-
-
-
-
-
-
         const isMythic = (item.rarity === 'Mythic');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         const titleEl = document.getElementById('unboxing-title');
-
-
-
-
-
-
-
         if (titleEl) titleEl.innerText = isMythic ? '✨ MYTHIC ITEM REVEALED! ✨' : 'Item Discovered!';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         let affixesHtml = (item.affixes || []).map(a => `<div style="font-size: 12px; color: ${rarityColor}; margin: 2px 0;">• ${a.desc || a.name}</div>`).join('');
-
-
-
-
-
-
-
         let statsHtml = Object.entries(item.baseStats || item.stats || {}).map(([k, v]) => `${k.toUpperCase()} +${v}`).join(', ');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         stage.innerHTML = `
-
-
-
-
-
-
-
-            <div class="unboxing-item-reveal ${isMythic ? 'mythic-reveal' : ''}" style="border: 2px solid ${rarityColor}; box-shadow: 0 0 16px ${rarityColor};">
-
-
-
-
-
-
-
-                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${rarityColor}; font-weight: bold; margin-bottom: 4px;">
-
-
-
-
-
-
-
-                    ★ ${item.rarity} ${item.type ? item.type.toUpperCase() : 'GEAR'} ★
-
-
-
-
-
-
-
+            <div class="holo-card-stage">
+                <div id="unboxing-holo-card" class="holo-card-inner" onclick="this.classList.toggle('flipped')">
+                    <div class="holo-card-front">
+                        <div style="font-size: 44px; margin-bottom: 8px;">🎁</div>
+                        <div style="font-size: 15px; font-weight: bold; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px;">Click to Reveal</div>
+                        <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">★ ${item.rarity} Equipment ★</div>
+                    </div>
+                    <div class="holo-card-back" style="border: 2px solid ${rarityColor}; box-shadow: 0 0 25px ${rarityColor};">
+                        <div class="unboxing-item-reveal ${isMythic ? 'mythic-reveal' : ''}" style="background: transparent; border: none; box-shadow: none; padding: 0;">
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: ${rarityColor}; font-weight: bold; margin-bottom: 4px;">
+                                ★ ${item.rarity} ${item.type ? item.type.toUpperCase() : 'GEAR'} ★
+                            </div>
+                            <div style="font-size: 18px; font-weight: bold; color: ${rarityColor}; margin-bottom: 8px;">
+                                ${item.name}
+                            </div>
+                            <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">
+                                ${statsHtml || item.desc || ''}
+                            </div>
+                            <div style="background: rgba(0,0,0,0.45); border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; text-align: left;">
+                                ${affixesHtml}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-
-
-
-
-
-
-                <div style="font-size: 18px; font-weight: bold; color: ${rarityColor}; margin-bottom: 8px;">
-
-
-
-
-
-
-
-                    ${item.name}
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-                <div style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">
-
-
-
-
-
-
-
-                    ${statsHtml || item.desc || ''}
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-                <div style="background: rgba(0,0,0,0.35); border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; text-align: left;">
-
-
-
-
-
-
-
-                    ${affixesHtml}
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
-                <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-
-
-
-
-
-
-
-                    <button class="btn" style="background: #10b981; color: white;" onclick="closeUnboxingModal()">✨ Claim Equipment</button>
-
-
-
-
-
-
-
-                    <button class="btn" style="background: #3b82f6; color: white;" onclick="buyMysteryBox('${boxKey}')" ${(player.gold || 0) < box.cost ? 'disabled' : ''}>
-
-
-
-
-
-
-
-                        🎲 Open Another (${box.cost} G)
-
-
-
-
-
-
-
-                    </button>
-
-
-
-
-
-
-
-                </div>
-
-
-
-
-
-
-
             </div>
-
-
-
-
-
-
-
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px;">
+                <button class="btn" style="background: #10b981; color: white;" onclick="closeUnboxingModal()">✨ Claim Equipment</button>
+                <button class="btn" style="background: #3b82f6; color: white;" onclick="buyMysteryBox('${boxKey}')" ${(player.gold || 0) < box.cost ? 'disabled' : ''}>
+                    🎲 Open Another (${box.cost} G)
+                </button>
+            </div>
         `;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if (isMythic) {
-
-
-
-
-
-
-
-            playSFX('chest_reveal_mythic');
-
-
-
-
-
-
-
-            screenShake('heavy');
-
-
-
-
-
-
-
-            showToast('MYTHIC UNLOCKED!', `You discovered a Mythic ${item.name}!`, 'level', 6000);
-
-
-
-
-
-
-
-        } else if (item.rarity === 'Legendary') {
-
-
-
-
-
-
-
-            playSFX('chest_reveal_legendary');
-
-
-
-
-
-
-
-            screenShake('medium');
-
-
-
-
-
-
-
-        } else {
-
-
-
-
-
-
-
-            playSFX('chest_reveal_rare');
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
+        setTimeout(() => {
+            const holoCard = document.getElementById('unboxing-holo-card');
+            if (holoCard) {
+                holoCard.classList.add('flipped');
+                if (typeof playSFX === 'function') {
+                    if (isMythic || item.rarity === 'Legendary') {
+                        playSFX('chest_reveal_legendary');
+                        if (typeof spawnRarityBeam === 'function') spawnRarityBeam(stage, item.rarity);
+                    } else if (item.rarity === 'Epic' || item.rarity === 'Rare') {
+                        playSFX('chest_reveal_rare');
+                        if (typeof spawnRarityBeam === 'function') spawnRarityBeam(stage, item.rarity);
+                    } else {
+                        playSFX('chest_reveal_common');
+                    }
+                }
+            }
+        }, 120);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     function closeUnboxingModal() {
 
@@ -33927,6 +33681,11 @@ function useItemOutsideBattle(itemName) {
             themeClass = `arena-theme-${player.currentAreaId}`;
         }
         arenaEl.classList.add(themeClass);
+        const effectiveArea = areaId || (battleState && battleState.isRaid ? 'calamity' : (player ? (player.selectedArea || player.currentAreaId) : 'area_1'));
+        if (typeof ArenaWeather !== 'undefined' && ArenaWeather) {
+            ArenaWeather.setThemeByArea(effectiveArea);
+            ArenaWeather.start();
+        }
         return themeClass;
     }
     window.setupBattle = setupBattle;
@@ -34755,6 +34514,8 @@ function useItemOutsideBattle(itemName) {
 
 
                 isBoss: true,
+                staggerMax: Math.round(template.hp * 0.40),
+                staggerCurrent: Math.round(template.hp * 0.40),
 
 
 
@@ -36817,7 +36578,8 @@ function useItemOutsideBattle(itemName) {
 
 
 
-            el.className = `entity-box enemy ${e.hp <= 0 ? 'dead' : ''}`;
+            const isStaggered = Boolean(e.statuses && e.statuses['staggered']);
+            el.className = `entity-box enemy ${e.hp <= 0 ? 'dead' : ''} ${isStaggered ? 'staggered-vulnerability-glow' : ''}`.trim();
 
 
 
@@ -36865,6 +36627,23 @@ function useItemOutsideBattle(itemName) {
 
 
 
+            let bossStaggerHtml = '';
+            if (e.isBoss) {
+                if (e.staggerMax === undefined) {
+                    e.staggerMax = Math.round((e.maxHp || e.hp || 100) * 0.40);
+                    e.staggerCurrent = e.staggerMax;
+                }
+                if (e.staggerMax > 0) {
+                    const sCur = (e.staggerCurrent !== undefined) ? e.staggerCurrent : e.staggerMax;
+                    const sPct = Math.max(0, Math.min(100, Math.round((sCur / e.staggerMax) * 100)));
+                    bossStaggerHtml = `
+                        <div class="boss-stagger-bar-wrap" title="Stagger Bar: ${sCur}/${e.staggerMax}">
+                            <div class="boss-stagger-bar-fill" id="${e.id}-stagger-bar" style="width: ${sPct}%;"></div>
+                        </div>
+                    `;
+                }
+            }
+
             let staggerBarHtml = '';
             if (e.isRaidBoss && battleState.channelingUltimate) {
                 let cu = battleState.channelingUltimate;
@@ -36899,6 +36678,7 @@ function useItemOutsideBattle(itemName) {
                 <div class="entity-element elem-${e.element}">${e.element}</div>
                 <div class="${spriteClass}">${spriteSvg}</div>
                 <div class="bar-container hp-bar-container"><div class="bar-ghost" id="${e.id}-hp-ghost" style="width: ${(e.hp / e.maxHp) * 100}%"></div><div class="bar-fill hp-fill" id="${e.id}-hp-bar" style="width: ${(e.hp / e.maxHp) * 100}%"></div><div class="bar-text">${e.hp}/${e.maxHp}</div></div>
+                ${bossStaggerHtml}
                 ${staggerBarHtml}
                 <div class="status-tray" id="statuses-${e.id}">${renderStatusBadges(e.statuses)}</div>
             `;
@@ -38040,470 +37820,524 @@ function useItemOutsideBattle(itemName) {
 
 
 
-    function floatText(targetId, text, color, isCrit = false, type = 'normal') {
+    function spawnRarityBeam(originEl, rarity = 'rare') {
+        const floatLayer = document.getElementById('combat-float-layer') || document.body;
+        if (!originEl || !floatLayer) return null;
 
+        const el = (typeof originEl === 'string') ? document.getElementById(originEl) : originEl;
+        if (!el) return null;
 
+        let posX = 150;
+        let posY = 150;
+        if (typeof el.getBoundingClientRect === 'function' && typeof floatLayer.getBoundingClientRect === 'function') {
+            const elRect = el.getBoundingClientRect();
+            const layerRect = floatLayer.getBoundingClientRect();
+            if (elRect.width > 0 || elRect.height > 0) {
+                posX = (elRect.left + (elRect.width / 2) - layerRect.left);
+                posY = (elRect.top + (elRect.height / 2) - layerRect.top);
+            }
+        }
 
+        const rarityLower = String(rarity).toLowerCase();
+        const beamWrap = document.createElement('div');
+        beamWrap.className = `rarity-beam-container rarity-beam-${rarityLower}`;
+        beamWrap.style.left = `${posX}px`;
+        beamWrap.style.top = `${posY}px`;
 
+        beamWrap.innerHTML = `
+            <div class="rarity-beam-pillar"></div>
+            <div class="rarity-beam-ground-glow"></div>
+            <div class="rarity-beam-particles">
+                <span class="beam-ember e1"></span>
+                <span class="beam-ember e2"></span>
+                <span class="beam-ember e3"></span>
+                <span class="beam-ember e4"></span>
+                <span class="beam-ember e5"></span>
+                <span class="beam-ember e6"></span>
+                <span class="beam-ember e7"></span>
+                <span class="beam-ember e8"></span>
+            </div>
+        `;
 
+        floatLayer.appendChild(beamWrap);
+        if (typeof playSFX === 'function') {
+            try { playSFX('rarity_beam_hum'); } catch(e) {}
+        }
 
+        setTimeout(() => {
+            if (beamWrap.parentNode) beamWrap.parentNode.removeChild(beamWrap);
+        }, 1800);
 
+        return beamWrap;
+    }
+
+    function spawnGoldCoinFountain(originEl, goldAmount = 50) {
+        const floatLayer = document.getElementById('combat-float-layer') || document.body;
+        const targetHdr = document.getElementById('hdr-gold') || document.getElementById('town-gold');
+        if (!originEl || !floatLayer) return [];
+
+        const el = (typeof originEl === 'string') ? document.getElementById(originEl) : originEl;
+        if (!el) return [];
+
+        let startX = window.innerWidth / 2;
+        let startY = window.innerHeight / 2;
+
+        if (typeof el.getBoundingClientRect === 'function') {
+            const elRect = el.getBoundingClientRect();
+            if (elRect.width > 0 || elRect.height > 0) {
+                startX = elRect.left + (elRect.width / 2);
+                startY = elRect.top + (elRect.height / 2);
+            }
+        }
+
+        let endX = window.innerWidth - 60;
+        let endY = 25;
+        if (targetHdr && typeof targetHdr.getBoundingClientRect === 'function') {
+            const hRect = targetHdr.getBoundingClientRect();
+            if (hRect.width > 0 || hRect.height > 0) {
+                endX = hRect.left + (hRect.width / 2);
+                endY = hRect.top + (hRect.height / 2);
+            }
+        }
+
+        const coinCount = Math.min(16, Math.max(8, Math.floor(goldAmount / 15)));
+        const spawnedCoins = [];
+
+        for (let i = 0; i < coinCount; i++) {
+            const coin = document.createElement('div');
+            coin.className = 'gold-fountain-coin';
+            coin.innerHTML = '🪙';
+            coin.style.position = 'fixed';
+            coin.style.left = `${startX}px`;
+            coin.style.top = `${startY}px`;
+            coin.style.zIndex = '9999';
+
+            const scatterX = (Math.random() - 0.5) * 160;
+            const scatterY = -40 - Math.random() * 90;
+            const finalFlyX = (endX - startX);
+            const finalFlyY = (endY - startY);
+            const spin = (Math.random() > 0.5 ? 1 : -1) * (360 + Math.random() * 720);
+
+            coin.style.transform = `translate(${scatterX}px, ${scatterY}px)`;
+            coin.style.setProperty('--fly-x', `${finalFlyX}px`);
+            coin.style.setProperty('--fly-y', `${finalFlyY}px`);
+            coin.style.setProperty('--spin-rot', `${spin}deg`);
+            coin.style.animationDelay = `${i * 45}ms`;
+
+            document.body.appendChild(coin);
+            spawnedCoins.push(coin);
+
+            setTimeout(() => {
+                if (typeof playSFX === 'function' && (i % 2 === 0 || i === coinCount - 1)) {
+                    try { playSFX('coin_crescendo'); } catch(e) {}
+                }
+                if (targetHdr) {
+                    targetHdr.classList.add('pulse-gold');
+                    setTimeout(() => targetHdr.classList.remove('pulse-gold'), 200);
+                }
+            }, 650 + (i * 45));
+
+            setTimeout(() => {
+                if (coin.parentNode) coin.parentNode.removeChild(coin);
+            }, 1200 + (i * 45));
+        }
+
+        return spawnedCoins;
+    }
+
+    window.spawnRarityBeam = spawnRarityBeam;
+    window.spawnGoldCoinFountain = spawnGoldCoinFountain;
+
+    const APEX_SIGNATURE_SKILLS = new Set([
+        'Blade Tempest', 'Meteoric Apocalypse', 'Judgment Ray', 'Cataclysm Rift', 'Phylactery Stasis',
+        'Rain of Stars', 'Arrow Storm', 'Sniper Shot', 'Cataclysmic Reanimation', 'Heavenly Ascendance',
+        'Grand Exorcism', 'Apocalyptic Flame', 'Absolute Zero', 'Judgement Ray', 'Meteoric Shower'
+    ]);
+    function isApexSkill(skill) {
+        if (!skill) return false;
+        if (skill.isApex || skill.isLimitBreak) return true;
+        if (APEX_SIGNATURE_SKILLS.has(skill.name)) return true;
+        if (skill.power && skill.power >= 120) return true;
+        if (skill.mp && skill.mp >= 35) return true;
+        return false;
+    }
+
+    function triggerLimitBreakCutin(hero, skillName, onComplete) {
+        const arena = document.getElementById('battle-arena');
+        if (!arena) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+
+        if (typeof playSFX === 'function') playSFX('limit_cutin_whoosh');
+        if (typeof screenShake === 'function') screenShake('light', 200);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'limit-cutin-overlay';
+
+        let heroClass = '';
+        let heroName = 'Hero';
+        if (typeof hero === 'object' && hero !== null) {
+            heroClass = (hero.classId || hero.class || '').toLowerCase();
+            heroName = hero.name || 'Hero';
+        } else if (typeof hero === 'string') {
+            heroName = hero;
+        }
+
+        const icon = heroClass.includes('mage') ? '🔮' : (heroClass.includes('rogue') ? '🗡️' : (heroClass.includes('ranger') ? '🏹' : (heroClass.includes('cleric') ? '🕊️' : (heroClass.includes('necro') ? '💀' : '⚔️'))));
+
+        overlay.innerHTML = `
+            <div class="limit-cutin-banner">
+                <div class="limit-cutin-avatar">${icon}</div>
+                <div class="limit-cutin-text">
+                    <span class="limit-cutin-tag">★ APEX BURST • ${heroName} ★</span>
+                    <span class="limit-cutin-skill">${skillName}</span>
+                </div>
+            </div>
+        `;
+
+        arena.appendChild(overlay);
+
+        setTimeout(() => {
+            if (overlay.parentNode) {
+                overlay.parentNode.removeChild(overlay);
+            }
+            if (typeof onComplete === 'function') onComplete();
+        }, 900);
+    }
+    window.triggerLimitBreakCutin = triggerLimitBreakCutin;
+
+    function triggerBossFinisherCam(bossEl, onComplete) {
+        const arena = document.getElementById('battle-arena');
+        let bEl = (typeof bossEl === 'string') ? document.getElementById(bossEl) : bossEl;
+        if (!arena || !bEl) {
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+
+        arena.classList.add('arena-slowmo-death');
+        bEl.classList.add('boss-finisher-target');
+
+        if (typeof playSFX === 'function') playSFX('cinematic_finish_gong');
+        if (typeof screenShake === 'function') screenShake('heavy', 700);
+
+        // Disintegration ember explosion
+        const rect = (typeof bEl.getBoundingClientRect === 'function') ? bEl.getBoundingClientRect() : { left: 0, top: 0, width: 80, height: 80 };
+        const arenaRect = (typeof arena.getBoundingClientRect === 'function') ? arena.getBoundingClientRect() : { left: 0, top: 0 };
+        const originX = (rect.left || 0) + ((rect.width || 80) / 2) - (arenaRect.left || 0);
+        const originY = (rect.top || 0) + ((rect.height || 80) / 2) - (arenaRect.top || 0);
+
+        for (let i = 0; i < 28; i++) {
+            const frag = document.createElement('div');
+            frag.className = 'boss-shatter-fragment';
+            frag.style.left = `${originX}px`;
+            frag.style.top = `${originY}px`;
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * 120 + 40;
+            frag.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+            frag.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+            arena.appendChild(frag);
+            setTimeout(() => {
+                if (frag.parentNode) frag.parentNode.removeChild(frag);
+            }, 1100);
+        }
+
+        setTimeout(() => {
+            arena.classList.remove('arena-slowmo-death');
+            bEl.classList.remove('boss-finisher-target');
+            if (typeof onComplete === 'function') onComplete();
+        }, 1200);
+    }
+    window.triggerBossFinisherCam = triggerBossFinisherCam;
+
+    function triggerHitstop(targetEl, durationMs = 60) {
+        if (!targetEl) return;
+        let el = (typeof targetEl === 'string') ? document.getElementById(targetEl) : targetEl;
+        if (!el) return;
+        el.classList.add('hitstop-active');
+        const sprite = el.querySelector ? (el.querySelector('.entity-sprite') || el.querySelector('svg') || el) : el;
+        if (sprite && sprite !== el) sprite.classList.add('hitstop-active');
+        setTimeout(() => {
+            el.classList.remove('hitstop-active');
+            if (sprite && sprite !== el) sprite.classList.remove('hitstop-active');
+        }, Math.max(30, durationMs));
+    }
+
+    function spawnCombatShockwave(x, y, type = 'crit') {
         const floatLayer = document.getElementById('combat-float-layer');
+        if (!floatLayer) return null;
+        const wave = document.createElement('div');
+        wave.className = `combat-shockwave shockwave-${type}`;
+        wave.style.left = `${x}px`;
+        wave.style.top = `${y}px`;
+        floatLayer.appendChild(wave);
+        wave.addEventListener('animationend', () => {
+            if (wave.parentNode) wave.parentNode.removeChild(wave);
+        });
+        setTimeout(() => {
+            if (wave.parentNode) wave.parentNode.removeChild(wave);
+        }, 550);
+        return wave;
+    }
 
-
-
-
-
-
-
+    function floatText(targetId, text, color, isCrit = false, type = 'normal') {
+        const floatLayer = document.getElementById('combat-float-layer');
         const targetEl = document.getElementById(targetId);
-
-
-
-
-
-
 
         if (!targetEl && !floatLayer) return;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         let posX = 50;
-
-
-
-
-
-
-
         let posY = 50;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         if (floatLayer && targetEl && typeof floatLayer.getBoundingClientRect === 'function' && typeof targetEl.getBoundingClientRect === 'function') {
-
-
-
-
-
-
-
             const layerRect = floatLayer.getBoundingClientRect();
-
-
-
-
-
-
-
             const targetRect = targetEl.getBoundingClientRect();
-
-
-
-
-
-
-
             const staggerX = (Math.random() - 0.5) * 36;
 
-
-
-
-
-
-
             if (targetRect.width > 0 || targetRect.height > 0) {
-
-
-
-
-
-
-
                 posX = (targetRect.left + (targetRect.width / 2) - layerRect.left) + staggerX;
-
-
-
-
-
-
-
                 posY = (targetRect.top + (targetRect.height * 0.35) - layerRect.top);
-
-
-
-
-
-
-
             } else {
-
-
-
-
-
-
-
                 posX = 50 + staggerX;
-
-
-
-
-
-
-
                 posY = 50;
-
-
-
-
-
-
-
             }
-
-
-
-
-
-
-
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         const floatEl = document.createElement('div');
-
-
-
-
-
-
-
-        let typeClass = isCrit ? 'floating-text-crit' : (type === 'heal' ? 'floating-text-heal' : (type === 'dot' ? 'floating-text-dot' : ''));
-
-
-
-
-
-
+        let typeClass = '';
+        if (type === 'overkill') {
+            typeClass = 'floating-text-overkill';
+        } else if (type === 'weakness') {
+            typeClass = 'floating-text-weakness';
+        } else if (isCrit || type === 'crit') {
+            typeClass = 'floating-text-crit';
+        } else if (type === 'heal') {
+            typeClass = 'floating-text-heal';
+        } else if (type === 'dot') {
+            typeClass = 'floating-text-dot';
+        }
 
         floatEl.className = `floating-text ${typeClass}`.trim();
 
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
         let displayText = text;
-
-
-
-
-
-
-
-        if (isCrit && !String(text).startsWith('CRIT!')) {
-
-
-
-
-
-
-
-            displayText = 'CRIT! ' + text;
-
-
-
-
-
-
-
+        if (type === 'overkill') {
+            if (!String(text).includes('OVERKILL')) {
+                displayText = `💀 OVERKILL!! ${text}`;
+            }
+        } else if (type === 'weakness') {
+            if (!String(text).includes('WEAKNESS')) {
+                displayText = `⚡ WEAKNESS BREAK! ${text}`;
+            }
+        } else if ((isCrit || type === 'crit') && !String(text).includes('CRIT') && !String(text).includes('CRITICAL')) {
+            displayText = '💥 CRITICAL!! ' + text;
         }
-
-
-
-
-
-
 
         floatEl.innerHTML = displayText;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        if (color && !isCrit) {
-
-
-
-
-
-
-
+        if (color && !isCrit && type !== 'overkill' && type !== 'weakness') {
             floatEl.style.color = color;
-
-
-
-
-
-
-
         }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        // Screen Impact Flash & Shockwaves
+        const arena = document.getElementById('battle-arena');
+        if (isCrit || type === 'crit') {
+            if (arena) {
+                arena.classList.remove('arena-impact-crit');
+                void arena.offsetWidth;
+                arena.classList.add('arena-impact-crit');
+                setTimeout(() => { if (arena) arena.classList.remove('arena-impact-crit'); }, 350);
+            }
+            if (typeof spawnCombatShockwave === 'function') {
+                spawnCombatShockwave(posX, posY, 'crit');
+            }
+        } else if (type === 'weakness') {
+            if (arena) {
+                arena.classList.remove('arena-impact-weakness');
+                void arena.offsetWidth;
+                arena.classList.add('arena-impact-weakness');
+                setTimeout(() => { if (arena) arena.classList.remove('arena-impact-weakness'); }, 350);
+            }
+            if (typeof spawnCombatShockwave === 'function') {
+                spawnCombatShockwave(posX, posY, 'weakness');
+            }
+        } else if (type === 'overkill') {
+            if (typeof spawnCombatShockwave === 'function') {
+                spawnCombatShockwave(posX, posY, 'overkill');
+            }
+        }
 
         if (floatLayer) {
-
-
-
-
-
-
-
             floatEl.style.left = `${posX}px`;
-
-
-
-
-
-
-
             floatEl.style.top = `${posY}px`;
-
-
-
-
-
-
-
             floatLayer.appendChild(floatEl);
 
-
-
-
-
-
-
             setTimeout(() => {
-
-
-
-
-
-
-
                 if (floatEl.parentNode) floatEl.parentNode.removeChild(floatEl);
-
-
-
-
-
-
-
-            }, isCrit ? 1250 : 1100);
-
-
-
-
-
-
-
+            }, (isCrit || type === 'overkill') ? 1250 : 1100);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         // Mirror to targetEl for backward-compatibility with test suites querying target element directly
-
-
-
-
-
-
-
         if (targetEl && targetEl !== floatLayer) {
-
-
-
-
-
-
-
             const mirrorEl = floatEl.cloneNode(true);
-
-
-
-
-
-
-
             mirrorEl.style.left = '50%';
-
-
-
-
-
-
-
-            mirrorEl.style.top = isCrit ? '15%' : '20%';
-
-
-
-
-
-
-
+            mirrorEl.style.top = (isCrit || type === 'overkill') ? '15%' : '20%';
             mirrorEl.style.transform = 'translate(-50%, 0)';
-
-
-
-
-
-
-
             targetEl.appendChild(mirrorEl);
 
-
-
-
-
-
-
             setTimeout(() => {
-
-
-
-
-
-
-
                 if (mirrorEl.parentNode) mirrorEl.parentNode.removeChild(mirrorEl);
-
-
-
-
-
-
-
-            }, isCrit ? 1250 : 1100);
-
-
-
-
-
-
-
+            }, (isCrit || type === 'overkill') ? 1250 : 1100);
         }
-
-
-
-
-
-
-
     }
 
+    function applyEnemyDamage(enemyIndex, damage, isCrit = false, isWeakness = false) {
+        let target = null;
+        let idx = 0;
+        if (typeof enemyIndex === 'object' && enemyIndex !== null) {
+            target = enemyIndex;
+            idx = target.index !== undefined ? target.index : (battleState && battleState.enemies ? battleState.enemies.indexOf(target) : 0);
+        } else if (battleState && battleState.enemies && battleState.enemies[enemyIndex] !== undefined) {
+            idx = enemyIndex;
+            target = battleState.enemies[enemyIndex];
+        } else if (typeof enemyIndex === 'string') {
+            target = document.getElementById(enemyIndex);
+            if (battleState && battleState.enemies) {
+                let found = battleState.enemies.find(e => e.id === enemyIndex);
+                if (found) target = found;
+            }
+        }
 
+        if (!target) return null;
 
+        const prevHp = target.hp !== undefined ? target.hp : (target.maxHp || 100);
+        const targetId = target.id || ('enemy_' + (idx !== undefined && idx >= 0 ? idx : 0));
+        const targetEl = document.getElementById(targetId);
 
+        // Hitstop on Crits and Weakness breaks
+        if (isCrit || isWeakness) {
+            if (typeof triggerHitstop === 'function') {
+                triggerHitstop(targetEl || targetId, 60);
+            }
+        }
 
+        // Boss Stagger Depletion on Elemental Weakness
+        if (target.isBoss) {
+            if (target.staggerMax === undefined) {
+                target.staggerMax = Math.round((target.maxHp || target.hp || 100) * 0.40);
+                target.staggerCurrent = target.staggerMax;
+            }
+            if (isWeakness && target.staggerCurrent > 0) {
+                const staggerDmg = Math.round(damage * 1.5);
+                target.staggerCurrent = Math.max(0, target.staggerCurrent - staggerDmg);
+                if (target.staggerCurrent <= 0 && (!target.statuses || !target.statuses['staggered'])) {
+                    if (typeof applyStatus === 'function') {
+                        applyStatus(target, 'staggered', 1);
+                    } else {
+                        if (!target.statuses) target.statuses = {};
+                        target.statuses['staggered'] = { duration: 1 };
+                    }
+                    if (typeof playSFX === 'function') playSFX('glass_shatter');
+                    if (typeof screenShake === 'function') screenShake('heavy', 400);
+                    logMsg(`💥 ALL-OUT ATTACK! ${target.name || 'Boss'} is Staggered and vulnerable!`, '#f43f5e');
+                    floatText(targetId, '💫 STAGGER BREAK!', '#f43f5e');
+                }
+            }
+        }
 
+        // Stagger Amplification: +50% damage if staggered
+        let effectiveDamage = damage;
+        if (target.statuses && target.statuses['staggered']) {
+            effectiveDamage = Math.floor(damage * 1.5);
+        }
+
+        // Overkill Calculation: lethal hit exceeding remaining HP by >= 150%
+        const isOverkill = prevHp > 0 && effectiveDamage >= Math.max(15, Math.round(prevHp * 1.5));
+
+        // Deduct HP
+        target.hp = Math.max(0, prevHp - effectiveDamage);
+
+        // Feedback & Audio Effects
+        let bonusGold = 0;
+        if (isOverkill) {
+            if (typeof screenShake === 'function') screenShake('heavy');
+            if (typeof playSFX === 'function') playSFX('sfx_overkill');
+            floatText(targetId, `💀 OVERKILL!! -${damage}`, '#f87171', true, 'overkill');
+
+            const enemyGold = (target.gold !== undefined && target.gold > 0) ? target.gold : 20;
+            bonusGold = Math.max(1, Math.round(enemyGold * 0.25));
+            if (typeof player !== 'undefined' && player) {
+                player.gold = (player.gold || 0) + bonusGold;
+            }
+            if (typeof battleState !== 'undefined' && battleState) {
+                battleState.overkillBonusGold = (battleState.overkillBonusGold || 0) + bonusGold;
+            }
+            logMsg(`💀 OVERKILL! +${bonusGold} bonus gold earned!`, '#fbbf24');
+            if (typeof updateHeader === 'function') updateHeader();
+        } else if (isCrit) {
+            if (typeof screenShake === 'function') screenShake('medium');
+            if (typeof playSFX === 'function') playSFX('sfx_bass_drop');
+            floatText(targetId, `💥 CRITICAL!! -${damage}`, '#fef08a', true, 'crit');
+        } else if (isWeakness) {
+            if (typeof playSFX === 'function') playSFX('sfx_weakness_shatter');
+            floatText(targetId, `⚡ WEAKNESS BREAK! -${damage}`, '#7dd3fc', false, 'weakness');
+        } else {
+            floatText(targetId, `-${damage}`, '#ff4444', false, 'normal');
+        }
+
+        if (typeof applyHitFlash === 'function') applyHitFlash(targetId);
+        if (typeof animateAction === 'function') animateAction(targetId, 'anim-shake');
+
+        const killed = prevHp > 0 && target.hp <= 0;
+        if (killed) {
+            if (!isOverkill && typeof playSFX === 'function') playSFX('enemy_death');
+            logMsg(`${target.name || 'Enemy'} was defeated!`, '#ef4444');
+            if (typeof player !== 'undefined' && player && player.questStats) {
+                player.questStats.enemiesDefeated = (player.questStats.enemiesDefeated || 0) + 1;
+                if (target.isBoss) {
+                    player.questStats.bossesDefeated = (player.questStats.bossesDefeated || 0) + 1;
+                }
+            }
+            if (target.isBoss && typeof triggerBossFinisherCam === 'function') {
+                const bEl = targetEl || document.getElementById(targetId);
+                const arena = document.getElementById('battle-arena');
+                if (bEl && arena) {
+                    triggerBossFinisherCam(bEl, () => {
+                        if (typeof checkBattleEnd === 'function') checkBattleEnd();
+                    });
+                } else {
+                    if (typeof checkBattleEnd === 'function') checkBattleEnd();
+                }
+            } else {
+                if (typeof checkBattleEnd === 'function') checkBattleEnd();
+            }
+        }
+
+        if (typeof renderBattlefield === 'function') renderBattlefield();
+        if (typeof renderHeroSquadDock === 'function') renderHeroSquadDock();
+
+        return {
+            target,
+            targetId,
+            prevHp,
+            currentHp: target.hp,
+            damage: effectiveDamage,
+            isCrit,
+            isWeakness,
+            isOverkill,
+            bonusGold,
+            killed
+        };
+    }
 
     if (typeof window !== 'undefined') {
-
-
-
-
-
-
-
         window.floatText = floatText;
-
-
-
-
-
-
-
+        window.triggerHitstop = triggerHitstop;
+        window.spawnCombatShockwave = spawnCombatShockwave;
+        window.applyEnemyDamage = applyEnemyDamage;
+        window.spawnRarityBeam = spawnRarityBeam;
+        window.spawnGoldCoinFountain = spawnGoldCoinFountain;
+        window.triggerLimitBreakCutin = triggerLimitBreakCutin;
+        window.triggerBossFinisherCam = triggerBossFinisherCam;
     }
 
 
@@ -43322,6 +43156,9 @@ function useItemOutsideBattle(itemName) {
 
 
         logMsg(`${actingHero.name} casts ${skill.name}!`, "#aaddff");
+        if (typeof isApexSkill === 'function' && isApexSkill(skill) && typeof triggerLimitBreakCutin === 'function') {
+            triggerLimitBreakCutin(actingHero, skill.name);
+        }
 
 
 
@@ -45738,7 +45575,26 @@ function useItemOutsideBattle(itemName) {
 
 
 
-        if(multi > 1.0) logMsg("It's super effective!", "#ffff55");
+        if(multi > 1.0) {
+            logMsg("It's super effective!", "#ffff55");
+            if (!target.isPlayer && target.isBoss) {
+                if (target.staggerMax === undefined) {
+                    target.staggerMax = Math.round((target.maxHp || target.hp || 100) * 0.40);
+                    target.staggerCurrent = target.staggerMax;
+                }
+                if (target.staggerCurrent > 0) {
+                    const staggerDmg = Math.round(amount * 1.5);
+                    target.staggerCurrent = Math.max(0, target.staggerCurrent - staggerDmg);
+                    if (target.staggerCurrent <= 0 && (!target.statuses || !target.statuses['staggered'])) {
+                        if (typeof applyStatus === 'function') applyStatus(target, 'staggered', 1);
+                        if (typeof playSFX === 'function') playSFX('glass_shatter');
+                        if (typeof screenShake === 'function') screenShake('heavy', 400);
+                        logMsg(`💥 ALL-OUT ATTACK! ${target.name} is Staggered and vulnerable!`, '#f43f5e');
+                        floatText(target.id, '💫 STAGGER BREAK!', '#f43f5e');
+                    }
+                }
+            }
+        }
 
 
 
@@ -46793,6 +46649,7 @@ function useItemOutsideBattle(itemName) {
 
 
         let wasAlive = target.hp > 0;
+        let prevTargetHp = target.hp;
 
 
 
@@ -47404,21 +47261,42 @@ function useItemOutsideBattle(itemName) {
 
         const hitColor = elemColors[element] || '#ff4444';
 
+        const isEnemyTarget = !isTargetPlayer && !target.isMinion;
+        let isWeakness = false;
+        if (isEnemyTarget && element && target.element) {
+            if (typeof getElementalMultiplier === 'function' && getElementalMultiplier(element, target.element) > 1.0) {
+                isWeakness = true;
+            } else if (target.weakness && element.toLowerCase() === target.weakness.toLowerCase()) {
+                isWeakness = true;
+            }
+        }
 
+        if (isEnemyTarget && (isCrit || isWeakness)) {
+            if (typeof triggerHitstop === 'function') triggerHitstop(target.id, 60);
+        }
 
+        const isOverkill = isEnemyTarget && wasAlive && amount >= Math.max(15, Math.round(prevTargetHp * 1.5)) && target.hp <= 0;
 
-
-
-
-        floatText(target.id, `-${amount}`, hitColor, isCrit);
-
-
-
-
-
-
-
-        if (isCrit) screenShake('medium');
+        if (isOverkill) {
+            if (typeof screenShake === 'function') screenShake('heavy');
+            if (typeof playSFX === 'function') playSFX('sfx_overkill');
+            floatText(target.id, `💀 OVERKILL!! -${amount}`, '#f87171', true, 'overkill');
+            const enemyGold = (target.gold !== undefined && target.gold > 0) ? target.gold : 20;
+            const bonusGold = Math.max(1, Math.round(enemyGold * 0.25));
+            if (typeof player !== 'undefined' && player) player.gold = (player.gold || 0) + bonusGold;
+            if (typeof battleState !== 'undefined' && battleState) battleState.overkillBonusGold = (battleState.overkillBonusGold || 0) + bonusGold;
+            logMsg(`💀 OVERKILL! +${bonusGold} bonus gold earned!`, '#fbbf24');
+            if (typeof updateHeader === 'function') updateHeader();
+        } else if (isCrit) {
+            if (typeof screenShake === 'function') screenShake('medium');
+            if (typeof playSFX === 'function') playSFX('sfx_bass_drop');
+            floatText(target.id, `💥 CRITICAL!! -${amount}`, '#fef08a', true, 'crit');
+        } else if (isWeakness) {
+            if (typeof playSFX === 'function') playSFX('sfx_weakness_shatter');
+            floatText(target.id, `⚡ WEAKNESS BREAK! -${amount}`, '#7dd3fc', false, 'weakness');
+        } else {
+            floatText(target.id, `-${amount}`, hitColor, false, 'normal');
+        }
 
 
 
@@ -51354,6 +51232,7 @@ function useItemOutsideBattle(itemName) {
 
 
     function attemptFlee() {
+        if (typeof ArenaWeather !== 'undefined' && ArenaWeather && ArenaWeather.canvas) ArenaWeather.canvas.style.opacity = '0.3';
 
 
 
@@ -54908,6 +54787,7 @@ function advanceHeroClass(heroId, classId) {
 
 
     function winBattle() {
+        if (typeof ArenaWeather !== 'undefined' && ArenaWeather && ArenaWeather.canvas) ArenaWeather.canvas.style.opacity = '0.3';
 
 
 
@@ -55414,6 +55294,8 @@ function advanceHeroClass(heroId, classId) {
 
 
                             player.inventory.equipment.push(itemInstance);
+                            if (!battleState.droppedGearRarities) battleState.droppedGearRarities = [];
+                            battleState.droppedGearRarities.push(rarity);
 
 
 
@@ -55517,6 +55399,15 @@ function advanceHeroClass(heroId, classId) {
 
 
 
+        if (battleState.droppedGearRarities && battleState.droppedGearRarities.length > 0 && typeof spawnRarityBeam === 'function') {
+            const rarityWeights = { 'Mythic': 4, 'Legendary': 3, 'Epic': 2, 'Rare': 1, 'Uncommon': 0, 'Common': 0 };
+            const highestRarity = battleState.droppedGearRarities.reduce((prev, curr) => (rarityWeights[curr] || 0) > (rarityWeights[prev] || 0) ? curr : prev, 'Common');
+            if (highestRarity === 'Mythic' || highestRarity === 'Legendary' || highestRarity === 'Epic' || highestRarity === 'Rare') {
+                const beamOrigin = document.getElementById('enemies-side') || document.getElementById('battle-arena');
+                spawnRarityBeam(beamOrigin, highestRarity);
+            }
+        }
+
         let totalExp = Math.round(baseExp * multi);
 
 
@@ -55598,6 +55489,12 @@ function advanceHeroClass(heroId, classId) {
 
 
         logMsg(`Gained ${totalExp} EXP and ${totalGold} Gold (Multiplier: ${multi}x).`, "#55ff55");
+
+        // Option 2: Animated Flying Gold Coin Fountain
+        if (totalGold > 0 && typeof spawnGoldCoinFountain === 'function') {
+            const originEl = document.getElementById('enemies-side') || document.getElementById('battle-arena');
+            spawnGoldCoinFountain(originEl, totalGold);
+        }
 
 
 
@@ -56053,88 +55950,22 @@ function advanceHeroClass(heroId, classId) {
 
 
 
-                if(a.boss && a.boss.name === defeatedBoss.name) {
+                if (a.boss && a.boss.name === defeatedBoss.name) {
                     if (!player.defeatedAreaBosses) player.defeatedAreaBosses = [];
-                    if (!player.defeatedAreaBosses.includes(aId)) player.defeatedAreaBosses.push(aId);
-
-
-
-
-
-
+                    if (!player.defeatedAreaBosses.includes(aId)) {
+                        player.defeatedAreaBosses.push(aId);
+                    }
+                    // Synchronize progression to unlock next zone and record all prerequisites
+                    syncAreaProgression(player);
 
                     let num = parseInt(aId.split('_')[1]);
-
-
-
-
-
-
-
                     let nextId = `area_${num + 1}`;
-
-
-
-
-
-
-
-                    if(AREAS_DB[nextId] && player.unlockedAreas && !player.unlockedAreas.includes(nextId)) {
-
-
-
-
-
-
-
-                        player.unlockedAreas.push(nextId);
-
-
-
-
-
-
-
-                        let nextA = AREAS_DB[nextId];
-
-
-
-
-
-
-
-                        logMsg(`★ VICTORY! Zone Conquered: ${a.name}!`, "#ffd700");
-
-
-
-
-
-
-
+                    let nextA = (typeof AREAS_DB !== 'undefined') && AREAS_DB[nextId];
+                    logMsg(`★ VICTORY! Zone Conquered: ${a.name}!`, "#ffd700");
+                    if (nextA) {
                         logMsg(`★ New Region Unlocked: ${nextA.name} (${nextA.bracket})!`, "#38bdf8");
-
-
-
-
-
-
-
                         showToast('Zone Conquered!', `${nextA.name} Unlocked!`, 'quest', 5000);
-
-
-
-
-
-
-
                     }
-
-
-
-
-
-
-
                     break;
 
 
@@ -56671,47 +56502,37 @@ function advanceHeroClass(heroId, classId) {
 
 
 
+        let spoilsLootHtml = '';
+        if (typeof droppedItems !== 'undefined') {
+            for (let dItem in droppedItems) {
+                let itDef = (typeof ITEMS_DB !== 'undefined' && ITEMS_DB[dItem]);
+                let rColor = '#cbd5e1';
+                if (itDef && typeof RARITY_TIERS !== 'undefined' && itDef.rarity && RARITY_TIERS[itDef.rarity]) {
+                    rColor = RARITY_TIERS[itDef.rarity].color || '#cbd5e1';
+                }
+                spoilsLootHtml += `<span class="spoils-item-card" style="border: 1px solid ${rColor}; color: ${rColor};">📦 ${dItem} x${droppedItems[dItem]}</span>`;
+            }
+        }
+
         const actionsHtml = `
-
-
-
-
-
-
-
-            <div id="battle-victory-log-actions" style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-
-
-
-
-
-
-
-                <button class="btn" style="padding: 10px 18px; font-size: 14px; font-weight: bold; color: #4ade80; border-color: #4ade80; background: rgba(74, 222, 128, 0.1);" onclick="repeatBattle()">⚔️ Hunt Again</button>
-
-
-
-
-
-
-
-                <button class="btn" style="padding: 10px 18px; font-size: 14px; color: #cbd5e1;" onclick="checkLevelUp(); switchScreen('town');">🏠 Return to Town</button>
-
-
-
-
-
-
-
+            <div class="victory-spoils-tray">
+                <div style="font-size: 15px; font-weight: 800; color: #fbbf24; letter-spacing: 1px; margin-bottom: 2px;">🏆 SPOILS OF VICTORY 🏆</div>
+                <div class="spoils-badges-row">
+                    <span class="spoils-badge spoils-badge-exp">✨ +${totalExp} EXP</span>
+                    <span class="spoils-badge spoils-badge-gold">🪙 +${totalGold} Gold</span>
+                </div>
+                ${spoilsLootHtml ? `<div class="spoils-loot-row">${spoilsLootHtml}</div>` : ''}
             </div>
-
-
-
-
-
-
-
+            <div id="battle-victory-log-actions" style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                <button class="btn" id="btn-hunt-again" style="padding: 10px 18px; font-size: 14px; font-weight: bold; color: #4ade80; border-color: #4ade80; background: rgba(74, 222, 128, 0.1);" onclick="repeatBattle()">⚔️ Hunt Again</button>
+                <button class="btn" id="btn-return-town" style="padding: 10px 18px; font-size: 14px; color: #cbd5e1;" onclick="checkLevelUp(); switchScreen('town');">🏠 Return to Town</button>
+            </div>
         `;
+
+        if (vActions) {
+            vActions.style.display = 'flex';
+            vActions.innerHTML = actionsHtml;
+        }
 
 
 
@@ -75892,77 +75713,13 @@ function syncMainHero() {
 
 
 
-    if (player.unlockedAreas) {
-
-
-
-
-
-
-
-        if (player.unlockedAreas.includes('area_2') || player.unlockedAreas.includes('area_3') || player.unlockedAreas.includes('area_4') || player.unlockedAreas.includes('area_5') || player.unlockedAreas.includes('area_6')) {
-
-
-
-
-
-
-
-            player.defeatedArea1Boss = true;
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
-        if (player.unlockedAreas.includes('area_6') || player.unlockedAreas.includes('area_7') || player.unlockedAreas.includes('area_8') || player.unlockedAreas.includes('area_9') || player.unlockedAreas.includes('area_10')) {
-
-
-
-
-
-
-
-            player.defeatedArea5Boss = true;
-
-
-
-
-
-
-
-        }
-
-
-
-
-
-
-
+    if (player.defeatedAreaBosses && Array.isArray(player.defeatedAreaBosses)) {
+        player.defeatedArea1Boss = player.defeatedAreaBosses.includes('area_1');
+        player.defeatedArea5Boss = player.defeatedAreaBosses.includes('area_5');
+    } else {
+        player.defeatedArea1Boss = false;
+        player.defeatedArea5Boss = false;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     if (player.roster && Array.isArray(player.roster)) {
 
@@ -85549,15 +85306,141 @@ function isCalamityUnlocked() {
 }
 window.isCalamityUnlocked = isCalamityUnlocked;
 
+let townCanvasAnimId = null;
+let townParticles = [];
+
+function initTownAmbientCanvas() {
+    const canvas = document.getElementById('town-ambient-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    function resizeCanvas() {
+        if (!canvas) return;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width || window.innerWidth || 800;
+        canvas.height = rect.height || window.innerHeight || 600;
+    }
+    resizeCanvas();
+    window.removeEventListener('resize', resizeCanvas);
+    window.addEventListener('resize', resizeCanvas);
+
+    if (townParticles.length === 0) {
+        for (let i = 0; i < 20; i++) {
+            townParticles.push({
+                x: Math.random() * (canvas.width || 800),
+                y: Math.random() * (canvas.height || 600),
+                radius: Math.random() * 2 + 1,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: -Math.random() * 0.5 - 0.2,
+                alpha: Math.random() * 0.7 + 0.3,
+                baseAlpha: Math.random() * 0.6 + 0.3,
+                flickerSpeed: Math.random() * 0.03 + 0.01,
+                hue: Math.random() * 25 + 30
+            });
+        }
+    }
+
+    if (townCanvasAnimId) {
+        cancelAnimationFrame(townCanvasAnimId);
+        townCanvasAnimId = null;
+    }
+
+    function animateTownParticles() {
+        const screenTown = document.getElementById('screen-town');
+        if (!screenTown || !screenTown.classList.contains('active')) {
+            townCanvasAnimId = null;
+            return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let p of townParticles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.alpha += Math.sin(Date.now() * p.flickerSpeed) * 0.02;
+            const currentAlpha = Math.max(0.1, Math.min(0.9, p.alpha));
+
+            if (p.y < -10) {
+                p.y = canvas.height + 10;
+                p.x = Math.random() * canvas.width;
+            }
+            if (p.x < -10) p.x = canvas.width + 10;
+            if (p.x > canvas.width + 10) p.x = -10;
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${p.hue}, 95%, 60%, ${currentAlpha})`;
+            ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.8)`;
+            ctx.shadowBlur = 8;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        townCanvasAnimId = requestAnimationFrame(animateTownParticles);
+    }
+
+    animateTownParticles();
+}
+window.initTownAmbientCanvas = initTownAmbientCanvas;
+
 function updateTownUI() {
+    if (typeof player === 'undefined' || !player) return;
+
+    // Calamity Rift Gate visibility and Keystone badge
     const calamityBtn = document.getElementById('btn-town-calamity');
     if (calamityBtn) {
-        if (isCalamityUnlocked()) {
+        if (typeof isCalamityUnlocked === 'function' && isCalamityUnlocked()) {
             calamityBtn.style.display = 'flex';
         } else {
             calamityBtn.style.display = 'none';
         }
     }
+    const calamityBadge = document.getElementById('badge-town-calamity');
+    if (calamityBadge) {
+        const keys = player.calamityKeys !== undefined ? player.calamityKeys : 3;
+        calamityBadge.textContent = `${keys} Keystone${keys === 1 ? '' : 's'}`;
+    }
+
+    // Active Zone Badge
+    const battleBadge = document.getElementById('badge-town-battle');
+    if (battleBadge) {
+        const areaId = player.selectedArea || 'area_1';
+        const areaName = (typeof AREAS_DB !== 'undefined' && AREAS_DB[areaId]) ? AREAS_DB[areaId].name : 'Select Zone';
+        battleBadge.textContent = areaName;
+    }
+
+    // Spire Highest Floor Checkpoint
+    const spireSub = document.getElementById('btn-town-spire-sub');
+    if (spireSub) {
+        const floor = (player.spireHighestFloor !== undefined) ? player.spireHighestFloor : (player.spireFloor || 0);
+        spireSub.textContent = `Floor ${floor} Checkpoint`;
+    }
+
+    // Inn Rest Status
+    const innSub = document.getElementById('btn-town-inn-sub');
+    if (innSub) {
+        let isWounded = false;
+        if (player.hp < player.maxHp || player.mp < player.maxMp) isWounded = true;
+        if (player.party && Array.isArray(player.party)) {
+            for (let member of player.party) {
+                if (member && (member.hp < member.maxHp || member.mp < member.maxMp)) {
+                    isWounded = true;
+                    break;
+                }
+            }
+        }
+        if (isWounded) {
+            innSub.innerHTML = `<span style="color:#f87171;">Squad Wounded</span> (20 Gold)`;
+        } else {
+            innSub.textContent = 'All Rested (20 Gold)';
+        }
+    }
+
+    // Quests and Achievements
+    if (typeof updateTownQuestButton === 'function') updateTownQuestButton();
+    if (typeof updateTownAchievementsButton === 'function') updateTownAchievementsButton();
 }
 window.updateTownUI = updateTownUI;
 
@@ -85733,6 +85616,8 @@ function startRaidBattle(raidId) {
         ai: raid.ai || 'boss',
         isBoss: true,
         isRaidBoss: true,
+        staggerMax: Math.round(raid.hp * 0.40),
+        staggerCurrent: Math.round(raid.hp * 0.40),
         raidId: raidId,
         phase: 1,
         statuses: {},
@@ -86059,3 +85944,636 @@ function forgeMythicPiece(pieceKey) {
 }
 window.forgeMythicPiece = forgeMythicPiece;
 window.fleeBattle = attemptFlee;
+
+function openMysteryBox(boxKey) {
+    if (typeof buyMysteryBox === 'function') return buyMysteryBox(boxKey);
+}
+window.openMysteryBox = openMysteryBox;
+
+function checkQuests() {
+    if (typeof renderQuests === 'function') renderQuests();
+}
+window.checkQuests = checkQuests;
+
+/* ==========================================================================
+   DYNAMIC ARENA WEATHER PARTICLE ENGINE (OPTION C)
+   ========================================================================== */
+
+const ArenaWeather = {
+    canvas: null,
+    ctx: null,
+    pool: [],
+    maxParticles: 40,
+    currentTheme: 'forest',
+    animId: null,
+    lastTime: 0,
+    isRunning: false,
+    width: 800,
+    height: 450,
+    _resizeAttached: false,
+
+    init() {
+        if (typeof document === 'undefined') return;
+        this.canvas = document.getElementById('arena-weather-canvas');
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        if (!this._resizeAttached && typeof window !== 'undefined' && window.addEventListener) {
+            window.addEventListener('resize', () => this.resize());
+            this._resizeAttached = true;
+        }
+        this.initPool();
+    },
+
+    resize() {
+        if (!this.canvas) return;
+        const rect = this.canvas.getBoundingClientRect();
+        const parentW = this.canvas.parentElement ? this.canvas.parentElement.clientWidth : 800;
+        const parentH = this.canvas.parentElement ? this.canvas.parentElement.clientHeight : 450;
+        this.width = this.canvas.width = rect.width || parentW || 800;
+        this.height = this.canvas.height = rect.height || parentH || 450;
+    },
+
+    initPool() {
+        this.pool = [];
+        for (let i = 0; i < this.maxParticles; i++) {
+            this.pool.push({
+                x: 0,
+                y: 0,
+                vx: 0,
+                vy: 0,
+                size: 2,
+                baseSize: 2,
+                alpha: 1,
+                baseAlpha: 1,
+                pulse: Math.random() * Math.PI * 2,
+                pulseSpeed: 1 + Math.random() * 2,
+                hue: 0,
+                type: 0,
+                depth: 1,
+                life: 1,
+                maxLife: 1
+            });
+        }
+        this.resetParticles();
+    },
+
+    resetParticles() {
+        for (let p of this.pool) {
+            this.spawnParticle(p, true);
+        }
+    },
+
+    spawnParticle(p, initY = false) {
+        const w = this.width || 800;
+        const h = this.height || 450;
+        p.x = Math.random() * w;
+        p.pulse = Math.random() * Math.PI * 2;
+        p.pulseSpeed = 1.2 + Math.random() * 2.5;
+
+        switch (this.currentTheme) {
+            case 'forest':
+                // Drifting golden-green fireflies and floating spore motes
+                p.y = initY ? Math.random() * h : h + 10;
+                p.vx = (Math.random() - 0.5) * 18;
+                p.vy = -12 - Math.random() * 18;
+                p.baseSize = 1.5 + Math.random() * 2;
+                p.size = p.baseSize;
+                p.baseAlpha = 0.4 + Math.random() * 0.5;
+                p.alpha = p.baseAlpha;
+                p.hue = Math.random() > 0.4 ? (85 + Math.random() * 35) : (50 + Math.random() * 20);
+                p.type = Math.random() > 0.5 ? 0 : 1;
+                break;
+
+            case 'cavern':
+                // Bioluminescent teal & cyan bubbles rising from the depths
+                p.y = initY ? Math.random() * h : h + 12;
+                p.vx = (Math.random() - 0.5) * 12;
+                p.vy = -28 - Math.random() * 25;
+                p.baseSize = 2.0 + Math.random() * 3.5;
+                p.size = p.baseSize;
+                p.baseAlpha = 0.35 + Math.random() * 0.45;
+                p.alpha = p.baseAlpha;
+                p.hue = 175 + Math.random() * 25;
+                p.type = 0;
+                break;
+
+            case 'volcano':
+                // Rising fire cinders, burning embers, and drifting ash flakes
+                p.y = initY ? Math.random() * h : h + 15;
+                p.vx = (Math.random() - 0.5) * 35;
+                p.vy = -35 - Math.random() * 45;
+                p.type = Math.random() > 0.3 ? 0 : 1;
+                p.baseSize = p.type === 0 ? (1.5 + Math.random() * 2.5) : (1.0 + Math.random() * 2.0);
+                p.size = p.baseSize;
+                p.baseAlpha = p.type === 0 ? (0.6 + Math.random() * 0.4) : (0.25 + Math.random() * 0.3);
+                p.alpha = p.baseAlpha;
+                p.hue = 15 + Math.random() * 30;
+                break;
+
+            case 'blizzard':
+                // Slanted blizzard snow crystals and glittering frost motes
+                p.x = initY ? Math.random() * (w + 200) : (Math.random() * (w + 200));
+                p.y = initY ? Math.random() * h : -15;
+                p.depth = Math.random() > 0.4 ? 1 : 2;
+                if (p.depth === 2) {
+                    p.vx = -110 - Math.random() * 70;
+                    p.vy = 85 + Math.random() * 55;
+                    p.baseSize = 2.8 + Math.random() * 2.2;
+                    p.baseAlpha = 0.75 + Math.random() * 0.25;
+                } else {
+                    p.vx = -60 - Math.random() * 40;
+                    p.vy = 45 + Math.random() * 35;
+                    p.baseSize = 1.0 + Math.random() * 1.5;
+                    p.baseAlpha = 0.3 + Math.random() * 0.35;
+                }
+                p.size = p.baseSize;
+                p.alpha = p.baseAlpha;
+                p.hue = 195;
+                p.type = 0;
+                break;
+
+            case 'void':
+                // Swirling violet and celestial blue stardust motes
+                p.y = initY ? Math.random() * h : Math.random() * h;
+                p.x = initY ? Math.random() * w : (Math.random() > 0.5 ? -10 : w + 10);
+                p.vx = (Math.random() - 0.5) * 22;
+                p.vy = (Math.random() - 0.5) * 22;
+                p.baseSize = 1.5 + Math.random() * 3.0;
+                p.size = p.baseSize;
+                p.baseAlpha = 0.4 + Math.random() * 0.5;
+                p.alpha = p.baseAlpha;
+                p.hue = 260 + Math.random() * 50;
+                p.type = Math.random() > 0.5 ? 0 : 1;
+                break;
+
+            case 'calamity':
+            default:
+                // Fierce blood-red ember storm and crimson lightning arcs
+                p.y = initY ? Math.random() * h : h + 20;
+                p.vx = (Math.random() - 0.5) * 45;
+                p.vy = -65 - Math.random() * 75;
+                p.baseSize = 1.8 + Math.random() * 3.2;
+                p.size = p.baseSize;
+                p.baseAlpha = 0.65 + Math.random() * 0.35;
+                p.alpha = p.baseAlpha;
+                p.hue = 345 + Math.random() * 20;
+                p.type = Math.random() > 0.2 ? 0 : 1;
+                break;
+        }
+    },
+
+    setThemeByArea(areaId) {
+        const aStr = String(areaId || '').toLowerCase();
+        let theme = 'forest';
+        if (aStr.includes('calamity') || aStr.includes('raid')) theme = 'calamity';
+        else if (aStr.includes('8')) theme = 'blizzard';
+        else if (aStr.includes('4') || aStr.includes('9')) theme = 'volcano';
+        else if (aStr.includes('2') || aStr.includes('7')) theme = 'cavern';
+        else if (aStr.includes('5') || aStr.includes('10') || aStr.includes('spire')) theme = 'void';
+        else theme = 'forest';
+        this.currentTheme = theme;
+        this.resetParticles();
+    },
+
+    start() {
+        if (!this.canvas) this.init();
+        if (!this.canvas) return;
+        if (this.isRunning) return;
+        this.isRunning = true;
+        if (this.canvas.style) this.canvas.style.opacity = '0.85';
+        this.lastTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+        this.loop(this.lastTime);
+    },
+
+    stop() {
+        this.isRunning = false;
+        if (this.animId) {
+            const caf = (typeof cancelAnimationFrame !== 'undefined') ? cancelAnimationFrame : clearTimeout;
+            caf(this.animId);
+            this.animId = null;
+        }
+        if (this.ctx && this.width && this.height) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+        }
+    },
+
+    update(dt) {
+        const w = this.width || 800;
+        const h = this.height || 450;
+
+        for (let p of this.pool) {
+            p.pulse += dt * p.pulseSpeed;
+
+            switch (this.currentTheme) {
+                case 'forest':
+                    p.x += (p.vx + Math.sin(p.pulse) * 8) * dt;
+                    p.y += p.vy * dt;
+                    p.alpha = p.baseAlpha * (0.6 + 0.4 * Math.sin(p.pulse));
+                    if (p.y < -15 || p.x < -20 || p.x > w + 20) {
+                        this.spawnParticle(p, false);
+                    }
+                    break;
+
+                case 'cavern':
+                    p.x += Math.sin(p.pulse) * 12 * dt;
+                    p.y += p.vy * dt;
+                    p.alpha = p.baseAlpha * (0.7 + 0.3 * Math.cos(p.pulse));
+                    if (p.y < -15) {
+                        this.spawnParticle(p, false);
+                    }
+                    break;
+
+                case 'volcano':
+                    p.vy -= 12 * dt;
+                    p.x += (p.vx + (Math.random() - 0.5) * 20) * dt;
+                    p.y += p.vy * dt;
+                    p.alpha = Math.max(0.1, p.baseAlpha * (0.65 + 0.35 * Math.sin(p.pulse * 2)));
+                    if (p.y < -20 || p.x < -30 || p.x > w + 30) {
+                        this.spawnParticle(p, false);
+                    }
+                    break;
+
+                case 'blizzard':
+                    p.x += (p.vx + Math.sin(p.pulse) * 15) * dt;
+                    p.y += p.vy * dt;
+                    if (p.y > h + 15 || p.x < -30) {
+                        this.spawnParticle(p, false);
+                    }
+                    break;
+
+                case 'void':
+                    p.x += (p.vx + Math.cos(p.pulse) * 10) * dt;
+                    p.y += (p.vy + Math.sin(p.pulse) * 10) * dt;
+                    p.alpha = p.baseAlpha * (0.5 + 0.5 * Math.sin(p.pulse * 0.8));
+                    if (p.x < -30 || p.x > w + 30 || p.y < -30 || p.y > h + 30) {
+                        this.spawnParticle(p, false);
+                    }
+                    break;
+
+                case 'calamity':
+                default:
+                    p.x += (p.vx + (Math.random() - 0.5) * 30) * dt;
+                    p.y += p.vy * dt;
+                    p.alpha = p.baseAlpha * (0.7 + 0.3 * Math.sin(p.pulse * 3));
+                    if (p.y < -25 || p.x < -30 || p.x > w + 30) {
+                        this.spawnParticle(p, false);
+                    }
+                    break;
+            }
+        }
+    },
+
+    render() {
+        if (!this.ctx || !this.width || !this.height) return;
+        this.ctx.clearRect(0, 0, this.width, this.height);
+
+        for (let p of this.pool) {
+            const currentAlpha = Math.max(0.05, Math.min(1.0, p.alpha));
+            this.ctx.save();
+            this.ctx.beginPath();
+
+            if (this.currentTheme === 'blizzard') {
+                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                this.ctx.fillStyle = `rgba(240, 248, 255, ${currentAlpha})`;
+                if (p.depth === 2) {
+                    this.ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+                    this.ctx.shadowBlur = 4;
+                }
+            } else if (this.currentTheme === 'volcano') {
+                if (p.type === 1) {
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(160, 160, 170, ${currentAlpha * 0.6})`;
+                } else {
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${p.hue}, 100%, 55%, ${currentAlpha})`;
+                    this.ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.9)`;
+                    this.ctx.shadowBlur = 6;
+                }
+            } else if (this.currentTheme === 'void') {
+                this.ctx.translate(p.x, p.y);
+                this.ctx.rotate(p.pulse);
+                this.ctx.rect(-p.size, -p.size, p.size * 2, p.size * 2);
+                this.ctx.fillStyle = `hsla(${p.hue}, 95%, 70%, ${currentAlpha})`;
+                this.ctx.shadowColor = `hsla(${p.hue}, 100%, 65%, 0.85)`;
+                this.ctx.shadowBlur = 8;
+            } else if (this.currentTheme === 'cavern') {
+                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                this.ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${currentAlpha * 0.75})`;
+                this.ctx.strokeStyle = `hsla(${p.hue}, 100%, 75%, ${currentAlpha})`;
+                this.ctx.lineWidth = 1;
+                this.ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.7)`;
+                this.ctx.shadowBlur = 5;
+                this.ctx.stroke();
+            } else if (this.currentTheme === 'calamity') {
+                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                this.ctx.fillStyle = `hsla(${p.hue}, 100%, 58%, ${currentAlpha})`;
+                this.ctx.shadowColor = '#f43f5e';
+                this.ctx.shadowBlur = 9;
+            } else {
+                this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                this.ctx.fillStyle = `hsla(${p.hue}, 95%, 65%, ${currentAlpha})`;
+                this.ctx.shadowColor = `hsla(${p.hue}, 100%, 50%, 0.8)`;
+                this.ctx.shadowBlur = 7;
+            }
+
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+    },
+
+    loop(timestamp) {
+        if (!this.isRunning) return;
+        const now = timestamp || ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now());
+        const dt = Math.min((now - (this.lastTime || now)) / 1000, 0.1);
+        this.lastTime = now;
+        this.update(dt);
+        this.render();
+        const raf = (typeof requestAnimationFrame !== 'undefined') ? requestAnimationFrame : (cb) => setTimeout(() => cb(((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now())), 16);
+        this.animId = raf((ts) => this.loop(ts));
+    }
+};
+window.ArenaWeather = ArenaWeather;
+
+// Visibility Change Auto-Pausing
+if (typeof document !== 'undefined' && document.addEventListener) {
+    document.addEventListener('visibilitychange', () => {
+        if (typeof ArenaWeather !== 'undefined' && ArenaWeather) {
+            if (document.hidden) {
+                ArenaWeather.stop();
+            } else {
+                const screenBattle = document.getElementById('screen-battle');
+                if (screenBattle && screenBattle.classList.contains('active')) {
+                    ArenaWeather.resize();
+                    ArenaWeather.start();
+                }
+            }
+        }
+    });
+}
+
+/* ==========================================================================
+   PACKAGE 3: COMPLETE TITLE SCREEN OVERHAUL & AWAKENING FLOW
+   ========================================================================== */
+
+const TitleWeather = {
+    canvas: null,
+    ctx: null,
+    particles: [],
+    animId: null,
+    isRunning: false,
+    width: 800,
+    height: 600,
+    _resizeAttached: false,
+
+    init() {
+        if (typeof document === 'undefined') return;
+        this.canvas = document.getElementById('title-ambient-canvas');
+        if (!this.canvas) return;
+        this.ctx = this.canvas.getContext('2d');
+        this.resize();
+        if (!this._resizeAttached && typeof window !== 'undefined' && window.addEventListener) {
+            window.addEventListener('resize', () => this.resize());
+            this._resizeAttached = true;
+        }
+        this.createParticles(35);
+        this.start();
+    },
+
+    resize() {
+        if (!this.canvas) return;
+        this.width = this.canvas.width = window.innerWidth || 800;
+        this.height = this.canvas.height = window.innerHeight || 600;
+    },
+
+    createParticles(count) {
+        this.particles = [];
+        const w = this.width || 800;
+        const h = this.height || 600;
+        for (let i = 0; i < count; i++) {
+            this.particles.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                radius: Math.random() * 2 + 1,
+                vx: (Math.random() - 0.5) * 0.4,
+                vy: -Math.random() * 0.6 - 0.2,
+                alpha: Math.random() * 0.6 + 0.2,
+                color: Math.random() > 0.5 ? '#f59e0b' : '#38bdf8'
+            });
+        }
+    },
+
+    start() {
+        if (!this.canvas) this.init();
+        if (!this.canvas) return;
+        if (this.isRunning) return;
+        this.isRunning = true;
+        this.loop();
+    },
+
+    stop() {
+        this.isRunning = false;
+        if (this.animId) {
+            const caf = (typeof cancelAnimationFrame !== 'undefined') ? cancelAnimationFrame : clearTimeout;
+            caf(this.animId);
+            this.animId = null;
+        }
+    },
+
+    loop() {
+        if (!this.isRunning) return;
+        if (this.ctx && this.width && this.height) {
+            this.ctx.clearRect(0, 0, this.width, this.height);
+            for (let p of this.particles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.y < 0) p.y = this.height;
+                if (p.x < 0) p.x = this.width;
+                if (p.x > this.width) p.x = 0;
+
+                this.ctx.save();
+                this.ctx.beginPath();
+                this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                this.ctx.fillStyle = p.color;
+                this.ctx.globalAlpha = p.alpha;
+                this.ctx.shadowBlur = 6;
+                this.ctx.shadowColor = p.color;
+                this.ctx.fill();
+                this.ctx.restore();
+            }
+        }
+        const raf = (typeof requestAnimationFrame !== 'undefined') ? requestAnimationFrame : (cb) => setTimeout(cb, 16);
+        this.animId = raf(() => this.loop());
+    }
+};
+window.TitleWeather = TitleWeather;
+
+function updateTitleSaveCard() {
+    if (typeof document === 'undefined') return;
+    const cardEl = document.getElementById('title-continue-card');
+    if (!cardEl) return;
+    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem('er_save') : null;
+    if (!raw) {
+        cardEl.innerHTML = `
+            <div class="snapshot-left">
+                <div class="snapshot-title">No Journey Found</div>
+                <div class="snapshot-meta">Begin a new adventure to carve your legend in Eldoria.</div>
+            </div>
+            <button class="btn btn-sm" onclick="startNewGameFlow()">⚔️ Begin</button>
+        `;
+        return;
+    }
+    try {
+        const saved = JSON.parse(raw);
+        const p = saved.player || {};
+        const heroName = p.name || 'Hero';
+        const heroLvl = p.level || p.lvl || 1;
+        const heroClass = p.currentClass || p.class || 'Novice';
+        const className = heroClass ? (heroClass.charAt(0).toUpperCase() + heroClass.slice(1)) : 'Novice';
+        const areaId = p.selectedArea || p.currentAreaId || 'area_1';
+        const gold = p.gold || 0;
+        cardEl.innerHTML = `
+            <div class="snapshot-left">
+                <div class="snapshot-title">✦ ${heroName} [Lv. ${heroLvl} ${className}]</div>
+                <div class="snapshot-meta">📍 Area: ${areaId.toUpperCase()} • 💰 ${gold.toLocaleString()} Gold</div>
+            </div>
+            <button class="btn-snapshot-continue" onclick="loadGame()">⚡ Continue Journey</button>
+        `;
+    } catch(e) {
+        cardEl.innerHTML = `<div class="snapshot-meta">Corrupted Save Data. Manage saves via Save Slots.</div>`;
+    }
+}
+window.updateTitleSaveCard = updateTitleSaveCard;
+
+let selectedOrigin = 'fire';
+function startNewGameFlow() {
+    selectedOrigin = 'fire';
+    selectOrigin('fire');
+    const input = document.getElementById('input-hero-name');
+    if (input) input.value = 'Hero';
+    if (typeof openModal === 'function') {
+        openModal('modal-awakening');
+    } else {
+        const modal = document.getElementById('modal-awakening');
+        const overlay = document.getElementById('overlay-awakening') || document.getElementById('main-overlay');
+        if (modal) modal.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+    }
+}
+window.startNewGameFlow = startNewGameFlow;
+
+function selectOrigin(origin) {
+    selectedOrigin = origin;
+    if (typeof document !== 'undefined') {
+        document.querySelectorAll('.origin-card').forEach(c => {
+            c.classList.toggle('selected', c.dataset.origin === origin);
+        });
+    }
+}
+window.selectOrigin = selectOrigin;
+
+function randomizeHeroName() {
+    const names = ['Aiden', 'Kaelen', 'Lyra', 'Valerius', 'Zephyr', 'Ignis', 'Sylvan', 'Moros', 'Aurelia', 'Vesper'];
+    const chosen = names[Math.floor(Math.random() * names.length)];
+    const input = document.getElementById('input-hero-name');
+    if (input) input.value = chosen;
+}
+window.randomizeHeroName = randomizeHeroName;
+
+function confirmAwakening() {
+    if (typeof closeModal === 'function') {
+        closeModal('modal-awakening');
+    } else {
+        const modal = document.getElementById('modal-awakening');
+        const overlay = document.getElementById('overlay-awakening') || document.getElementById('main-overlay');
+        if (modal) modal.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+    }
+    const nameInput = document.getElementById('input-hero-name');
+    const heroName = (nameInput && nameInput.value.trim()) || 'Hero';
+    
+    // Call base newGame
+    newGame();
+
+    // Apply chosen Origin & Name
+    if (typeof player !== 'undefined' && player) {
+        player.name = heroName;
+        player.origin = selectedOrigin;
+        if (selectedOrigin === 'fire') {
+            player.baseStats.atk = Math.round(player.baseStats.atk * 1.05);
+            if (!player.skills.includes('Fireball')) player.skills.push('Fireball');
+        } else if (selectedOrigin === 'water') {
+            player.baseStats.maxMp = Math.round(player.baseStats.maxMp * 1.10);
+            player.baseStats.mp = player.baseStats.maxMp;
+            if (!player.skills.includes('Heal')) player.skills.push('Heal');
+        } else if (selectedOrigin === 'earth') {
+            player.baseStats.def = Math.round(player.baseStats.def * 1.10);
+            if (!player.skills.includes('Stoneskin')) player.skills.push('Stoneskin');
+        } else if (selectedOrigin === 'wind') {
+            player.baseStats.spd = Math.round(player.baseStats.spd * 1.05);
+            if (!player.skills.includes('Spark Bolt')) player.skills.push('Spark Bolt');
+        }
+        if (typeof syncMainHero === 'function') syncMainHero();
+        if (typeof updateHeader === 'function') updateHeader();
+    }
+}
+window.confirmAwakening = confirmAwakening;
+
+function handleTitleLoad() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('er_save')) {
+        loadGame();
+    } else {
+        if (typeof showToast === 'function') {
+            showToast('Load Failed', 'No save found.', 'save');
+        }
+    }
+}
+window.handleTitleLoad = handleTitleLoad;
+
+let audioAwakened = false;
+function handleTitleUserGesture() {
+    if (audioAwakened) return;
+    audioAwakened = true;
+    if (typeof initAudioContext === 'function') initAudioContext();
+    if (typeof resumeAudio === 'function') resumeAudio();
+    if (typeof playTitleChime === 'function') playTitleChime();
+    const prompt = document.getElementById('title-audio-prompt');
+    if (prompt) prompt.style.display = 'none';
+}
+window.handleTitleUserGesture = handleTitleUserGesture;
+
+function playTitleChime() {
+    if (typeof audioState === 'undefined' || !audioState || !audioState.ctx || audioState.muted) return;
+    const ctx = audioState.ctx;
+    const now = ctx.currentTime;
+    const notes = [220, 277.18, 329.63, 440, 554.37];
+    notes.forEach((freq, idx) => {
+        try {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+            gain.gain.setValueAtTime(0, now + idx * 0.08);
+            gain.gain.linearRampToValueAtTime(0.08, now + idx * 0.08 + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 2.5);
+            osc.connect(gain);
+            gain.connect(audioState.masterGain || ctx.destination);
+            osc.start(now + idx * 0.08);
+            osc.stop(now + idx * 0.08 + 2.6);
+        } catch (e) {}
+    });
+}
+window.playTitleChime = playTitleChime;
+
+// Title Screen Initial Boot
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof updateTitleSaveCard === 'function') updateTitleSaveCard();
+            if (typeof TitleWeather !== 'undefined' && TitleWeather) TitleWeather.init();
+        });
+    } else {
+        if (typeof updateTitleSaveCard === 'function') updateTitleSaveCard();
+        if (typeof TitleWeather !== 'undefined' && TitleWeather) TitleWeather.init();
+    }
+}

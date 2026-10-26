@@ -14,7 +14,7 @@
 
 </head>
 
-<body>
+<body class="on-title-screen">
 
     <div id="toast-container"></div>
 
@@ -62,22 +62,89 @@
 
 
 
-    <!-- MAIN MENU -->
-
-    <div id="screen-main" class="screen active">
-
-        <div class="main-content">
-
-            <h1 style="font-size: 48px; margin-bottom: 40px; text-shadow: 0 0 10px var(--fire);">Elemental Realms</h1>
-
-            <button class="btn" style="font-size: 24px; width: 220px;" onclick="newGame()">New Game</button>
-
-            <button class="btn" style="font-size: 24px; width: 220px;" onclick="if(localStorage.getItem('er_save')) { loadGame(); } else { showToast('Load Failed', 'No save found.', 'save'); }">Load Game</button>
-
-            <button class="btn" id="btn-main-saves" style="font-size: 20px; width: 220px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-saves')">💾 Manage Saves</button>
-
+    <!-- MAIN MENU / TITLE SCREEN -->
+    <div id="screen-main" class="screen active" onclick="handleTitleUserGesture()">
+        <!-- Ambient Title Particle Canvas -->
+        <canvas id="title-ambient-canvas" class="title-ambient-canvas"></canvas>
+        <!-- Top Utility Bar -->
+        <div class="title-utility-bar">
+            <button class="title-util-btn" onclick="toggleAudio()" id="btn-title-audio" title="Audio Toggle">🔊 Audio</button>
+            <button class="title-util-btn" onclick="openCodexModal()" title="Adventurer's Codex">📖 Guide</button>
+            <button class="title-util-btn" onclick="openModal('modal-saves')" id="btn-main-saves" title="Save Manager">💾 Save Slots</button>
         </div>
+        <!-- Center Branding & Hero Actions -->
+        <div class="title-center-container">
+            <div class="title-branding">
+                <div class="title-crest">✦ ⚔️ ✦</div>
+                <h1 class="title-heading">ELEMENTAL REALMS</h1>
+                <div class="title-subheading">ECHOES OF THE SHATTERED LEYLINES</div>
+            </div>
+            <!-- Dynamic Save Slot Snapshot / Continue Card -->
+            <div id="title-continue-card" class="title-continue-card">
+                <!-- Dynamically populated by updateTitleSaveCard() -->
+            </div>
+            <!-- Primary Action Menu -->
+            <div class="title-menu-actions">
+                <button class="btn btn-title-primary" id="btn-title-new" onclick="startNewGameFlow()">⚔️ New Journey</button>
+                <button class="btn btn-title-secondary" id="btn-title-load" onclick="handleTitleLoad()">💾 Load Journey</button>
+            </div>
+        </div>
+        <!-- Bottom Status & Version Footer -->
+        <div class="title-footer-bar">
+            <span class="version-tag">v1.4.0 • Offline Edition</span>
+            <span class="audio-prompt-tag" id="title-audio-prompt">[ ⚔️ Click anywhere to awaken sound ]</span>
+            <span class="integrity-tag">50 Systems Operational</span>
+        </div>
+    </div>
 
+    <!-- AWAKENING / CHARACTER CREATION MODAL -->
+    <div class="overlay" id="overlay-awakening"></div>
+    <div class="modal awakening-modal" id="modal-awakening">
+        <div class="modal-header">
+            <span>✦ Awaken Champion</span>
+            <span class="close-btn" onclick="closeModal('modal-awakening')">✕</span>
+        </div>
+        <div class="awakening-body">
+            <div class="awakening-lore">
+                "The ancient Calamity shattered the leylines of Eldoria. From the ashes of the frontier, an attuned soul awakens..."
+            </div>
+            <!-- Step 1: Champion Name -->
+            <div class="awakening-section">
+                <label class="awakening-label">Champion's Name</label>
+                <div class="name-input-row">
+                    <input type="text" id="input-hero-name" maxlength="16" placeholder="Enter hero name..." value="Hero" class="awakening-input">
+                    <button type="button" class="btn btn-sm" onclick="randomizeHeroName()">🎲 Random</button>
+                </div>
+            </div>
+            <!-- Step 2: Elemental Origin Blessing -->
+            <div class="awakening-section">
+                <label class="awakening-label">Select Elemental Attunement</label>
+                <div class="origin-grid">
+                    <div class="origin-card selected" data-origin="fire" onclick="selectOrigin('fire')">
+                        <div class="origin-icon">🔥</div>
+                        <div class="origin-name">Flameborn</div>
+                        <div class="origin-perk">+5% Base ATK • Starts with Fireball</div>
+                    </div>
+                    <div class="origin-card" data-origin="water" onclick="selectOrigin('water')">
+                        <div class="origin-icon">💧</div>
+                        <div class="origin-name">Glacial Warden</div>
+                        <div class="origin-perk">+10% Max MP • Starts with Heal</div>
+                    </div>
+                    <div class="origin-card" data-origin="earth" onclick="selectOrigin('earth')">
+                        <div class="origin-icon">🪨</div>
+                        <div class="origin-name">Stonebound</div>
+                        <div class="origin-perk">+10% Base DEF • Starts with Stoneskin</div>
+                    </div>
+                    <div class="origin-card" data-origin="wind" onclick="selectOrigin('wind')">
+                        <div class="origin-icon">⚡</div>
+                        <div class="origin-name">Stormstrider</div>
+                        <div class="origin-perk">+5% Base SPD • Starts with Spark Bolt</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Confirm Button -->
+            <button class="btn btn-confirm-awakening" onclick="confirmAwakening()">Enter Eldoria ➔</button>
+        </div>
     </div>
 
 
@@ -85,63 +152,172 @@
     <!-- TOWN SCREEN -->
 
     <div id="screen-town" class="screen">
-
-        <div class="main-content">
-
-            <h2 style="font-size: 32px; margin-bottom: 20px;">Town Hub</h2>
-
-            <div class="town-grid" style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
-
-                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-battle-prep')">Find Enemies<br>(Battle)</button>
-
-                <button class="btn" style="width: 150px; height: 100px;" onclick="healInTown()">Rest at Inn<br>(20 Gold)</button>
-
-                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-shop')">Shop</button>
-
-                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-stats')">Character & Equip</button>
-
-                <button class="btn" style="width: 150px; height: 100px;" onclick="openModal('modal-inventory')">Inventory</button>
-
-                <button class="btn" style="width: 150px; height: 100px; color: #ffd700;" onclick="openModal('modal-skilltree')">Skill Tree</button>
-
-                <button class="btn" id="btn-town-quests" style="width: 150px; height: 100px; color: #38bdf8;" onclick="openModal('modal-quests')">Quests</button>
-
-                <button class="btn" id="btn-town-achievements" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-achievements')">Achievements</button>
-
-                <button class="btn" id="btn-town-blacksmith" style="width: 150px; height: 100px; color: #fb923c;" onclick="openModal('modal-blacksmith')">Blacksmith<br><span style="font-size: 12px; color: #fb923c;">Forge & Craft</span></button>
-
-                <button class="btn" id="btn-town-class" style="width: 150px; height: 100px; color: #c084fc;" onclick="openModal('modal-class-advancement')">Class Sanctum<br><span style="font-size: 12px; color: #a855f7;">Advancement</span></button>
-
-                <button class="btn" id="btn-town-spire" style="width: 150px; height: 100px; color: #38bdf8; border-color: #38bdf8;" onclick="openModal('modal-spire')">The Infinite Spire<br><span style="font-size: 12px; color: #a855f7;" id="btn-town-spire-sub">🌀 Floor 0</span></button>
-
-                <button class="btn" id="btn-town-pets" style="width: 150px; height: 100px; color: #4ade80; border-color: #4ade80;" onclick="openModal('modal-pets')">🐾 Familiar Sanctuary<br><span style="font-size: 12px; color: #86efac;">Pets & Bonding</span></button>
-
-                <button class="btn" id="btn-town-codex" style="width: 150px; height: 100px; color: #ffd700; border-color: #ffd700;" onclick="openCodexModal()">📖 Adventurer's Codex<br><span style="font-size: 11px; color: #fde047;">Guide & Pet Lore</span></button>
-
-                <button class="btn town-btn" id="btn-town-tavern" style="width: 150px; height: 100px; color: #f59e0b; border-color: #f59e0b; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="openTavernModal()">
-
-                    <div class="town-btn-icon" style="font-size: 24px; margin-bottom: 4px;">🍺</div>
-
-                    <div class="town-btn-label" style="font-weight: 600;">Tavern & Bounties</div>
-
-                </button>
-
-                <button class="btn town-btn" id="btn-town-mercenary" style="width: 150px; height: 100px; color: #ec4899; border-color: #ec4899; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="openMercenaryModal()">
-
-                    <div class="town-btn-icon" style="font-size: 24px; margin-bottom: 4px;">⚔️</div>
-
-                    <div class="town-btn-label" style="font-weight: 600;">Mercenary Barracks</div>
-
-                </button>
-                <button class="btn town-btn" id="btn-town-calamity" style="width: 150px; height: 100px; color: #f43f5e; border-color: #f43f5e; display: flex; flex-direction: column; align-items: center; justify-content: center;" onclick="openCalamityPortal()">
-                    <div class="town-btn-icon" style="font-size: 24px; margin-bottom: 4px;">🌋</div>
-                    <div class="town-btn-label" style="font-weight: 600;">Calamity Rift Gate</div>
-                </button>
-
+        <canvas id="town-ambient-canvas"></canvas>
+        <div class="main-content town-hub-wrapper">
+            <div class="town-header-banner">
+                <h2 class="town-title">Realm of Eldoria</h2>
+                <div class="town-subtitle">Select a district to visit shops, forge equipment, or embark on regional hunts.</div>
             </div>
-
+            <!-- DISTRICT 1: FRONTIER & EXPEDITIONS -->
+            <div class="town-district-section">
+                <div class="town-district-header">
+                    <span class="district-badge">⚔️ Frontier & Trials</span>
+                    <span class="district-line"></span>
+                </div>
+                <div class="town-district-grid grid-3col">
+                    <!-- Battle Prep -->
+                    <button class="town-building-card town-btn card-battle" id="btn-town-battle" onclick="openModal('modal-battle-prep')">
+                        <div class="building-icon-wrap">⚔️</div>
+                        <div class="building-info">
+                            <div class="building-name">Wilds Expedition</div>
+                            <div class="building-desc">Hunt regional beasts & gatekeeper bosses</div>
+                        </div>
+                        <div class="building-live-badge badge-battle" id="badge-town-battle">Select Zone</div>
+                    </button>
+                    <!-- Infinite Spire -->
+                    <button class="town-building-card town-btn card-spire" id="btn-town-spire" onclick="openModal('modal-spire')">
+                        <div class="building-icon-wrap">🌌</div>
+                        <div class="building-info">
+                            <div class="building-name">The Infinite Spire</div>
+                            <div class="building-desc" id="btn-town-spire-sub">Floor 0 Checkpoint</div>
+                        </div>
+                        <div class="building-live-badge badge-spire">Endless Gauntlet</div>
+                    </button>
+                    <!-- Calamity Rift Gate -->
+                    <button class="town-building-card town-btn card-calamity" id="btn-town-calamity" onclick="openCalamityPortal()">
+                        <div class="building-icon-wrap">🔮</div>
+                        <div class="building-info">
+                            <div class="building-name">Calamity Rift Gate</div>
+                            <div class="building-desc">Endgame 5-man raid horrors</div>
+                        </div>
+                        <div class="building-live-badge badge-calamity" id="badge-town-calamity">3 Keystones</div>
+                    </button>
+                </div>
+            </div>
+            <!-- DISTRICT 2: THE GRAND BAZAAR & GUILDS -->
+            <div class="town-district-section">
+                <div class="town-district-header">
+                    <span class="district-badge">🔨 The Grand Bazaar & Guilds</span>
+                    <span class="district-line"></span>
+                </div>
+                <div class="town-district-grid grid-4col">
+                    <!-- Blacksmith -->
+                    <button class="town-building-card town-btn card-blacksmith" id="btn-town-blacksmith" onclick="openModal('modal-blacksmith')">
+                        <div class="building-icon-wrap">⚒️</div>
+                        <div class="building-info">
+                            <div class="building-name">Iron Anvil Forge</div>
+                            <div class="building-desc">Upgrade, salvage & reforge gear</div>
+                        </div>
+                    </button>
+                    <!-- Shop -->
+                    <button class="town-building-card town-btn card-shop" id="btn-town-shop" onclick="openModal('modal-shop')">
+                        <div class="building-icon-wrap">🛒</div>
+                        <div class="building-info">
+                            <div class="building-name">Town Emporium</div>
+                            <div class="building-desc">Armory tiers, mystery coffers & altar</div>
+                        </div>
+                    </button>
+                    <!-- Tavern & Bounties -->
+                    <button class="town-building-card town-btn card-tavern" id="btn-town-tavern" onclick="openTavernModal()">
+                        <div class="building-icon-wrap">🍺</div>
+                        <div class="building-info">
+                            <div class="building-name">Wayfarer's Tavern</div>
+                            <div class="building-desc">Bounty board contracts & rumors</div>
+                        </div>
+                    </button>
+                    <!-- Mercenary Barracks -->
+                    <button class="town-building-card town-btn card-barracks" id="btn-town-mercenary" onclick="openMercenaryModal()">
+                        <div class="building-icon-wrap">🛡️</div>
+                        <div class="building-info">
+                            <div class="building-name">Mercenary Barracks</div>
+                            <div class="building-desc">Recruit allies & manage squad roster</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+            <!-- DISTRICT 3: SANCTUARY OF HEROES -->
+            <div class="town-district-section">
+                <div class="town-district-header">
+                    <span class="district-badge">🏛️ Sanctuary of Heroes</span>
+                    <span class="district-line"></span>
+                </div>
+                <div class="town-district-grid grid-4col">
+                    <!-- Character & Equip -->
+                    <button class="town-building-card town-btn card-char" id="btn-town-character" onclick="openModal('modal-stats')">
+                        <div class="building-icon-wrap">👤</div>
+                        <div class="building-info">
+                            <div class="building-name">Hero Equipment</div>
+                            <div class="building-desc">Manage attributes & equipped gear</div>
+                        </div>
+                    </button>
+                    <!-- Inventory -->
+                    <button class="town-building-card town-btn card-inv" id="btn-town-inventory" onclick="openModal('modal-inventory')">
+                        <div class="building-icon-wrap">🎒</div>
+                        <div class="building-info">
+                            <div class="building-name">Inventory Bag</div>
+                            <div class="building-desc">Consumables, gear & materials</div>
+                        </div>
+                    </button>
+                    <!-- Class Sanctum -->
+                    <button class="town-building-card town-btn card-class" id="btn-town-class" onclick="openModal('modal-class-advancement')">
+                        <div class="building-icon-wrap">✨</div>
+                        <div class="building-info">
+                            <div class="building-name">Class Sanctum</div>
+                            <div class="building-desc">Tier 1–3 specializations & apex evolutions</div>
+                        </div>
+                    </button>
+                    <!-- Skill Tree -->
+                    <button class="town-building-card town-btn card-tree" id="btn-town-skilltree" onclick="openModal('modal-skilltree')">
+                        <div class="building-info">
+                            <div class="building-name">Astral Skill Tree</div>
+                            <div class="building-desc">Damage, Sustain & General passive nodes</div>
+                        </div>
+                    </button>
+                    <!-- Familiar Sanctuary -->
+                    <button class="town-building-card town-btn card-pets" id="btn-town-pets" onclick="openModal('modal-pets')">
+                        <div class="building-icon-wrap">🐾</div>
+                        <div class="building-info">
+                            <div class="building-name">Familiar Sanctuary</div>
+                            <div class="building-desc">Companion pets & passive bonding</div>
+                        </div>
+                    </button>
+                    <!-- Inn & Rest -->
+                    <button class="town-building-card town-btn card-inn" id="btn-town-inn" onclick="healInTown()">
+                        <div class="building-icon-wrap">🛏️</div>
+                        <div class="building-info">
+                            <div class="building-name">Wayfarer's Inn</div>
+                            <div class="building-desc" id="btn-town-inn-sub">Rest and restore HP/MP (20 Gold)</div>
+                        </div>
+                    </button>
+                    <!-- Quests -->
+                    <button class="town-building-card town-btn card-quests" id="btn-town-quests" onclick="openModal('modal-quests')">
+                        <div class="building-icon-wrap">📜</div>
+                        <div class="building-info">
+                            <div class="building-name">Quest Archives</div>
+                            <div class="building-desc" id="btn-town-quests-sub">Milestone tasks & bounty marks</div>
+                        </div>
+                        <div class="building-live-badge badge-quests" id="badge-town-quests" style="display: none;"></div>
+                    </button>
+                    <!-- Achievements -->
+                    <button class="town-building-card town-btn card-achievements" id="btn-town-achievements" onclick="openModal('modal-achievements')">
+                        <div class="building-icon-wrap">🏆</div>
+                        <div class="building-info">
+                            <div class="building-name">Hall of Glory</div>
+                            <div class="building-desc" id="btn-town-achievements-sub">★ 0/37 Unlocked</div>
+                        </div>
+                        <div class="building-live-badge badge-achievements" id="badge-town-achievements" style="display: none;"></div>
+                    </button>
+                    <!-- Codex -->
+                    <button class="town-building-card town-btn card-codex" id="btn-town-codex" onclick="openCodexModal()">
+                        <div class="building-icon-wrap">📖</div>
+                        <div class="building-info">
+                            <div class="building-name">Adventurer's Codex</div>
+                            <div class="building-desc">Monster bestiary lore & guides</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
         </div>
-
     </div>
 
 
@@ -163,6 +339,8 @@
             </div>
 
             <div id="battle-arena">
+                <!-- Dynamic Arena Weather Particle Canvas -->
+                <canvas id="arena-weather-canvas" class="arena-weather-canvas"></canvas>
 
                 <button id="btn-combat-speed" class="btn" style="position: absolute; top: 12px; right: 12px; z-index: 60; padding: 5px 12px; font-size: 13px; background: rgba(0,0,0,0.65); border: 1px solid #ffaa00; color: #ffaa00;" onclick="toggleCombatSpeed()">⚡ Speed: 1x</button>
 
