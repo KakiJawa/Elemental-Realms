@@ -8370,8 +8370,9 @@ button, .btn, .entity-box, .zone-card, .shop-item-card, .equip-card, .battle-pet
 #screen-town {
     position: relative;
     background: radial-gradient(ellipse at top, #1e1b4b 0%, #0f172a 60%, #020617 100%);
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 #town-ambient-canvas {
@@ -8879,4 +8880,199 @@ body:has(#screen-main.active) .header-bar {
     .title-continue-card { flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
     .title-footer-bar { flex-direction: column; gap: 6px; text-align: center; }
     .btn-snapshot-continue { width: 100%; }
+}
+
+/* ==========================================================================
+   RESPONSIVE IN-GAME HEADER BAR
+   ========================================================================== */
+.header-bar {
+    background: #0f172a;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 100%;
+}
+@media (max-width: 600px) {
+    .header-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+    .header-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+    .header-brand {
+        font-size: 12.5px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+    .header-actions {
+        display: flex;
+        gap: 3px;
+        flex-wrap: nowrap;
+    }
+    .header-actions .btn {
+        padding: 3px 5px !important;
+        font-size: 10.5px !important;
+        margin: 0 !important;
+        border-radius: 6px !important;
+        border-width: 1px !important;
+    }
+    /* Wrap stats into a neat multi-pill status ribbon */
+    .header-stats {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 8px;
+        font-size: 11px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 4px;
+        width: 100%;
+    }
+    .header-stats span {
+        margin-right: 0 !important;
+    }
+}
+
+/* ==========================================================================
+   TOWN HUB LAYOUT & SCROLL INTEGRITY
+   ========================================================================== */
+#screen-town {
+    position: relative;
+    background: radial-gradient(ellipse at top, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+/* Fix flexbox centering defect: strictly start from top (top: 0) */
+.town-hub-wrapper,
+#screen-town .main-content {
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 16px 40px !important;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+@media (max-width: 600px) {
+    .town-hub-wrapper,
+    #screen-town .main-content {
+        padding: 10px 10px 32px !important;
+    }
+    .town-header-banner {
+        margin-bottom: 10px !important;
+        padding-bottom: 8px !important;
+        text-align: center;
+    }
+    .town-title {
+        font-size: 19px !important;
+        margin-bottom: 2px !important;
+    }
+    .town-subtitle {
+        font-size: 11px !important;
+        line-height: 1.3 !important;
+    }
+    .town-district-section {
+        margin-bottom: 14px !important;
+    }
+    .town-district-header {
+        margin-bottom: 8px !important;
+    }
+    .district-badge {
+        font-size: 11px !important;
+        padding: 2px 8px !important;
+    }
+    /* 2-Column Mobile Grid for quick thumb access */
+    .grid-3col, .grid-4col {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+    /* Ergonomic Compact Touch Cards */
+    .town-building-card {
+        min-height: 62px !important;
+        padding: 8px 10px !important;
+        gap: 8px !important;
+        border-radius: 8px !important;
+    }
+    .building-icon-wrap {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 17px !important;
+        border-radius: 6px !important;
+    }
+    .building-name {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+    }
+    .building-desc {
+        font-size: 9.5px !important;
+        line-height: 1.2 !important;
+    }
+    .building-live-badge {
+        display: none !important; /* Hide secondary tags on small cards */
+    }
+}
+
+/* ==========================================================================
+   UNIVERSAL MOBILE MODAL ENHANCEMENTS
+   ========================================================================== */
+@media (max-width: 600px) {
+    .modal {
+        width: 95% !important;
+        max-width: 95% !important;
+        max-height: 88vh !important;
+        padding: 14px !important;
+        border-radius: 12px !important;
+        box-sizing: border-box !important;
+    }
+    .modal-header {
+        font-size: 17px !important;
+        margin-bottom: 12px !important;
+        padding-bottom: 8px !important;
+    }
+    .close-btn {
+        font-size: 18px !important;
+        padding: 4px 8px !important;
+    }
+    /* Flexible wrapping for tab bars (Shop, Blacksmith, Bag) */
+    .shop-tabs-container,
+    .tabs-nav,
+    .filter-tabs,
+    .inv-filter-pills,
+    .inv-filter-bar {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+        margin-bottom: 10px !important;
+    }
+    .shop-tab-btn,
+    .tab-btn,
+    .inv-pill {
+        padding: 6px 10px !important;
+        font-size: 11.5px !important;
+    }
+    .shop-tab-btn,
+    .tab-btn {
+        flex: 1 1 calc(50% - 5px) !important; /* 2 tabs per row */
+    }
+    /* Item and equip rows on mobile */
+    .item-row {
+        padding: 8px 10px !important;
+        font-size: 12px !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
 }
